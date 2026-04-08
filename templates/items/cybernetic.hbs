@@ -1,0 +1,52 @@
+<form class="{{cssClass}} cybernetic-sheet item-sheet-layout" autocomplete="off">
+  <header class="item-sheet-header">
+    <img
+      class="item-sheet-icon"
+      src="{{item.img}}"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+
+    <div class="item-sheet-header-fields">
+      <div class="form-group full-width">
+        <label for="name">Name</label>
+        <input name="name" type="text" value="{{item.name}}" placeholder="Cybernetic Name" />
+      </div>
+    </div>
+  </header>
+
+  <section class="item-sheet-grid cybernetic-grid">
+    <div class="form-group">
+      <label for="system.weight">Weight</label>
+      <div class="inline-unit-field">
+        <input name="system.weight" type="number" value="{{system.weight}}" min="0" step="0.1" />
+        <span>kg</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="system.availability">Availability</label>
+      <select name="system.availability">
+        {{selectOptions availabilityOptions selected=system.availability}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.craftsmanship">Craftsmanship</label>
+      <select name="system.craftsmanship">
+        {{selectOptions craftsmanshipOptions selected=system.craftsmanship}}
+      </select>
+    </div>
+  </section>
+
+  <section class="form-group stacked cybernetic-short-description">
+    <label for="system.shortDescription">Short Description</label>
+    <textarea name="system.shortDescription" rows="3" placeholder="Short description">{{system.shortDescription}}</textarea>
+  </section>
+
+  <section class="form-group stacked cybernetic-description">
+    <label for="system.description">Description</label>
+    <textarea name="system.description" rows="10" placeholder="Long description">{{system.description}}</textarea>
+  </section>
+</form>

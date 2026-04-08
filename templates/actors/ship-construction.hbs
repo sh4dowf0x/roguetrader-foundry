@@ -1,0 +1,547 @@
+<form class="roguetrader ship-construction-sheet" autocomplete="off">
+  <div class="ship-construction-frame">
+    <header class="ship-construction-header">
+      <div>
+        <h1>Voidship Construction</h1>
+        <p>Set your Ship Point budget, choose a hull, and then build outward into components and weapons.</p>
+      </div>
+      <div class="ship-construction-points">
+        <div class="form-group">
+          <label>Ship Points Budget</label>
+          <input name="system.construction.shipPointBudget" type="number" value="{{draft.shipPointBudget}}" step="1" />
+        </div>
+        <input type="hidden" name="system.construction.stage" value="{{draft.stage}}" />
+        <input type="hidden" name="system.construction.submitAction" value="save" />
+      </div>
+    </header>
+
+    <nav class="ship-construction-stages">
+      {{#each stages as |stage|}}
+        <button
+          type="button"
+          class="ship-construction-stage-button {{#if stage.active}}active{{/if}}"
+          data-ship-construction-stage="{{stage.key}}"
+        >{{stage.label}}</button>
+      {{/each}}
+    </nav>
+
+    <section class="ship-construction-summary">
+      <div class="ship-construction-summary-card ship-construction-summary-card-compact">
+        <label>SP</label>
+        <strong>{{shipPointSummary.spent}}/{{shipPointSummary.total}}</strong>
+      </div>
+      <div class="ship-construction-summary-card ship-construction-summary-card-compact">
+        <label>Remaining SP</label>
+        <strong>{{shipPointSummary.remaining}}</strong>
+      </div>
+      <div class="ship-construction-summary-card ship-construction-summary-card-compact">
+        <label>Hull Cost</label>
+        <strong>{{shipPointSummary.hullCost}}</strong>
+      </div>
+      <div class="ship-construction-summary-card ship-construction-summary-card-compact">
+        <label>Supplementals</label>
+        <strong>{{shipPointSummary.supplementalCost}}</strong>
+      </div>
+      <div class="ship-construction-summary-card ship-construction-summary-card-compact">
+        <label>Power</label>
+        <strong>{{powerSummary.used}}/{{powerSummary.total}}</strong>
+      </div>
+      <div class="ship-construction-summary-card ship-construction-summary-card-compact">
+        <label>Space</label>
+        <strong>{{spaceSummary.used}}/{{spaceSummary.total}}</strong>
+      </div>
+    </section>
+
+    <section class="ship-construction-main">
+      <div class="ship-construction-left">
+        {{#if stageState.hull}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>1. Choose Hull</h2>
+            <span>{{index.hullSummary.count}} hulls indexed</span>
+          </div>
+
+          <div class="ship-construction-hull-class-filters">
+            {{#each hullClassFilters as |filter|}}
+              <button
+                type="button"
+                class="ship-construction-hull-class-button {{#if filter.active}}active{{/if}}"
+                data-ship-construction-hull-class="{{filter.key}}"
+              >{{filter.label}}</button>
+            {{/each}}
+          </div>
+
+          {{#if index.hulls.length}}
+            <div class="ship-construction-hull-list">
+              {{#each index.hulls as |hull|}}
+                <label class="ship-construction-hull-option {{#if hull.checked}}selected{{/if}}">
+                  <input type="radio" name="system.construction.selectedHullUuid" value="{{hull.uuid}}" {{#if hull.checked}}checked{{/if}} />
+                  <div class="ship-construction-hull-content">
+                    <div class="ship-construction-hull-topline">
+                      <strong>{{hull.name}}</strong>
+                      <span>{{hull.hullClass}}</span>
+                    </div>
+                    <div class="ship-construction-hull-meta">
+                      <span>SP {{hull.shipPointCost}}</span>
+                      <span>Speed {{hull.speed}}</span>
+                      <span>Man {{hull.maneuverabilityLabel}}</span>
+                      <span>Det {{hull.detectionLabel}}</span>
+                      <span>HI {{hull.hullIntegrity}}</span>
+                      <span>Arm {{hull.armor}}</span>
+                      <span>Tur {{hull.turretRating}}</span>
+                      <span>Source: {{hull.sourceLabel}}</span>
+                    </div>
+                    {{#if hull.shortDescription}}
+                      <p>{{hull.shortDescription}}</p>
+                    {{/if}}
+                  </div>
+                </label>
+              {{/each}}
+            </div>
+          {{else}}
+            <p class="ship-empty-state">No starship hulls were found in actor items, world items, or compendiums.</p>
+          {{/if}}
+        </section>
+        {{/if}}
+
+        {{#if stageState.essential}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>2. Essential Components</h2>
+            <span>{{index.essentialSummary.count}} indexed</span>
+          </div>
+          {{#if selectedHull}}
+            <div class="ship-construction-essential-slots">
+              {{#each index.essentialSlots as |slot|}}
+                <div class="ship-construction-essential-slot {{#if slot.selectedEntry}}active{{/if}}">
+                  <strong>{{slot.label}}</strong>
+                  <span>{{#if slot.selectedEntry}}{{slot.selectedEntry.name}}{{else}}Choose one{{/if}}</span>
+                </div>
+              {{/each}}
+            </div>
+
+            {{#each index.essentialSlots as |slot|}}
+              <section class="ship-construction-essential-group">
+                <div class="ship-construction-card-header">
+                  <h3>{{slot.label}}</h3>
+                  <span>{{slot.compatibleEntries.length}} compatible</span>
+                </div>
+                {{#if slot.compatibleEntries.length}}
+                  <div class="ship-construction-hull-list">
+                    {{#each slot.compatibleEntries as |entry|}}
+                      <label class="ship-construction-hull-option {{#if entry.checked}}selected{{/if}}">
+                        <input type="radio" name="system.construction.selectedEssentialSlots.{{slot.key}}" value="{{entry.uuid}}" data-ship-construction-essential-slot="{{slot.key}}" {{#if entry.checked}}checked{{/if}} />
+                        <div class="ship-construction-hull-content">
+                          <div class="ship-construction-hull-topline">
+                            <strong>{{entry.name}}</strong>
+                            <span>{{entry.origin}}</span>
+                          </div>
+                          <div class="ship-construction-hull-meta">
+                            <span>SP {{entry.shipPointCost}}</span>
+                            <span>Power {{entry.power}}</span>
+                            <span>Space {{entry.space}}</span>
+                            <span>Source: {{entry.sourceLabel}}</span>
+                          </div>
+                          {{#if entry.shortDescription}}
+                            <p>{{entry.shortDescription}}</p>
+                          {{/if}}
+                        </div>
+                      </label>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="ship-empty-state">No {{slot.label}} options are currently tagged as compatible with this hull class.</p>
+                {{/if}}
+              </section>
+            {{/each}}
+          {{else}}
+            <p class="ship-construction-placeholder">Choose a hull first. Essential component selection unlocks once the hull is known.</p>
+          {{/if}}
+        </section>
+        {{/if}}
+
+        {{#if stageState.supplemental}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>3. Supplemental Components</h2>
+            <span>{{index.supplementalSummary.count}} indexed</span>
+          </div>
+          {{#if selectedHull}}
+            {{#each index.supplementalCategories as |category|}}
+              <section class="ship-construction-essential-group">
+                <div class="ship-construction-card-header">
+                  <h3>{{category.label}}</h3>
+                  <span>{{category.compatibleEntries.length}} compatible</span>
+                </div>
+                {{#if category.compatibleEntries.length}}
+                  <div class="ship-construction-hull-list">
+                    {{#each category.compatibleEntries as |entry|}}
+                      <label class="ship-construction-hull-option {{#if entry.checked}}selected{{/if}}">
+                        <input type="checkbox" value="{{entry.uuid}}" data-ship-construction-supplemental="true" {{#if entry.checked}}checked{{/if}} />
+                        <div class="ship-construction-hull-content">
+                          <div class="ship-construction-hull-topline">
+                            <strong>{{entry.name}}</strong>
+                            <span>{{entry.origin}}</span>
+                          </div>
+                          <div class="ship-construction-hull-meta">
+                            <span>SP {{entry.shipPointCost}}</span>
+                            <span>Power {{entry.power}}</span>
+                            <span>Generation {{entry.generation}}</span>
+                            <span>Space {{entry.space}}</span>
+                            <span>Source: {{entry.sourceLabel}}</span>
+                          </div>
+                          {{#if entry.shortDescription}}
+                            <p>{{entry.shortDescription}}</p>
+                          {{/if}}
+                        </div>
+                      </label>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="ship-empty-state">No {{category.label}} options are currently tagged as compatible with this hull class.</p>
+                {{/if}}
+              </section>
+            {{/each}}
+          {{else}}
+            <p class="ship-construction-placeholder">Choose a hull first. Supplemental component selection unlocks once the hull is known.</p>
+          {{/if}}
+        </section>
+        {{/if}}
+
+        {{#if stageState.weapons}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>4. Ship Weapons</h2>
+            <span>{{index.shipWeaponSummary.count}} indexed</span>
+          </div>
+          {{#if selectedHull}}
+            {{#if index.shipWeaponSlots.length}}
+              {{#each index.shipWeaponSlots as |slot|}}
+                <section class="ship-construction-essential-group">
+                  <div class="ship-construction-card-header">
+                    <h3>{{slot.label}}</h3>
+                    <span>{{slot.compatibleEntries.length}} compatible</span>
+                  </div>
+                  {{#if slot.compatibleEntries.length}}
+                    <div class="ship-construction-hull-list">
+                      {{#each slot.compatibleEntries as |entry|}}
+                        <label class="ship-construction-hull-option {{#if entry.checked}}selected{{/if}}">
+                          <input type="radio" name="system.construction.selectedShipWeapons.{{slot.slotKey}}" value="{{entry.uuid}}" data-ship-construction-weapon-slot="{{slot.slotKey}}" {{#if entry.checked}}checked{{/if}} />
+                          <div class="ship-construction-hull-content">
+                            <div class="ship-construction-hull-topline">
+                              <strong>{{entry.name}}</strong>
+                              <span>{{entry.weaponClassLabel}}</span>
+                            </div>
+                            <div class="ship-construction-hull-meta">
+                              <span>SP {{entry.shipPointCost}}</span>
+                              <span>Power {{entry.power}}</span>
+                              <span>Space {{entry.space}}</span>
+                              <span>Strength {{entry.strength}}</span>
+                              <span>Crit {{entry.critRating}}</span>
+                              <span>Range {{entry.range}}</span>
+                            </div>
+                            {{#if entry.shortDescription}}
+                              <p>{{entry.shortDescription}}</p>
+                            {{/if}}
+                          </div>
+                        </label>
+                      {{/each}}
+                    </div>
+                  {{else}}
+                    <p class="ship-empty-state">No ship weapons are currently tagged as compatible with {{slot.label}} for this hull.</p>
+                  {{/if}}
+                </section>
+              {{/each}}
+            {{else}}
+              <p class="ship-construction-placeholder">This hull currently has no weapon capacity to fill.</p>
+            {{/if}}
+          {{else}}
+            <p class="ship-construction-placeholder">Choose a hull first. Weapon slotting unlocks once the hull profile is known.</p>
+          {{/if}}
+        </section>
+        {{/if}}
+
+        {{#if stageState.summary}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>5. Summary</h2>
+          </div>
+          <div class="ship-construction-index-sample">
+            <div class="ship-construction-index-row">
+              <strong>Hull</strong>
+              <span>{{#if selectedHull}}{{selectedHull.name}}{{else}}None{{/if}}</span>
+            </div>
+            <div class="ship-construction-index-row">
+              <strong>SP</strong>
+              <span>{{shipPointSummary.spent}} / {{shipPointSummary.total}}</span>
+            </div>
+            <div class="ship-construction-index-row">
+              <strong>Power</strong>
+              <span>{{powerSummary.used}} / {{powerSummary.total}}</span>
+            </div>
+            <div class="ship-construction-index-row">
+              <strong>Space</strong>
+              <span>{{spaceSummary.used}} / {{spaceSummary.total}}</span>
+            </div>
+          </div>
+
+          <section class="ship-construction-essential-group">
+            <div class="ship-construction-card-header">
+              <h3>Essential Components</h3>
+              <span>{{selectedEssentialComponents.length}} slots</span>
+            </div>
+            <div class="ship-construction-index-sample">
+              {{#each selectedEssentialComponents as |slot|}}
+                <div class="ship-construction-index-row">
+                  <strong>{{slot.label}}</strong>
+                  <span>{{#if slot.selectedEntry}}{{slot.selectedEntry.name}}{{else}}None{{/if}}</span>
+                </div>
+              {{/each}}
+            </div>
+          </section>
+
+          <section class="ship-construction-essential-group">
+            <div class="ship-construction-card-header">
+              <h3>Supplemental Components</h3>
+              <span>{{selectedSupplementalComponents.length}} selected</span>
+            </div>
+            {{#if selectedSupplementalComponents.length}}
+              <div class="ship-construction-index-sample">
+                {{#each selectedSupplementalComponents as |entry|}}
+                  <div class="ship-construction-index-row">
+                    <strong>{{entry.name}}</strong>
+                    <span>SP {{entry.shipPointCost}} | P {{entry.power}} | G {{entry.generation}} | S {{entry.space}}</span>
+                  </div>
+                {{/each}}
+              </div>
+            {{else}}
+              <p class="ship-empty-state">No supplemental components selected.</p>
+            {{/if}}
+          </section>
+
+          <section class="ship-construction-essential-group">
+            <div class="ship-construction-card-header">
+              <h3>Ship Weapons</h3>
+              <span>{{selectedShipWeapons.length}} mounted</span>
+            </div>
+            {{#if selectedShipWeapons.length}}
+              <div class="ship-construction-index-sample">
+                {{#each selectedShipWeapons as |entry|}}
+                  <div class="ship-construction-index-row">
+                    <strong>{{entry.slotLabel}}</strong>
+                    <span>{{entry.name}}</span>
+                  </div>
+                {{/each}}
+              </div>
+            {{else}}
+              <p class="ship-empty-state">No ship weapons selected.</p>
+            {{/if}}
+          </section>
+
+          <div class="ship-construction-summary-build">
+            <button type="button" class="ship-construction-submit-button" data-ship-construction-submit="build">Build Ship</button>
+          </div>
+        </section>
+        {{/if}}
+      </div>
+
+      <aside class="ship-construction-right">
+        {{#if activeSidebar.hull}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>Selected Hull</h2>
+          </div>
+          {{#if selectedHull}}
+            <div class="ship-construction-selected-hull">
+              <img class="ship-construction-selected-image" src="{{selectedHull.img}}" alt="{{selectedHull.name}}" />
+              <h3>{{selectedHull.name}}</h3>
+              <div class="ship-hull-stat-grid">
+                <div><strong>Class:</strong> {{selectedHull.hullClass}}</div>
+                <div><strong>SP Cost:</strong> {{selectedHull.shipPointCost}}</div>
+                <div><strong>Dimensions:</strong> {{selectedHull.dimensions}}</div>
+                <div><strong>Mass:</strong> {{selectedHull.mass}}</div>
+                <div><strong>Crew Size:</strong> {{selectedHull.crewComplement}}</div>
+                <div><strong>Acceleration:</strong> {{selectedHull.acceleration}}</div>
+              </div>
+              <div class="ship-hull-stat-grid ship-construction-hull-profile-grid">
+                <div><strong>Speed:</strong> {{selectedHull.speed}}</div>
+                <div><strong>Manoeuvrability:</strong> {{selectedHull.maneuverabilityLabel}}</div>
+                <div><strong>Detection:</strong> {{selectedHull.detectionLabel}}</div>
+                <div><strong>Hull:</strong> {{selectedHull.hullIntegrity}}</div>
+                <div><strong>Armour:</strong> {{selectedHull.armor}}</div>
+                <div><strong>Turret Rating:</strong> {{selectedHull.turretRating}}</div>
+                <div><strong>Space:</strong> {{selectedHull.space}}</div>
+              </div>
+              {{#if selectedHull.description}}
+                <div class="ship-hull-rules ship-construction-hull-description">{{selectedHull.description}}</div>
+              {{/if}}
+              {{#if selectedHull.specialRules}}
+                <div class="ship-hull-rules ship-construction-hull-special-rules">{{selectedHull.specialRules}}</div>
+              {{/if}}
+            </div>
+          {{else}}
+            <p class="ship-empty-state">Pick a hull to start the construction draft.</p>
+          {{/if}}
+        </section>
+        {{/if}}
+
+        {{#if activeSidebar.essential}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>Selected Essential Components</h2>
+          </div>
+          {{#if selectedEssentialComponents.length}}
+            <div class="ship-construction-index-sample">
+              {{#each selectedEssentialComponents as |slot|}}
+                <div class="ship-construction-index-row">
+                  <strong>{{slot.label}}</strong>
+                  <span>{{#if slot.selectedEntry}}{{slot.selectedEntry.name}}{{else}}None{{/if}}</span>
+                </div>
+              {{/each}}
+            </div>
+            {{#each selectedEssentialComponents as |slot|}}
+              {{#if slot.selectedEntry}}
+                <section class="ship-construction-essential-preview">
+                  <div class="ship-construction-card-header">
+                    <h3>{{slot.label}}</h3>
+                  </div>
+                  <div class="ship-hull-stat-grid">
+                    <div><strong>Name:</strong> {{slot.selectedEntry.name}}</div>
+                    <div><strong>SP:</strong> {{slot.selectedEntry.shipPointCost}}</div>
+                    <div><strong>Power:</strong> {{slot.selectedEntry.power}}</div>
+                    <div><strong>Space:</strong> {{slot.selectedEntry.space}}</div>
+                    <div><strong>Origin:</strong> {{slot.selectedEntry.origin}}</div>
+                    <div><strong>Source:</strong> {{slot.selectedEntry.sourceLabel}}</div>
+                  </div>
+                  {{#if slot.selectedEntry.description}}
+                    <div class="ship-hull-rules">{{slot.selectedEntry.description}}</div>
+                  {{/if}}
+                </section>
+              {{/if}}
+            {{/each}}
+          {{else}}
+            <p class="ship-empty-state">Choose essential components to preview their details here.</p>
+          {{/if}}
+        </section>
+        {{/if}}
+
+        {{#if activeSidebar.supplemental}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>Supplemental Preview</h2>
+          </div>
+          {{#if selectedSupplementalComponents.length}}
+            <div class="ship-construction-index-sample">
+              {{#each selectedSupplementalComponents as |entry|}}
+                <div class="ship-construction-index-row">
+                  <strong>{{entry.name}}</strong>
+                  <span>SP {{entry.shipPointCost}} | P {{entry.power}} | G {{entry.generation}} | S {{entry.space}}</span>
+                </div>
+              {{/each}}
+            </div>
+            {{#each selectedSupplementalComponents as |entry|}}
+              <section class="ship-construction-essential-preview">
+                <div class="ship-construction-card-header">
+                  <h3>{{entry.name}}</h3>
+                </div>
+                <div class="ship-hull-stat-grid">
+                  <div><strong>SP:</strong> {{entry.shipPointCost}}</div>
+                  <div><strong>Power:</strong> {{entry.power}}</div>
+                  <div><strong>Generation:</strong> {{entry.generation}}</div>
+                  <div><strong>Space:</strong> {{entry.space}}</div>
+                  <div><strong>Origin:</strong> {{entry.origin}}</div>
+                  <div><strong>Source:</strong> {{entry.sourceLabel}}</div>
+                </div>
+                {{#if entry.description}}
+                  <div class="ship-hull-rules">{{entry.description}}</div>
+                {{/if}}
+              </section>
+            {{/each}}
+          {{else}}
+            <p class="ship-construction-placeholder">Choose supplemental components to preview their full rules and ship impact here.</p>
+          {{/if}}
+        </section>
+        {{/if}}
+
+        {{#if activeSidebar.weapons}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>Weapon Preview</h2>
+          </div>
+          {{#if selectedShipWeapons.length}}
+            <div class="ship-construction-index-sample">
+              {{#each selectedShipWeapons as |entry|}}
+                <div class="ship-construction-index-row">
+                  <strong>{{entry.slotLabel}}</strong>
+                  <span>{{entry.name}}</span>
+                </div>
+              {{/each}}
+            </div>
+            {{#each selectedShipWeapons as |entry|}}
+              <section class="ship-construction-essential-preview">
+                <div class="ship-construction-card-header">
+                  <h3>{{entry.slotLabel}}</h3>
+                </div>
+                <div class="ship-hull-stat-grid">
+                  <div><strong>Name:</strong> {{entry.name}}</div>
+                  <div><strong>Type:</strong> {{entry.weaponClassLabel}}</div>
+                  <div><strong>SP:</strong> {{entry.shipPointCost}}</div>
+                  <div><strong>Power:</strong> {{entry.power}}</div>
+                  <div><strong>Space:</strong> {{entry.space}}</div>
+                  <div><strong>Strength:</strong> {{entry.strength}}</div>
+                  <div><strong>Damage:</strong> {{entry.damage}}</div>
+                  <div><strong>Crit:</strong> {{entry.critRating}}</div>
+                  <div><strong>Range:</strong> {{entry.range}}</div>
+                  <div><strong>Source:</strong> {{entry.sourceLabel}}</div>
+                </div>
+                {{#if entry.description}}
+                  <div class="ship-hull-rules">{{entry.description}}</div>
+                {{/if}}
+              </section>
+            {{/each}}
+          {{else}}
+            <p class="ship-construction-placeholder">Choose ship weapons to preview their full profiles here.</p>
+          {{/if}}
+        </section>
+        {{/if}}
+
+        {{#if activeSidebar.summary}}
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>Construction Summary</h2>
+          </div>
+          <div class="ship-construction-totals">
+            <div><strong>Hull:</strong> {{#if selectedHull}}{{selectedHull.name}}{{else}}None{{/if}}</div>
+            {{#each selectedEssentialComponents as |slot|}}
+              <div><strong>{{slot.label}}:</strong> {{#if slot.selectedEntry}}{{slot.selectedEntry.name}}{{else}}None{{/if}}</div>
+            {{/each}}
+            <div><strong>Supplementals:</strong> {{selectedSupplementalComponents.length}}</div>
+            <div><strong>Weapons:</strong> {{selectedShipWeapons.length}}</div>
+            <div><strong>Budget:</strong> {{shipPointSummary.total}}</div>
+            <div><strong>Spent:</strong> {{shipPointSummary.spent}}</div>
+            <div><strong>Remaining:</strong> {{shipPointSummary.remaining}}</div>
+          </div>
+        </section>
+        {{/if}}
+
+        <section class="ship-construction-card">
+          <div class="ship-construction-card-header">
+            <h2>Index Totals</h2>
+          </div>
+          <div class="ship-construction-totals">
+            <div><strong>Hulls:</strong> {{index.hullSummary.count}}</div>
+            <div><strong>Essential Components:</strong> {{index.essentialSummary.count}}</div>
+            <div><strong>Supplementals:</strong> {{index.supplementalSummary.count}}</div>
+            <div><strong>Ship Weapons:</strong> {{index.shipWeaponSummary.count}}</div>
+          </div>
+          <p class="ship-construction-placeholder">This is the scaffolding layer for the upcoming indexed construction flow. The next pass can add searchable filters, cost validation, and real add/remove drafting.</p>
+        </section>
+
+        <div class="ship-construction-actions">
+          <button type="button" class="ship-construction-submit-button" data-ship-construction-submit="apply">Apply Draft</button>
+          <button type="button" class="ship-construction-submit-button" data-ship-construction-submit="save">Save Draft</button>
+        </div>
+      </aside>
+    </section>
+  </div>
+</form>

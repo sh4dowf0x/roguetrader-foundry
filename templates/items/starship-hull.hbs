@@ -1,0 +1,136 @@
+<form class="roguetrader starship-hull-sheet" autocomplete="off">
+  <header class="sheet-header item-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+    <div class="header-fields">
+      <h1 class="item-name"><input name="name" type="text" value="{{item.name}}" /></h1>
+      <p class="item-subtitle">Starship Hull</p>
+    </div>
+  </header>
+
+  <section class="item-body-grid starship-hull-layout">
+    <div class="form-group">
+      <label>Class</label>
+      <select name="system.class">
+        {{selectOptions classOptions selected=system.class}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Ship Points</label>
+      <input name="system.shipPoints" type="number" value="{{system.shipPoints}}" step="1" />
+    </div>
+
+    <div class="form-group">
+      <label>Dimensions</label>
+      <input name="system.dimensions" type="text" value="{{system.dimensions}}" />
+    </div>
+
+    <div class="form-group">
+      <label>Mass</label>
+      <input name="system.mass" type="text" value="{{system.mass}}" />
+    </div>
+
+    <div class="form-group">
+      <label>Crew Complement</label>
+      <input name="system.crewComplement" type="text" value="{{system.crewComplement}}" />
+    </div>
+
+    <div class="form-group">
+      <label>Acceleration</label>
+      <input name="system.acceleration" type="text" value="{{system.acceleration}}" />
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Description</label>
+      <textarea class="starship-hull-autosize starship-hull-description" name="system.description" rows="6" placeholder="Enter hull description here...">{{system.description}}</textarea>
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Voidship Profile</label>
+      <div class="starship-hull-stat-row">
+        <div class="form-group starship-hull-mini-field">
+          <label>Speed</label>
+          <input name="system.speed" type="number" value="{{system.speed}}" step="1" />
+        </div>
+        <div class="form-group starship-hull-mini-field">
+          <label>Manoeuvrability</label>
+          <input name="system.maneuverability" type="number" value="{{system.maneuverability}}" step="1" />
+        </div>
+        <div class="form-group starship-hull-mini-field">
+          <label>Detection</label>
+          <input name="system.detection" type="number" value="{{system.detection}}" step="1" />
+        </div>
+        <div class="form-group starship-hull-mini-field">
+          <label>Hull Integrity</label>
+          <input name="system.hullIntegrity" type="number" value="{{system.hullIntegrity}}" step="1" />
+        </div>
+        <div class="form-group starship-hull-mini-field">
+          <label>Armour</label>
+          <input name="system.armor" type="number" value="{{system.armor}}" step="1" />
+        </div>
+        <div class="form-group starship-hull-mini-field">
+          <label>Turret Rating</label>
+          <input name="system.turretRating" type="number" value="{{system.turretRating}}" step="1" />
+        </div>
+        <div class="form-group starship-hull-mini-field">
+          <label>Shields</label>
+          <input name="system.shields" type="number" value="{{system.shields}}" step="1" />
+        </div>
+        <div class="form-group starship-hull-mini-field">
+          <label>Space</label>
+          <input name="system.space" type="number" value="{{system.space}}" step="1" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Weapon Capacity</label>
+      <div class="starship-hull-capacity-grid">
+        <div class="form-group">
+          <label>Dorsal</label>
+          <input name="system.weaponCapacity.dorsal" type="number" value="{{system.weaponCapacity.dorsal}}" step="1" />
+        </div>
+        <div class="form-group">
+          <label>Prow</label>
+          <input name="system.weaponCapacity.prow" type="number" value="{{system.weaponCapacity.prow}}" step="1" />
+        </div>
+        <div class="form-group">
+          <label>Keel</label>
+          <input name="system.weaponCapacity.keel" type="number" value="{{system.weaponCapacity.keel}}" step="1" />
+        </div>
+        <div class="form-group">
+          <label>Port</label>
+          <input name="system.weaponCapacity.port" type="number" value="{{system.weaponCapacity.port}}" step="1" />
+        </div>
+        <div class="form-group">
+          <label>Starboard</label>
+          <input name="system.weaponCapacity.starboard" type="number" value="{{system.weaponCapacity.starboard}}" step="1" />
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Special Rules / Pre-equipped Components</label>
+      <textarea class="starship-hull-autosize starship-hull-special-rules" name="system.specialRules" rows="4" placeholder="Enter special rules or pre-equipped components...">{{system.specialRules}}</textarea>
+    </div>
+
+    <div class="form-group">
+      <label>Availability</label>
+      <select name="system.availability">
+        {{selectOptions availabilityOptions selected=system.availability}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Craftsmanship</label>
+      <select name="system.craftsmanship">
+        {{selectOptions craftsmanshipOptions selected=system.craftsmanship}}
+      </select>
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Short Description</label>
+      <input name="system.shortDescription" type="text" value="{{system.shortDescription}}" />
+    </div>
+  </section>
+</form>

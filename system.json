@@ -1,0 +1,57 @@
+{
+  "id": "roguetrader",
+  "title": "Rogue Trader",
+  "description": "A custom Rogue Trader game system for Foundry Virtual Tabletop.",
+  "version": "0.0.1",
+  "authors": [
+    {
+      "name": "Codex"
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "esmodules": [
+    "rogue-trader.js"
+  ],
+  "styles": [
+    "styles/roguetrader.css"
+  ],
+  "packs": [
+    {
+      "label": "Character Creation Options",
+      "type": "Item",
+      "name": "character-creation-options",
+      "path": "packs/character-creation-options",
+      "system": "roguetrader"
+    },
+    {
+      "label": "Equipment",
+      "type": "Item",
+      "name": "equipment",
+      "path": "packs/equipment",
+      "system": "roguetrader"
+    }
+  ],
+  "languages": [],
+  "socket": false,
+  "url": "",
+  "manifest": "",
+  "download": "",
+  "license": "",
+  "readme": "",
+  "bugs": "",
+  "changelog": "",
+  "grid": {
+    "distance": 5,
+    "units": "m"
+  },
+  "primaryTokenAttribute": "",
+  "secondaryTokenAttribute": "",
+  "background": "",
+  "initiative": "",
+  "templates": {
+    "actor": "template.json"
+  }
+}

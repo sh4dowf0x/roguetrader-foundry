@@ -1,0 +1,888 @@
+{
+  "Actor": {
+    "types": [
+      "character",
+      "npc",
+      "ship"
+    ],
+    "templates": {
+      "common": {
+        "biography": "",
+        "notes": ""
+      }
+    },
+    "character": {
+      "templates": [
+        "common"
+      ],
+      "identity": {
+        "careerPath": "",
+        "homeWorld": "",
+        "motivation": ""
+      },
+      "advancement": {
+        "totalXp": 5000,
+        "spentXp": 4500,
+        "xpLog": [],
+        "customPurchases": [],
+        "alternateRank": {
+          "enabled": false,
+          "selected": "",
+          "replacesRank": 1
+        },
+        "purchasedAdvances": {},
+        "purchasedCharacteristicAdvances": {},
+        "startingCharacteristics": {
+          "locked": false,
+          "values": {
+            "weaponSkill": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            },
+            "ballisticSkill": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            },
+            "strength": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            },
+            "toughness": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            },
+            "agility": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            },
+            "intelligence": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            },
+            "perception": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            },
+            "willpower": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            },
+            "fellowship": {
+              "value": 0,
+              "generated": false,
+              "rerolled": false
+            }
+          }
+        },
+        "originPath": {
+          "homeWorld": {
+            "selected": "",
+            "confirmed": false,
+            "specialChoice": "",
+            "startingWounds": 0,
+            "startingWoundsRolled": false,
+            "startingFate": 0,
+            "startingFateRolled": false
+          },
+          "birthright": {
+            "selected": "",
+            "confirmed": false,
+            "choices": {}
+          },
+          "lureOfTheVoid": {
+            "selected": "",
+            "confirmed": false,
+            "choices": {}
+          },
+          "trialsAndTravails": {
+            "selected": "",
+            "confirmed": false,
+            "choices": {}
+          },
+          "motivation": {
+            "selected": "",
+            "confirmed": false,
+            "choices": {}
+          }
+        },
+        "career": {
+          "selected": "",
+          "confirmed": false,
+          "choices": {}
+        }
+      },
+      "characteristics": {
+        "weaponSkill": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "ballisticSkill": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "strength": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "toughness": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "agility": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "intelligence": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "perception": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "willpower": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "fellowship": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        }
+      },
+        "resources": {
+          "wounds": {
+            "value": 0,
+            "max": 0
+          },
+        "criticalDamage": 0,
+        "fatigue": 0,
+          "fate": {
+            "value": 0,
+            "max": 0
+          }
+        },
+        "conditions": {
+          "onFire": {
+            "active": false,
+            "source": "",
+            "cleansingFire": false,
+            "lastProcessed": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
+          },
+          "stunned": {
+            "active": false,
+            "source": "",
+            "roundsRemaining": 0,
+            "lastProcessed": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
+          },
+          "snared": {
+            "active": false,
+            "source": "",
+            "lastProcessed": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
+          },
+          "fear": {
+            "active": false,
+            "source": ""
+          },
+            "fatigued": {
+              "active": false,
+              "source": ""
+            },
+          "prone": {
+            "active": false,
+            "source": ""
+          },
+          "frenzied": {
+            "active": false,
+            "source": ""
+          },
+          "braced": {
+            "active": false,
+            "source": ""
+          }
+        },
+        "corruption": {
+          "points": 0,
+          "degree": "",
+        "malignancies": "",
+        "testedThresholds": [],
+        "testedMutationThresholds": []
+      },
+      "insanity": {
+        "points": 0,
+        "degree": "",
+        "disorders": ""
+      },
+      "criticalInjuries": {
+        "entries": ""
+      },
+      "acquisitions": {
+        "profitFactor": 0,
+        "entries": {
+          "entry1": {
+            "item": "",
+            "notes": ""
+          },
+          "entry2": {
+            "item": "",
+            "notes": ""
+          },
+          "entry3": {
+            "item": "",
+            "notes": ""
+          },
+          "entry4": {
+            "item": "",
+            "notes": ""
+          },
+          "entry5": {
+            "item": "",
+            "notes": ""
+          }
+        }
+      }
+    },
+    "npc": {
+      "templates": [
+        "common"
+      ],
+      "characteristics": {
+        "weaponSkill": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "ballisticSkill": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "strength": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "toughness": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "agility": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "intelligence": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "perception": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "willpower": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        },
+        "fellowship": {
+          "value": 0,
+          "bonus": 0,
+          "bonusMultiplier": 1,
+          "advanceTaken": 0,
+          "tempModifier": 0
+        }
+      },
+        "resources": {
+          "wounds": {
+            "value": 0,
+            "max": 0
+          },
+          "criticalDamage": 0,
+          "fatigue": 0
+        },
+        "conditions": {
+          "onFire": {
+            "active": false,
+            "source": "",
+            "cleansingFire": false,
+            "lastProcessed": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
+          },
+          "stunned": {
+            "active": false,
+            "source": "",
+            "roundsRemaining": 0,
+            "lastProcessed": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
+          },
+          "snared": {
+            "active": false,
+            "source": "",
+            "lastProcessed": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
+          },
+          "fear": {
+            "active": false,
+            "source": ""
+          },
+            "fatigued": {
+              "active": false,
+              "source": ""
+            },
+          "prone": {
+            "active": false,
+            "source": ""
+          },
+          "frenzied": {
+            "active": false,
+            "source": ""
+          },
+          "braced": {
+            "active": false,
+            "source": ""
+          }
+        }
+      },
+    "ship": {
+      "templates": [
+        "common"
+      ],
+      "construction": {
+        "stage": "hull",
+        "shipPointBudget": 0,
+        "selectedHullUuid": "",
+        "selectedHullName": "",
+        "selectedHullClass": "all",
+        "selectedEssentialComponents": [],
+        "selectedEssentialSlots": {
+          "plasmaDriveUuid": "",
+          "warpEngineUuid": "",
+          "gellarFieldUuid": "",
+          "voidShieldUuid": "",
+          "shipsBridgeUuid": "",
+          "lifeSustainerUuid": "",
+          "crewQuartersUuid": "",
+          "augurArrayUuid": ""
+        },
+        "selectedSupplementalComponents": [],
+        "selectedShipWeapons": {}
+      },
+      "dimensions": "",
+      "mass": "",
+      "crewComplement": "",
+      "acceleration": "",
+      "description": "",
+      "class": "",
+      "hull": "",
+      "activeHullItemId": "",
+      "speed": 0,
+      "maneuverability": 0,
+      "detection": 0,
+      "turretRating": 0,
+      "shields": 0,
+      "armor": 0,
+      "space": {
+        "value": 0,
+        "used": 0
+      },
+      "power": {
+        "value": 0,
+        "used": 0
+      },
+      "crew": {
+        "value": 100,
+        "max": 100
+      },
+      "shipPoints": {
+        "value": 0,
+        "spent": 0
+      },
+      "controlMode": "player",
+      "npcCrewRating": 30,
+        "resources": {
+          "hullIntegrity": {
+            "value": 0,
+            "max": 0
+          },
+          "morale": {
+            "value": 0,
+            "max": 0
+          }
+        },
+        "conditions": {
+          "crippled": {
+            "active": false,
+            "source": ""
+          }
+        },
+        "weaponCapacity": {
+          "dorsal": 0,
+          "prow": 0,
+          "keel": 0,
+          "port": 0,
+          "starboard": 0
+        },
+        "roster": {
+          "captain": {
+            "actorUuid": ""
+          },
+          "helmsman": {
+            "actorUuid": ""
+          },
+          "masterOfAetherics": {
+            "actorUuid": ""
+          },
+          "masterGunner": {
+            "actorUuid": ""
+          },
+          "chiefEnginseer": {
+            "actorUuid": ""
+          },
+          "navigator": {
+            "actorUuid": ""
+          }
+        },
+        "pastHistory": "",
+        "traits": ""
+      }
+  },
+  "Item": {
+    "types": [
+      "skill",
+      "weapon",
+      "armor",
+      "gear",
+      "consumable",
+      "tool",
+      "cybernetic",
+      "talent",
+      "psychicTechnique",
+      "navigatorPower",
+      "psychicPower",
+      "shipComponent",
+      "essentialComponent",
+      "supplementalComponent",
+      "shipWeapon",
+      "starshipHull",
+      "mutation",
+      "malignancy",
+      "mentalDisorder",
+      "criticalInjury"
+    ],
+    "templates": {
+      "common": {
+        "description": "",
+        "equipped": false,
+        "availability": "average",
+        "craftsmanship": "common"
+      }
+    },
+    "weapon": {
+      "templates": [
+        "common"
+      ],
+      "class": "basic",
+      "weaponType": "las",
+      "range": 0,
+      "rof": "S/0/0",
+      "damage": "1d10+0 I",
+      "penetration": 0,
+      "maximalMode": false,
+      "clip": 0,
+      "currentClip": 0,
+      "reload": "full",
+      "weight": 0,
+      "special": {
+        "accurate": false,
+        "balanced": false,
+        "blast": false,
+        "blastValue": 0,
+        "customized": false,
+        "defensive": false,
+        "felling": false,
+        "fellingValue": 0,
+        "flame": false,
+        "flexible": false,
+        "force": false,
+        "haywire": false,
+        "haywireValue": 0,
+        "inaccurate": false,
+        "overheats": false,
+        "powerField": false,
+        "primitive": false,
+        "recharge": false,
+        "reliable": false,
+        "sanctified": false,
+        "scatter": false,
+        "shocking": false,
+        "smoke": false,
+        "snare": false,
+        "storm": false,
+        "tearing": false,
+        "toxic": false,
+        "twinLinked": false,
+        "unbalanced": false,
+          "unreliable": false,
+          "unstable": false,
+          "unwieldy": false,
+          "warpWeapon": false
+        }
+      },
+    "skill": {
+      "templates": [
+        "common"
+      ],
+      "characteristic": "intelligence",
+      "basic": false,
+      "trained": false,
+      "advance10": false,
+      "advance20": false,
+      "bonus": 0,
+      "specialization": ""
+    },
+    "armor": {
+      "templates": [
+        "common"
+      ],
+      "armorType": "primitive",
+      "characteristicModifiers": "",
+      "locations": {
+        "arms": false,
+        "body": false,
+        "legs": false,
+        "head": false
+      },
+      "ap": {
+        "arms": 0,
+        "body": 0,
+        "legs": 0,
+        "head": 0
+      },
+      "weight": 0,
+      "special": {
+        "communications": false,
+        "autoSenses": false,
+        "preysense": false,
+        "powerArmour": false,
+        "hulking": false,
+        "flak": false,
+        "primitive": false
+      }
+    },
+    "gear": {
+      "templates": [
+        "common"
+      ],
+      "weight": 0,
+      "shortDescription": ""
+    },
+    "consumable": {
+      "templates": [
+        "common"
+      ],
+      "weight": 0,
+      "shortDescription": ""
+    },
+    "tool": {
+      "templates": [
+        "common"
+      ],
+      "weight": 0,
+      "shortDescription": ""
+    },
+    "cybernetic": {
+      "templates": [
+        "common"
+      ],
+      "weight": 0,
+      "shortDescription": ""
+    },
+    "talent": {
+      "templates": [
+        "common"
+      ],
+      "category": "talent",
+      "rating": "",
+      "prerequisites": "",
+      "benefit": ""
+    },
+    "psychicTechnique": {
+      "templates": [
+        "common"
+      ],
+      "value": "100",
+      "prerequisites": "",
+      "focusPowerTest": "no",
+      "focusTime": "n/a",
+      "sustain": "no",
+      "range": ""
+    },
+    "navigatorPower": {
+      "templates": [
+        "common"
+      ],
+      "mastery": "n/a",
+      "benefit": ""
+    },
+    "psychicPower": {
+      "templates": [
+        "common"
+      ],
+      "focusPowerTest": "",
+      "sustained": false
+    },
+    "shipComponent": {
+      "templates": [
+        "common"
+      ],
+      "categoryType": "",
+      "componentType": "",
+      "allowedHulls": {
+        "transport": false,
+        "raider": false,
+        "frigate": false,
+        "lightCruiser": false,
+        "cruiser": false,
+        "grandCruiser": false,
+        "battleship": false,
+        "allShips": false
+      },
+      "shipPointCost": 0,
+      "power": 0,
+      "generation": 0,
+      "space": 0,
+      "origin": "",
+      "shortDescription": ""
+    },
+    "essentialComponent": {
+      "templates": [
+        "common"
+      ],
+      "categoryType": "",
+      "componentType": "",
+      "allowedHulls": {
+        "transport": false,
+        "raider": false,
+        "frigate": false,
+        "lightCruiser": false,
+        "cruiser": false,
+        "grandCruiser": false,
+        "battleship": false,
+        "allShips": false
+      },
+      "shipPointCost": 0,
+      "power": 0,
+      "generation": 0,
+      "space": 0,
+      "origin": "",
+      "shortDescription": ""
+    },
+    "supplementalComponent": {
+      "templates": [
+        "common"
+      ],
+      "categoryType": "",
+      "componentType": "",
+      "allowedHulls": {
+        "transport": false,
+        "raider": false,
+        "frigate": false,
+        "lightCruiser": false,
+        "cruiser": false,
+        "grandCruiser": false,
+        "battleship": false,
+        "allShips": false
+      },
+      "shipPointCost": 0,
+      "power": 0,
+      "generation": 0,
+      "space": 0,
+      "origin": "",
+      "shortDescription": ""
+    },
+    "shipWeapon": {
+      "templates": [
+        "common"
+      ],
+      "shipPointCost": 0,
+      "power": 0,
+      "space": 0,
+      "weaponClass": "macrobattery",
+      "allowedHulls": {
+        "transport": false,
+        "raider": false,
+        "frigate": false,
+        "lightCruiser": false,
+        "cruiser": false,
+        "grandCruiser": false,
+        "battleship": false,
+        "allShips": false
+      },
+      "allowedLocations": {
+        "any": false,
+        "dorsal": false,
+        "prow": false,
+        "keel": false,
+        "port": false,
+        "starboard": false
+      },
+      "strength": "",
+      "critRating": "",
+      "damage": "",
+      "range": "",
+      "location": "dorsal",
+      "shortDescription": ""
+    },
+    "starshipHull": {
+      "templates": [
+        "common"
+      ],
+      "class": "",
+      "dimensions": "",
+      "mass": "",
+      "crewComplement": "",
+      "acceleration": "",
+      "speed": 0,
+      "maneuverability": 0,
+      "detection": 0,
+      "hullIntegrity": 0,
+      "armor": 0,
+      "turretRating": 0,
+      "shields": 0,
+      "space": 0,
+      "shipPoints": 0,
+      "weaponCapacity": {
+        "dorsal": 0,
+        "prow": 0,
+        "keel": 0,
+        "port": 0,
+        "starboard": 0
+      },
+      "specialRules": "",
+      "shortDescription": ""
+    },
+    "mutation": {
+      "templates": [
+        "common"
+      ],
+      "summary": "",
+      "severity": "",
+      "sourceTable": "mutations",
+      "rollRange": "",
+      "notes": "",
+      "modifierFormula": "",
+      "resolvedModifiers": ""
+    },
+    "malignancy": {
+      "templates": [
+        "common"
+      ],
+      "summary": "",
+      "severity": "",
+      "sourceTable": "malignancies",
+      "rollRange": "",
+      "notes": "",
+      "modifierFormula": "",
+      "resolvedModifiers": ""
+    },
+    "mentalDisorder": {
+      "templates": [
+        "common"
+      ],
+      "summary": "",
+      "severity": "",
+      "sourceTable": "mentalDisorders",
+      "rollRange": "",
+      "notes": "",
+      "modifierFormula": "",
+      "resolvedModifiers": ""
+    },
+    "criticalInjury": {
+      "templates": [
+        "common"
+      ],
+      "summary": "",
+      "severity": "",
+      "sourceTable": "criticalInjuries",
+      "rollRange": "",
+      "notes": "",
+      "modifierFormula": "",
+      "resolvedModifiers": ""
+    }
+  }
+}
+

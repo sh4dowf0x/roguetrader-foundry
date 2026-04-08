@@ -1,0 +1,286 @@
+<form class="roguetrader ship-sheet" autocomplete="off">
+  <div class="ship-sheet-frame">
+    <header class="ship-sheet-header">
+      <div class="ship-sheet-title-block">
+        <input class="ship-sheet-name" name="name" type="text" value="{{actor.name}}" placeholder="Voidship Name" />
+        <div class="ship-sheet-meta">
+          <div class="ship-stat-line">
+            <label>Class</label>
+            <input name="system.class" type="text" value="{{system.class}}" />
+          </div>
+          <div class="ship-stat-line">
+            <label>Hull</label>
+            <input name="system.hull" type="text" value="{{system.hull}}" />
+          </div>
+          <div class="ship-stat-line ship-stat-line-compact">
+            <label>Ship Points</label>
+            <input name="system.shipPoints.value" type="number" value="{{system.shipPoints.value}}" step="1" />
+          </div>
+          <div class="ship-stat-line ship-stat-line-compact">
+            <label>Ship Control</label>
+            <select name="system.controlMode">
+              {{#each ship.controlModeOptions as |option|}}
+                <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+              {{/each}}
+            </select>
+          </div>
+        </div>
+        <div class="ship-title-actions">
+          <button type="button" class="ship-construct-button">Construct Voidship</button>
+        </div>
+      </div>
+      <div class="ship-sheet-art">
+        <img src="{{ship.art}}" data-edit="img" title="{{actor.name}}" />
+      </div>
+    </header>
+
+    {{#if ship.isNpcControlled}}
+      <section class="ship-card ship-roster-card">
+        <h2>NPC Crew</h2>
+        <div class="ship-npc-crew-panel">
+          <div class="ship-npc-crew-field">
+            <label>Crew Rating</label>
+            <select name="system.npcCrewRating">
+              {{#each ship.npcCrewRatingOptions as |option|}}
+                <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="ship-npc-crew-summary">
+            <div class="ship-npc-crew-target">{{ship.npcCrewRating}}</div>
+            <div class="ship-npc-crew-text">Base target number for voidship tests.</div>
+          </div>
+        </div>
+      </section>
+    {{else}}
+      <section class="ship-card ship-roster-card">
+        <h2>Voidship Roster</h2>
+        <div class="ship-roster-grid">
+          {{#each ship.roster as |role|}}
+            <div class="ship-roster-slot" data-ship-roster-role="{{role.key}}">
+              <img class="ship-roster-portrait" src="{{role.portrait}}" alt="{{role.assignedName}}" />
+              <div class="ship-roster-content">
+                <div class="ship-roster-header">
+                  <div class="ship-roster-role">{{role.label}}</div>
+                  {{#if role.isAssigned}}
+                    <button type="button" class="ship-roster-clear" data-ship-roster-role="{{role.key}}" aria-label="Clear {{role.label}}">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  {{/if}}
+                </div>
+                <div class="ship-roster-assignment">{{role.assignedName}}</div>
+                {{#if role.isAssigned}}
+                  <div class="ship-roster-hint">Drop another crew member here to replace.</div>
+                {{else}}
+                  <div class="ship-roster-hint">Drag a character onto this slot.</div>
+                {{/if}}
+                <div class="ship-roster-stat">
+                  <label>{{role.primaryLabel}}</label>
+                  <strong>{{role.primaryValueLabel}}</strong>
+                </div>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      </section>
+    {{/if}}
+    <section class="ship-sheet-main">
+      <div class="ship-sheet-left">
+        <section class="ship-card ship-profile-card">
+          <h2>Voidship Profile</h2>
+          <div class="ship-profile-grid">
+            <div class="ship-profile-column">
+              <div class="ship-profile-field">
+                <label>Speed</label>
+                <input name="system.speed" type="number" value="{{system.speed}}" step="1" />
+              </div>
+              <div class="ship-profile-field">
+                <label>Manoeuvrability</label>
+                <input name="system.maneuverability" type="number" value="{{system.maneuverability}}" step="1" />
+              </div>
+              <div class="ship-profile-field">
+                <button type="button" class="ship-profile-roll" data-ship-test="activeAugury">Detection</button>
+                <input name="system.detection" type="number" value="{{system.detection}}" step="1" />
+              </div>
+            </div>
+            <div class="ship-profile-column">
+              <div class="ship-profile-field">
+                <label>Turret Rating</label>
+                <input name="system.turretRating" type="number" value="{{system.turretRating}}" step="1" />
+              </div>
+              <div class="ship-profile-field">
+                <label>Shields</label>
+                <input name="system.shields" type="number" value="{{system.shields}}" step="1" />
+              </div>
+              <div class="ship-profile-field">
+                <label>Armour</label>
+                <input name="system.armor" type="number" value="{{system.armor}}" step="1" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ship-card">
+          <div class="ship-section-header">
+            <h2>Starship Hull</h2>
+          </div>
+          {{#if ship.activeHull}}
+            <div class="ship-hull-summary">
+              <div class="ship-hull-summary-header">
+                <button type="button" class="ship-item-open ship-list-primary" data-item-id="{{ship.activeHull.id}}">{{ship.activeHull.name}}</button>
+              </div>
+              <div class="ship-hull-stat-grid">
+                <div><strong>Dimensions:</strong> {{ship.activeHull.dimensions}}</div>
+                <div><strong>Mass:</strong> {{ship.activeHull.mass}}</div>
+                <div><strong>Crew:</strong> {{ship.activeHull.crewComplement}}</div>
+                <div><strong>Accel:</strong> {{ship.activeHull.acceleration}}</div>
+                <div><strong>Ship Points:</strong> {{ship.activeHull.shipPoints}}</div>
+                <div><strong>Space:</strong> {{ship.activeHull.space}}</div>
+              </div>
+              {{#if ship.activeHull.shortDescription}}
+                <p class="ship-empty-state">{{ship.activeHull.shortDescription}}</p>
+              {{/if}}
+              {{#if ship.activeHull.specialRules}}
+                <div class="ship-hull-rules">{{ship.activeHull.specialRules}}</div>
+              {{/if}}
+            </div>
+          {{else}}
+            <p class="ship-empty-state">No hull applied yet. Create a Starship Hull item or click Construct Voidship to choose one.</p>
+          {{/if}}
+        </section>
+
+        <section class="ship-card">
+          <div class="ship-section-header">
+            <h2>Essential Components</h2>
+          </div>
+          <div class="ship-component-list">
+            {{#if ship.hasEssentialComponents}}
+              {{#each ship.essentialComponents as |component|}}
+                <div class="ship-list-row">
+                  <button type="button" class="ship-item-open ship-list-primary" data-item-id="{{component.id}}">{{component.name}}</button>
+                  <div class="ship-list-meta">P {{component.power}} | S {{component.space}}</div>
+                  <button type="button" class="ship-item-delete" data-item-id="{{component.id}}">X</button>
+                </div>
+              {{/each}}
+            {{else}}
+              <p class="ship-empty-state">Drop essential components here.</p>
+            {{/if}}
+          </div>
+        </section>
+
+        <section class="ship-card">
+          <div class="ship-section-header">
+            <h2>Supplemental Components</h2>
+          </div>
+          <div class="ship-component-list">
+            {{#if ship.hasSupplementalComponents}}
+              {{#each ship.supplementalComponents as |component|}}
+                <div class="ship-list-row">
+                  <button type="button" class="ship-item-open ship-list-primary" data-item-id="{{component.id}}">{{component.name}}</button>
+                  <div class="ship-list-meta">P {{component.power}} | S {{component.space}}</div>
+                  <button type="button" class="ship-item-delete" data-item-id="{{component.id}}">X</button>
+                </div>
+              {{/each}}
+            {{else}}
+              <p class="ship-empty-state">Drop supplemental components here.</p>
+            {{/if}}
+          </div>
+        </section>
+
+        <section class="ship-card">
+          <h2>Complications / Past History</h2>
+          <textarea class="ship-history-field" name="system.pastHistory">{{system.pastHistory}}</textarea>
+        </section>
+      </div>
+
+      <div class="ship-sheet-right">
+        <section class="ship-card ship-resources-card">
+          <h2>Ship Resources</h2>
+          <div class="ship-resources-grid">
+            <div class="ship-resource-block">
+              <label>Hull Integrity</label>
+              <div class="ship-resource-pair">
+                <input name="system.resources.hullIntegrity.max" type="number" value="{{system.resources.hullIntegrity.max}}" step="1" />
+                <input name="system.resources.hullIntegrity.value" type="number" value="{{system.resources.hullIntegrity.value}}" step="1" />
+              </div>
+            </div>
+            <div class="ship-resource-block">
+              <label>Crew %</label>
+              <div class="ship-resource-pair">
+                <input name="system.crew.max" type="number" value="{{system.crew.max}}" step="1" />
+                <input name="system.crew.value" type="number" value="{{system.crew.value}}" step="1" />
+              </div>
+            </div>
+            <div class="ship-resource-block">
+              <label>Morale</label>
+              <div class="ship-resource-pair">
+                <input name="system.resources.morale.max" type="number" value="{{system.resources.morale.max}}" step="1" />
+                <input name="system.resources.morale.value" type="number" value="{{system.resources.morale.value}}" step="1" />
+              </div>
+            </div>
+            <div class="ship-resource-block">
+              <label>Power</label>
+              <div class="ship-resource-pair">
+                <input name="system.power.value" type="number" value="{{system.power.value}}" step="1" />
+                <input class="ship-resource-derived" type="number" value="{{ship.powerUsed}}" readonly />
+              </div>
+            </div>
+            <div class="ship-resource-block">
+              <label>Space</label>
+              <div class="ship-resource-pair">
+                <input name="system.space.value" type="number" value="{{system.space.value}}" step="1" />
+                <input class="ship-resource-derived" type="number" value="{{ship.spaceUsed}}" readonly />
+              </div>
+            </div>
+            <div class="ship-resource-block ship-resource-block-wide">
+              <label>Weapon Capacity</label>
+              <div class="ship-resource-text">{{#if ship.weaponCapacityDisplay}}{{ship.weaponCapacityDisplay}}{{else}}None{{/if}}</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="ship-card">
+          <div class="ship-section-header">
+            <h2>Ship Weapons</h2>
+          </div>
+          <div class="ship-weapon-list">
+            {{#if ship.hasShipWeapons}}
+              {{#each ship.shipWeapons as |weapon|}}
+                <div class="ship-weapon-row">
+                  <button type="button" class="ship-item-open ship-list-primary" data-item-id="{{weapon.id}}">{{weapon.name}}</button>
+                  <div class="ship-weapon-stats">{{weapon.weaponClassLabel}} | Str {{weapon.strength}} | Crit {{weapon.critRating}} | {{weapon.damage}} | {{weapon.range}}</div>
+                  <div class="ship-weapon-location">{{weapon.locationLabel}}</div>
+                  <button type="button" class="ship-weapon-fire" data-item-id="{{weapon.id}}" aria-label="Fire {{weapon.name}}"><i class="fas fa-crosshairs"></i></button>
+                </div>
+              {{/each}}
+            {{else}}
+              <p class="ship-empty-state">Drop ship weapons here.</p>
+            {{/if}}
+          </div>
+        </section>
+
+        <section class="ship-card">
+          <h2>Traits</h2>
+          <textarea class="ship-history-field ship-traits-field" name="system.traits">{{system.traits}}</textarea>
+        </section>
+
+        <section class="ship-card">
+          <h2>Cargo / Other Items</h2>
+          <div class="ship-component-list">
+            {{#if ship.hasCargo}}
+              {{#each ship.cargo as |item|}}
+                <div class="ship-list-row">
+                  <button type="button" class="ship-item-open ship-list-primary" data-item-id="{{item.id}}">{{item.name}}</button>
+                  <div class="ship-list-meta">{{item.typeLabel}}</div>
+                  <button type="button" class="ship-item-delete" data-item-id="{{item.id}}">X</button>
+                </div>
+              {{/each}}
+            {{else}}
+              <p class="ship-empty-state">Drop cargo and miscellaneous items here.</p>
+            {{/if}}
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+</form>

@@ -1,0 +1,93 @@
+<form class="roguetrader ship-weapon-sheet" autocomplete="off">
+  <header class="sheet-header item-header">
+    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
+    <div class="header-fields">
+      <h1 class="item-name"><input name="name" type="text" value="{{item.name}}" /></h1>
+      <p class="item-subtitle">Ship Weapon</p>
+    </div>
+  </header>
+
+  <section class="item-body-grid">
+    <div class="ship-weapon-top-row item-body-grid-span">
+      <div class="form-group ship-weapon-type-field">
+        <label>Type</label>
+        <select name="system.weaponClass">
+          {{selectOptions weaponClassOptions selected=system.weaponClass}}
+        </select>
+      </div>
+
+      <div class="ship-weapon-stat-row">
+        <div class="form-group ship-weapon-mini-field">
+          <label>Power</label>
+          <input name="system.power" type="number" value="{{system.power}}" step="1" />
+        </div>
+
+        <div class="form-group ship-weapon-mini-field">
+          <label>Space</label>
+          <input name="system.space" type="number" value="{{system.space}}" step="1" />
+        </div>
+
+        <div class="form-group ship-weapon-mini-field">
+          <label>SP Cost</label>
+          <input name="system.shipPointCost" type="number" value="{{system.shipPointCost}}" step="1" />
+        </div>
+      </div>
+    </div>
+
+    <div class="ship-weapon-stat-row item-body-grid-span">
+      <div class="form-group ship-weapon-mini-field">
+        <label>Strength</label>
+        <input name="system.strength" type="text" value="{{system.strength}}" />
+      </div>
+
+      <div class="form-group ship-weapon-wide-field">
+        <label>Damage</label>
+        <input name="system.damage" type="text" value="{{system.damage}}" />
+      </div>
+
+      <div class="form-group ship-weapon-mini-field">
+        <label>Crit Rating</label>
+        <input name="system.critRating" type="text" value="{{system.critRating}}" />
+      </div>
+
+      <div class="form-group ship-weapon-wide-field">
+        <label>Range</label>
+        <input name="system.range" type="text" value="{{system.range}}" />
+      </div>
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Allowed Hulls</label>
+      <div class="ship-component-hull-flags">
+        {{#each hullAvailabilityOptions as |option|}}
+          <label class="ship-component-hull-flag">
+            <input type="checkbox" name="system.allowedHulls.{{option.key}}" {{checked (lookup ../system.allowedHulls option.key)}} />
+            <span>{{option.label}}</span>
+          </label>
+        {{/each}}
+      </div>
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Mount Locations</label>
+      <div class="ship-component-hull-flags">
+        {{#each mountLocationOptions as |option|}}
+          <label class="ship-component-hull-flag">
+            <input type="checkbox" name="system.allowedLocations.{{option.key}}" {{checked (lookup ../system.allowedLocations option.key)}} />
+            <span>{{option.label}}</span>
+          </label>
+        {{/each}}
+      </div>
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Short Description</label>
+      <input name="system.shortDescription" type="text" value="{{system.shortDescription}}" />
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Description</label>
+      <textarea name="system.description">{{system.description}}</textarea>
+    </div>
+  </section>
+</form>

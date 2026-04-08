@@ -1,0 +1,210 @@
+<form class="{{cssClass}} npc-sheet" autocomplete="off">
+  <section class="npc-sheet-header">
+    <div class="npc-sheet-title-block">
+      <input class="npc-name-input" name="name" type="text" value="{{actor.name}}" placeholder="NPC Name" />
+      <input class="npc-subtitle-input" name="system.profileTitle" type="text" value="{{system.profileTitle}}" placeholder="Profile / Role" />
+    </div>
+    <img class="npc-portrait" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" alt="{{actor.name}}" />
+  </section>
+
+  <section class="npc-characteristics-panel">
+    <div class="npc-characteristics-grid npc-characteristics-grid-header">
+      {{#each npc.characteristics as |characteristic|}}
+        <button class="npc-characteristic-roll-button" type="button" data-characteristic-key="{{characteristic.key}}" title="{{characteristic.fullLabel}}">{{characteristic.label}}</button>
+      {{/each}}
+    </div>
+    <div class="npc-characteristics-grid npc-characteristics-grid-values">
+      {{#each npc.characteristics as |characteristic|}}
+        <div class="npc-characteristic-value-cell {{characteristic.tempStateClass}}">
+          <input
+            class="npc-characteristic-input"
+            name="system.characteristics.{{characteristic.key}}.value"
+            type="number"
+            value="{{characteristic.value}}"
+            step="1"
+          />
+          {{#if characteristic.showDerivedBonus}}
+            <span class="npc-characteristic-derived-bonus">({{characteristic.bonus}})</span>
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
+  </section>
+
+  <section class="npc-summary-row">
+    <div class="npc-summary-card">
+      <label>Movement</label>
+      <div>{{npc.movement.half}}/{{npc.movement.full}}/{{npc.movement.charge}}/{{npc.movement.run}}</div>
+    </div>
+    <div class="npc-summary-card">
+      <label>Wounds</label>
+      <div class="npc-summary-fields">
+        <input name="system.resources.wounds.value" type="number" value="{{npc.wounds.current}}" step="1" />
+        <span>/</span>
+        <input name="system.resources.wounds.max" type="number" value="{{npc.wounds.max}}" step="1" />
+      </div>
+    </div>
+    <div class="npc-summary-card">
+      <label>Critical</label>
+      <input name="system.resources.criticalDamage" type="number" value="{{npc.wounds.critical}}" step="1" />
+    </div>
+    <div class="npc-summary-card">
+      <label>Fatigue</label>
+      <input name="system.resources.fatigue" type="number" value="{{npc.wounds.fatigue}}" step="1" />
+    </div>
+  </section>
+
+  <section class="npc-main-grid">
+    <div class="npc-left-column">
+      <section class="page-two-panel npc-panel">
+        <div class="npc-panel-header">
+          <h2 class="section-title section-title-left">Skills</h2>
+          <span class="npc-drop-hint">Drop skill items here</span>
+        </div>
+        <div class="npc-skill-list-wrap">
+          {{#if npc.hasSkills}}
+            <div class="npc-skill-list">
+              {{#each npc.skills as |skill|}}
+                <button
+                  class="npc-skill-name-button inventory-item-name-button"
+                  type="button"
+                  data-item-id="{{skill.id}}"
+                  title="Left-click to roll. Right-click to remove."
+                >{{skill.shortSummary}}</button>
+              {{/each}}
+            </div>
+          {{else}}
+            <div class="empty-talents">No skills recorded.</div>
+          {{/if}}
+        </div>
+      </section>
+
+      <section class="page-two-panel npc-panel">
+        <div class="npc-panel-header">
+          <h2 class="section-title section-title-left">Talents</h2>
+          <span class="npc-drop-hint">Drop talent items here</span>
+        </div>
+        <div class="npc-skill-list-wrap">
+          {{#if npc.hasTalents}}
+            <div class="npc-skill-list">
+              {{#each npc.talents as |item|}}
+                <button
+                  class="npc-reference-item-button inventory-item-name-button"
+                  type="button"
+                  data-item-id="{{item.id}}"
+                  title="Left-click to open. Right-click to remove."
+                >{{item.name}}</button>
+              {{/each}}
+            </div>
+          {{else}}
+            <div class="empty-talents">No talents recorded.</div>
+          {{/if}}
+        </div>
+      </section>
+
+      <section class="page-two-panel npc-panel">
+        <div class="npc-panel-header">
+          <h2 class="section-title section-title-left">Traits</h2>
+          <span class="npc-drop-hint">Drop trait items here</span>
+        </div>
+        <div class="npc-skill-list-wrap">
+          {{#if npc.hasTraits}}
+            <div class="npc-skill-list">
+              {{#each npc.traits as |item|}}
+                <button
+                  class="npc-reference-item-button inventory-item-name-button"
+                  type="button"
+                  data-item-id="{{item.id}}"
+                  title="Left-click to open. Right-click to remove."
+                >{{item.name}}</button>
+              {{/each}}
+            </div>
+          {{else}}
+            <div class="empty-talents">No traits recorded.</div>
+          {{/if}}
+        </div>
+      </section>
+    </div>
+
+    <div class="npc-right-column">
+      <section class="page-two-panel npc-panel">
+        <div class="npc-panel-header">
+          <h2 class="section-title section-title-left">Armour</h2>
+        </div>
+        <div class="npc-armor-grid">
+          {{#each npc.armorLocations as |location|}}
+            <div class="npc-armor-card">
+              <span>{{location.label}}</span>
+              <strong>{{location.ap}}</strong>
+            </div>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="page-two-panel npc-panel">
+        <div class="npc-panel-header">
+          <h2 class="section-title section-title-left">Weapons</h2>
+          <span class="npc-drop-hint">Equip weapons to attack</span>
+        </div>
+        <div class="talents-table-wrap">
+          <table class="talents-table npc-weapons-table">
+            <thead><tr><th></th><th>Name</th><th>Dam</th><th>Pen</th><th>RoF</th><th>Clip</th></tr></thead>
+            <tbody>
+              {{#if npc.hasWeapons}}
+                {{#each npc.equippedWeapons as |weapon|}}
+                  <tr>
+                    <td class="equipped-weapon-action-cell">
+  <button class="npc-weapon-attack-button weapon-attack-button npc-weapon-attack-icon-button" type="button" data-item-id="{{weapon.id}}" title="Attack"><i class="fas fa-crosshairs"></i></button>
+  {{#if weapon.isJammed}}
+    <button class="weapon-clear-jam-button" type="button" data-item-id="{{weapon.id}}" title="Clear Jam">Unjam</button>
+  {{/if}}
+  {{#if weapon.isHeavy}}
+    <button class="weapon-brace-button" type="button" data-item-id="{{weapon.id}}">{{#if weapon.alwaysBraced}}Auto{{else if weapon.isBraced}}Unbrace{{else}}Brace{{/if}}</button>
+  {{/if}}
+</td>
+                    <td><button class="npc-item-open inventory-item-name-button" type="button" data-item-id="{{weapon.id}}">{{weapon.name}}</button></td>
+                    <td>{{weapon.damage}}</td>
+                    <td>{{weapon.penetration}}</td>
+                    <td>{{weapon.rof}}</td>
+                    <td>{{weapon.clip}}</td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr><td class="empty-talents" colspan="6">No equipped weapons.</td></tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-two-panel npc-panel">
+        <div class="npc-panel-header">
+          <h2 class="section-title section-title-left">Inventory</h2>
+          <span class="npc-drop-hint">Drop gear or weapons here</span>
+        </div>
+        <div class="talents-table-wrap">
+          <table class="talents-table npc-inventory-table">
+            <thead><tr><th></th><th></th><th>Name</th><th>Type</th><th></th></tr></thead>
+            <tbody>
+              {{#if npc.hasInventory}}
+                {{#each npc.inventory as |item|}}
+                  <tr>
+                    <td><button class="item-toggle-equipped" type="button" data-item-id="{{item.id}}">Eq</button></td>
+                    <td class="gear-list-icon-cell"><img class="gear-list-icon" src="{{item.img}}" alt="{{item.name}}" /></td>
+                    <td><button class="npc-item-open inventory-item-name-button" type="button" data-item-id="{{item.id}}">{{item.name}}</button></td>
+                    <td>{{item.typeLabel}}</td>
+                    <td><button class="item-delete-button" type="button" data-item-id="{{item.id}}">X</button></td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr><td class="empty-talents" colspan="5">No inventory items recorded.</td></tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </section>
+</form>
+
+

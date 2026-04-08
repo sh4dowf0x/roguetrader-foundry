@@ -1,0 +1,96 @@
+<form class="{{cssClass}} armor-sheet item-sheet-layout" autocomplete="off">
+  <header class="item-sheet-header">
+    <img
+      class="item-sheet-icon"
+      src="{{item.img}}"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+
+    <div class="item-sheet-header-fields">
+      <div class="form-group full-width">
+        <label for="name">Name</label>
+        <input name="name" type="text" value="{{item.name}}" placeholder="Armor Name" />
+      </div>
+    </div>
+  </header>
+
+  <section class="item-sheet-grid armor-grid">
+    <div class="form-group">
+      <label for="system.armorType">Type</label>
+      <select name="system.armorType">
+        {{selectOptions armorTypeOptions selected=system.armorType}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.weight">Weight</label>
+      <div class="inline-unit-field">
+        <input name="system.weight" type="number" value="{{system.weight}}" min="0" step="0.1" />
+        <span>kg</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="system.availability">Availability</label>
+      <select name="system.availability">
+        {{selectOptions availabilityOptions selected=system.availability}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.craftsmanship">Craftsmanship</label>
+      <select name="system.craftsmanship">
+        {{selectOptions craftsmanshipOptions selected=system.craftsmanship}}
+      </select>
+    </div>
+  </section>
+
+  <section class="armor-locations-section">
+    <h2 class="section-title">Locations Covered</h2>
+
+    <div class="armor-location-grid">
+      {{#each locationRows as |location|}}
+        <div class="armor-location-row">
+          <label class="quality-checkbox armor-location-check">
+            <input name="system.locations.{{location.key}}" type="checkbox" {{checked location.covered}} />
+            <span>{{location.label}}</span>
+          </label>
+
+          <div class="form-group armor-ap-field">
+            <label for="system.ap.{{location.key}}">AP</label>
+            <input name="system.ap.{{location.key}}" type="number" value="{{location.ap}}" min="0" step="1" />
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  </section>
+
+  <section class="armor-specials-section">
+    <h2 class="section-title">Special</h2>
+
+    <div class="armor-specials-grid">
+      {{#each armorSpecials as |quality|}}
+        <label class="quality-checkbox">
+          <input
+            name="system.special.{{quality.key}}"
+            type="checkbox"
+            {{checked quality.checked}}
+          />
+          <span>{{quality.label}}</span>
+        </label>
+      {{/each}}
+    </div>
+  </section>
+
+  <section class="form-group stacked armor-modifier-field">
+    <label for="system.characteristicModifiers">Characteristic Modifiers</label>
+    <textarea name="system.characteristicModifiers" rows="2" placeholder="Strength +10">{{system.characteristicModifiers}}</textarea>
+  </section>
+
+  <section class="form-group stacked armor-description">
+    <label for="system.description">Description</label>
+    <textarea name="system.description" rows="10" placeholder="Armor details and notes">{{system.description}}</textarea>
+  </section>
+</form>

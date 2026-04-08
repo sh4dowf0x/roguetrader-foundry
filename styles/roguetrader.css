@@ -1,0 +1,3929 @@
+:root {
+  --rt-accent: #8f6b2e;
+  --rt-text: #e9dfc7;
+  --rt-bg: #1d1a17;
+}
+
+.roguetrader {
+  color: var(--rt-text);
+}
+
+.roguetrader.sheet form {
+  background:
+    linear-gradient(180deg, rgba(53, 41, 26, 0.92), rgba(22, 18, 15, 0.97));
+  color: var(--rt-text);
+}
+
+.roguetrader .sheet-tabs {
+  display: flex;
+  gap: 10px;
+  padding: 18px 24px 0;
+  border: 0;
+}
+
+.roguetrader .sheet-tabs .item {
+  border: 1px solid rgba(233, 223, 199, 0.22);
+  border-bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: rgba(255, 248, 235, 0.05);
+  color: rgba(233, 223, 199, 0.78);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 8px 16px;
+  text-transform: uppercase;
+}
+
+.roguetrader .sheet-tabs .item.active {
+  background: rgba(143, 107, 46, 0.22);
+  color: var(--rt-text);
+}
+
+.roguetrader .sheet-body {
+  padding-top: 8px;
+}
+
+.roguetrader .tab[data-tab="page-two"] {
+  padding-bottom: 24px;
+}
+
+.roguetrader .character-overview {
+  display: grid;
+  grid-template-columns: 170.5px minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
+  padding: 24px;
+}
+
+.roguetrader .portrait-panel {
+  width: 170.5px;
+}
+
+.roguetrader .character-portrait {
+  display: block;
+  width: 170.5px;
+  height: 256px;
+  object-fit: cover;
+  object-position: center top;
+  border: 2px solid var(--rt-accent);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.roguetrader .identity-panel {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 12px;
+  background: rgba(10, 8, 7, 0.3);
+  padding: 12px;
+  min-height: 256px;
+}
+
+.roguetrader .identity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.roguetrader .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.roguetrader .form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.roguetrader .fate-points-row {
+  display: flex;
+  gap: 12px;
+}
+
+.roguetrader .fate-point-field {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.roguetrader .fate-point-field span {
+  color: rgba(233, 223, 199, 0.82);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.roguetrader .fate-point-field input {
+  min-height: 24px;
+  padding: 3px 6px;
+  text-align: center;
+  width: 44px;
+}
+
+.roguetrader .form-group label {
+  color: var(--rt-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+.roguetrader .form-group input,
+.roguetrader .form-group select,
+.roguetrader .form-group textarea {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 248, 235, 0.06);
+  color: var(--rt-text);
+  font-size: 0.82rem;
+  line-height: 1.1;
+  padding: 5px 8px;
+}
+
+.roguetrader .form-group select option {
+  background: #2a211a;
+  color: var(--rt-text);
+}
+
+.roguetrader .form-group input,
+.roguetrader .form-group select {
+  min-height: 28px;
+}
+
+.roguetrader .characteristics-section,
+.roguetrader .skills-section,
+.roguetrader .talents-section,
+.roguetrader .psychic-techniques-section,
+.roguetrader .navigator-powers-section {
+  padding: 0 24px 24px;
+}
+
+.roguetrader .section-title {
+  margin: 0 0 12px;
+  color: var(--rt-text);
+  font-size: 1.5rem;
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.roguetrader .section-title-left {
+  text-align: left;
+}
+
+.roguetrader .section-header-inline {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.roguetrader .gear-list-header {
+  margin-bottom: 12px;
+}
+
+.roguetrader .gear-list-header .section-title {
+  margin-bottom: 0;
+}
+
+.roguetrader .encumbrance-summary {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  min-width: 200px;
+}
+
+.roguetrader .encumbrance-summary-label {
+  color: var(--rt-text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.roguetrader .encumbrance-bar {
+  flex: 1 1 auto;
+  height: 8px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 248, 235, 0.12);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+}
+
+.roguetrader .encumbrance-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(143, 107, 46, 0.85), rgba(220, 183, 90, 0.92));
+}
+
+.roguetrader .characteristics-table {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  border: 1px solid rgba(233, 223, 199, 0.55);
+  background: rgba(245, 237, 222, 0.08);
+}
+
+.roguetrader .characteristic-column {
+  border-right: 1px solid rgba(233, 223, 199, 0.45);
+}
+
+.roguetrader .characteristic-column:last-child {
+  border-right: 0;
+}
+
+.roguetrader .characteristic-header {
+  background: transparent;
+  border: 0;
+  min-height: 34px;
+  border-bottom: 1px solid rgba(233, 223, 199, 0.45);
+  color: var(--rt-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.roguetrader .characteristic-bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  min-height: 44px;
+}
+
+.roguetrader .characteristic-column.no-bonus .characteristic-bottom {
+  grid-template-columns: 1fr;
+}
+
+.roguetrader .characteristic-value-input {
+  border: 0;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--rt-text);
+  font-family: Georgia, "Times New Roman", serif;
+  text-align: center;
+  min-height: 44px;
+  font-size: 2rem;
+  padding: 2px 4px;
+}
+
+.roguetrader .characteristic-value-input.is-buffed {
+  color: #d6f0b3;
+  background: rgba(72, 118, 54, 0.24);
+}
+
+.roguetrader .characteristic-value-input.is-debuffed {
+  color: #f2c0b4;
+  background: rgba(135, 49, 43, 0.24);
+}
+
+.roguetrader .characteristic-bonus-stack {
+  border-left: 1px solid rgba(233, 223, 199, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.roguetrader .characteristic-bonus-label {
+  color: var(--rt-text);
+  display: flex;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.95rem;
+  justify-content: center;
+  line-height: 1;
+}
+
+.roguetrader .skills-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.roguetrader .skills-column,
+.roguetrader .talents-table-wrap {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 12px;
+  background: rgba(10, 8, 7, 0.28);
+}
+
+.roguetrader .skills-column {
+  padding: 10px 12px 12px;
+}
+
+.roguetrader .skills-header,
+.roguetrader .skill-row {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 24px 24px 24px 24px 48px;
+  gap: 8px;
+  align-items: center;
+}
+
+.roguetrader .skills-header {
+  margin-bottom: 6px;
+  color: var(--rt-accent);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roguetrader .skill-name-header {
+  min-width: 0;
+}
+
+.roguetrader .skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.roguetrader .skill-row {
+  min-height: 24px;
+}
+
+.roguetrader .skill-name-button,
+.roguetrader .talent-name-button {
+  border: 0;
+  background: transparent;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: rgba(233, 223, 199, 0.35);
+  text-underline-offset: 5px;
+}
+
+.roguetrader .skill-roll-button {
+  align-items: center;
+  background: rgba(255, 248, 235, 0.05);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 4px;
+  color: var(--rt-accent);
+  cursor: pointer;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  padding: 0;
+  width: 22px;
+}
+
+.roguetrader .skill-name-button {
+  font-size: 0.98rem;
+  line-height: 1.15;
+}
+
+.roguetrader .talent-name-button {
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.roguetrader .psychic-technique-roll-button {
+  align-items: center;
+  background: rgba(255, 248, 235, 0.05);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 4px;
+  color: var(--rt-accent);
+  cursor: pointer;
+  display: inline-flex;
+  height: 22px;
+  justify-content: center;
+  padding: 0;
+  width: 22px;
+}
+
+.roguetrader .skill-toggle {
+  display: flex;
+  justify-content: center;
+}
+
+.roguetrader .skill-toggle input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255, 248, 235, 0.05);
+  border: 1px solid rgba(233, 223, 199, 0.24);
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+  cursor: default;
+  height: 18px;
+  margin: 0;
+  position: relative;
+  transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+  width: 18px;
+}
+
+.roguetrader .skill-toggle input:checked {
+  background: linear-gradient(180deg, rgba(201, 163, 78, 0.95), rgba(151, 113, 42, 0.95));
+  border-color: rgba(237, 212, 144, 0.85);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 245, 214, 0.16),
+    0 0 0 1px rgba(0, 0, 0, 0.14);
+}
+
+.roguetrader .skill-toggle input:checked::after {
+  border-bottom: 2px solid #fff7e2;
+  border-right: 2px solid #fff7e2;
+  content: "";
+  display: block;
+  height: 9px;
+  left: 5px;
+  position: absolute;
+  top: 1px;
+  transform: rotate(45deg);
+  width: 4px;
+}
+
+.roguetrader .skill-toggle input:disabled {
+  opacity: 1;
+}
+
+.roguetrader .skill-toggle input:not(:checked):disabled {
+  background: rgba(12, 10, 8, 0.48);
+  border-color: rgba(233, 223, 199, 0.18);
+}
+
+.roguetrader .skill-bonus {
+  min-height: 22px;
+  width: 48px;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 4px;
+  background: rgba(255, 248, 235, 0.06);
+  color: var(--rt-text);
+  font-size: 0.78rem;
+  padding: 2px 4px;
+  text-align: center;
+}
+
+.roguetrader .skill-bonus-input {
+  color: var(--rt-text);
+}
+
+.roguetrader .talents-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.roguetrader .talents-table th,
+.roguetrader .talents-table td {
+  border-bottom: 1px solid rgba(233, 223, 199, 0.18);
+  padding: 8px 10px;
+  vertical-align: top;
+}
+
+.roguetrader .talents-table th {
+  color: var(--rt-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.roguetrader .talents-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.roguetrader .talents-table td {
+  color: var(--rt-text);
+  font-size: 0.84rem;
+  line-height: 1.3;
+}
+
+.roguetrader .talents-table th:nth-child(1),
+.roguetrader .talents-table td:nth-child(1) {
+  width: 28%;
+}
+
+.roguetrader .talents-table th:nth-child(2),
+.roguetrader .talents-table td:nth-child(2) {
+  width: 11%;
+}
+
+.roguetrader .talents-section .talents-table th:nth-child(2),
+.roguetrader .talents-section .talents-table td:nth-child(2) {
+  padding-right: 4px;
+}
+
+.roguetrader .talents-section .talents-table th:nth-child(3),
+.roguetrader .talents-section .talents-table td:nth-child(3) {
+  padding-left: 4px;
+}
+
+.roguetrader .psychic-techniques-table th:nth-child(2),
+.roguetrader .psychic-techniques-table td:nth-child(2) {
+  width: 28%;
+}
+
+.roguetrader .psychic-techniques-table th:nth-child(3),
+.roguetrader .psychic-techniques-table td:nth-child(3) {
+  width: 18%;
+}
+
+.roguetrader .psychic-techniques-table th:nth-child(4),
+.roguetrader .psychic-techniques-table td:nth-child(4) {
+  width: 12%;
+}
+
+.roguetrader .psychic-techniques-table th:nth-child(5),
+.roguetrader .psychic-techniques-table td:nth-child(5) {
+  width: 18%;
+}
+
+.roguetrader .psychic-techniques-table th:nth-child(1),
+.roguetrader .psychic-techniques-table td:nth-child(1) {
+  width: 6%;
+}
+
+.roguetrader .psychic-techniques-table th:nth-child(6),
+.roguetrader .psychic-techniques-table td:nth-child(6) {
+  width: 18%;
+}
+
+.roguetrader .navigator-powers-table th:nth-child(1),
+.roguetrader .navigator-powers-table td:nth-child(1) {
+  width: 28%;
+}
+
+.roguetrader .navigator-powers-table th:nth-child(2),
+.roguetrader .navigator-powers-table td:nth-child(2) {
+  width: 18%;
+}
+
+.roguetrader .page-two-top-row {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.roguetrader .page-two-middle-row,
+.roguetrader .page-two-gear-section,
+.roguetrader .page-two-bottom-row,
+.roguetrader .page-two-final-row,
+.roguetrader .page-two-acquisitions-row {
+  padding: 16px 24px 0;
+}
+
+.roguetrader .page-two-middle-row {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.15fr);
+  gap: 16px;
+}
+
+.roguetrader .page-two-bottom-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.roguetrader .page-two-final-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.roguetrader .page-two-acquisitions-row .acquisitions-panel {
+  width: 100%;
+}
+
+.roguetrader .page-two-panel {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 12px;
+  background: rgba(10, 8, 7, 0.28);
+  padding: 12px 14px;
+}
+
+.roguetrader .wounds-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.roguetrader .wounds-panel .form-group {
+  gap: 3px;
+}
+
+.roguetrader .wounds-panel .form-group label {
+  font-size: 0.68rem;
+}
+
+.roguetrader .wounds-panel .form-group input {
+  min-height: 24px;
+  padding: 3px 8px;
+}
+
+.roguetrader .spend-fate-heal-button {
+  background: rgba(143, 107, 46, 0.16);
+  border: 1px solid rgba(143, 107, 46, 0.4);
+  border-radius: 6px;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 700;
+  min-height: 24px;
+  padding: 3px 8px;
+  text-transform: uppercase;
+}
+
+.roguetrader .derived-values-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px 8px;
+}
+
+.roguetrader .page-two-panel .section-title {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+}
+
+.roguetrader .derived-value-card,
+.roguetrader .carry-value-card {
+  border: 1px solid rgba(233, 223, 199, 0.14);
+  border-radius: 6px;
+  background: rgba(255, 248, 235, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 0;
+  padding: 6px 8px;
+}
+
+.roguetrader .derived-value-label {
+  color: var(--rt-accent);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roguetrader .derived-value-inline {
+  align-items: baseline;
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.roguetrader .derived-value-number {
+  color: var(--rt-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.9rem;
+  line-height: 1.05;
+}
+
+.roguetrader .derived-value-note,
+.roguetrader .carry-panel-subtitle {
+  color: rgba(233, 223, 199, 0.72);
+  font-size: 0.62rem;
+}
+
+.roguetrader .carry-panel {
+  margin-top: 10px;
+}
+
+.roguetrader .carry-panel-header {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.roguetrader .carry-panel-title {
+  color: var(--rt-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.roguetrader .carry-values-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.roguetrader .subsection-title {
+  color: var(--rt-accent);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.roguetrader .armor-summary-grid {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.roguetrader .armor-location-card {
+  background: rgba(255, 248, 235, 0.04);
+  border: 1px solid rgba(233, 223, 199, 0.14);
+  border-radius: 6px;
+  padding: 7px 8px;
+}
+
+.roguetrader .armor-location-topline {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.roguetrader .armor-location-name {
+  color: var(--rt-text);
+  font-size: 0.77rem;
+  font-weight: 700;
+}
+
+.roguetrader .armor-location-roll {
+  color: rgba(233, 223, 199, 0.72);
+  font-size: 0.66rem;
+}
+
+.roguetrader .armor-location-ap {
+  color: var(--rt-accent);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  margin-top: 3px;
+}
+
+.roguetrader .equipped-list-block {
+  margin-top: 12px;
+}
+
+.roguetrader .equipped-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roguetrader .equipped-list-row {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.roguetrader .equipped-item-button {
+  text-decoration: none;
+}
+
+.roguetrader .equipped-item-meta {
+  color: rgba(233, 223, 199, 0.72);
+  font-size: 0.7rem;
+  text-align: right;
+}
+
+.roguetrader .page-two-table-wrap {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.roguetrader .equipped-weapons-table th,
+.roguetrader .equipped-weapons-table td,
+.roguetrader .gear-list-table th,
+.roguetrader .gear-list-table td {
+  font-size: 0.76rem;
+  padding: 4px 8px;
+}
+
+.roguetrader .equipped-weapons-table th:nth-child(1),
+.roguetrader .equipped-weapons-table td:nth-child(1) {
+  width: 8%;
+}
+
+.roguetrader .equipped-weapons-table th:nth-child(2),
+.roguetrader .equipped-weapons-table td:nth-child(2) {
+  width: 17%;
+}
+
+.roguetrader .equipped-weapons-table th:nth-child(3),
+.roguetrader .equipped-weapons-table td:nth-child(3) {
+  width: 9%;
+}
+
+.roguetrader .equipped-weapons-table th:nth-child(4),
+.roguetrader .equipped-weapons-table td:nth-child(4),
+.roguetrader .equipped-weapons-table th:nth-child(5),
+.roguetrader .equipped-weapons-table td:nth-child(5),
+.roguetrader .equipped-weapons-table th:nth-child(6),
+.roguetrader .equipped-weapons-table td:nth-child(6),
+.roguetrader .equipped-weapons-table th:nth-child(7),
+.roguetrader .equipped-weapons-table td:nth-child(7),
+.roguetrader .equipped-weapons-table th:nth-child(8),
+.roguetrader .equipped-weapons-table td:nth-child(8) {
+  width: 8%;
+}
+
+.roguetrader .equipped-weapons-table th:nth-child(9),
+.roguetrader .equipped-weapons-table td:nth-child(9) {
+  width: 26%;
+}
+
+.roguetrader .gear-list-table th:nth-child(1),
+.roguetrader .gear-list-table td:nth-child(1),
+.roguetrader .gear-list-table th:nth-child(7),
+.roguetrader .gear-list-table td:nth-child(7) {
+  width: 9%;
+}
+
+.roguetrader .gear-list-table th:nth-child(2),
+.roguetrader .gear-list-table td:nth-child(2) {
+  width: 5%;
+}
+
+.roguetrader .gear-list-table th:nth-child(3),
+.roguetrader .gear-list-table td:nth-child(3) {
+  width: 20%;
+}
+
+.roguetrader .gear-list-table th:nth-child(4),
+.roguetrader .gear-list-table td:nth-child(4) {
+  width: 12%;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.roguetrader .gear-list-table th:nth-child(5),
+.roguetrader .gear-list-table td:nth-child(5) {
+  width: 10%;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
+.roguetrader .gear-list-table th:nth-child(6),
+.roguetrader .gear-list-table td:nth-child(6) {
+  width: 35%;
+}
+
+.roguetrader .gear-list-short-description {
+  display: block;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roguetrader .gear-list-action-cell {
+  text-align: center;
+}
+
+.roguetrader .gear-list-icon-header,
+.roguetrader .gear-list-icon-cell {
+  text-align: center;
+}
+
+.roguetrader .gear-list-icon {
+  width: 33px;
+  height: 33px;
+  min-width: 33px;
+  min-height: 33px;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  background: rgba(255, 248, 235, 0.04);
+  vertical-align: middle;
+}
+
+.roguetrader .gear-list-table .inventory-item-name-button {
+  color: var(--rt-text);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.roguetrader .equipped-list .inventory-item-name-button,
+.roguetrader .equipped-weapons-table .inventory-item-name-button {
+  color: var(--rt-text);
+}
+
+.roguetrader .equipped-weapon-action-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.roguetrader .weapon-attack-button {
+  background: rgba(112, 30, 24, 0.9);
+  border: 1px solid rgba(208, 96, 76, 0.55);
+  border-radius: 5px;
+  color: var(--rt-text);
+  font-size: 0.67rem;
+  font-weight: 700;
+  min-height: 22px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+
+.roguetrader .weapon-attack-button:hover,
+.roguetrader .weapon-attack-button:focus {
+  background: rgba(142, 44, 34, 0.95);
+  box-shadow: none;
+}
+
+.roguetrader .weapon-brace-button {
+  background: rgba(53, 36, 23, 0.96);
+  border: 1px solid rgba(201, 151, 58, 0.26);
+  border-radius: 5px;
+  color: var(--rt-text);
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 700;
+  margin-top: 4px;
+  min-height: 22px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.roguetrader .weapon-clear-jam-button {
+  background: rgba(88, 30, 24, 0.96);
+  border: 1px solid rgba(201, 151, 58, 0.26);
+  border-radius: 5px;
+  color: var(--rt-text);
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 700;
+  min-height: 22px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.roguetrader .weapon-brace-button:hover,
+.roguetrader .weapon-brace-button:focus,
+.roguetrader .weapon-clear-jam-button:hover,
+.roguetrader .weapon-clear-jam-button:focus {
+  background: rgba(73, 50, 31, 0.98);
+  box-shadow: none;
+}
+
+.roguetrader .npc-weapons-table {
+  table-layout: auto;
+}
+
+.roguetrader .npc-weapons-table th:nth-child(1),
+.roguetrader .npc-weapons-table td:nth-child(1) {
+  width: 44px;
+}
+
+.roguetrader .npc-weapons-table th:nth-child(2),
+.roguetrader .npc-weapons-table td:nth-child(2) {
+  width: auto;
+}
+
+.roguetrader .npc-weapons-table .inventory-item-name-button {
+  display: block;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.roguetrader .npc-weapon-attack-icon-button {
+  align-items: center;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  min-height: 28px;
+  min-width: 28px;
+  padding: 0;
+  width: 28px;
+}
+
+.attack-dialog .roll-dialog-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.roguetrader .psychic-technique-name-button,
+.roguetrader .navigator-power-name-button {
+  color: var(--rt-text);
+}
+
+.roguetrader .gear-list-table .inventory-item-name-button:hover,
+.roguetrader .gear-list-table .inventory-item-name-button:focus,
+.roguetrader .equipped-list .inventory-item-name-button:hover,
+.roguetrader .equipped-list .inventory-item-name-button:focus,
+.roguetrader .equipped-weapons-table .inventory-item-name-button:hover,
+.roguetrader .equipped-weapons-table .inventory-item-name-button:focus,
+.roguetrader .psychic-technique-name-button:hover,
+.roguetrader .psychic-technique-name-button:focus,
+.roguetrader .navigator-power-name-button:hover,
+.roguetrader .navigator-power-name-button:focus {
+  color: #fff7e3;
+}
+
+.roguetrader .item-toggle-equipped,
+.roguetrader .item-delete-button {
+  background: rgba(255, 248, 235, 0.06);
+  border: 1px solid rgba(233, 223, 199, 0.2);
+  border-radius: 6px;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 700;
+  min-height: 20px;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+
+.roguetrader .item-toggle-equipped {
+  min-width: 58px;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.roguetrader .item-delete-button {
+  background: rgba(124, 32, 32, 0.2);
+  border-color: rgba(214, 86, 86, 0.38);
+  color: #ffd7d7;
+  min-width: 24px;
+  width: 24px;
+  min-height: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 0.8rem;
+  line-height: 1;
+}
+
+.roguetrader .item-delete-button:hover,
+.roguetrader .item-delete-button:focus {
+  background: rgba(156, 38, 38, 0.34);
+  border-color: rgba(235, 112, 112, 0.52);
+  color: #fff1f1;
+}
+
+.roguetrader .item-toggle-equipped.is-equipped {
+  background: rgba(143, 107, 46, 0.22);
+  border-color: rgba(143, 107, 46, 0.5);
+  color: #f4e8c9;
+}
+
+.roguetrader .mental-track-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.roguetrader .mental-list-block {
+  margin-top: 12px;
+}
+
+.roguetrader .mental-list-textarea {
+  min-height: 132px;
+  resize: vertical;
+}
+
+.roguetrader .consequence-drop-zone {
+  border: 1px dashed rgba(233, 223, 199, 0.12);
+  border-radius: 8px;
+  padding: 8px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.roguetrader .consequence-drop-zone.is-drop-target {
+  background: rgba(143, 107, 46, 0.12);
+  border-color: rgba(143, 107, 46, 0.45);
+}
+
+.roguetrader .consequence-panel-header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.roguetrader .add-track-points-button {
+  align-items: center;
+  background: rgba(143, 107, 46, 0.16);
+  border: 1px solid rgba(143, 107, 46, 0.38);
+  border-radius: 6px;
+  color: var(--rt-text);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 0.64rem;
+  font-weight: 700;
+  height: 20px;
+  justify-content: center;
+  line-height: 1;
+  min-height: 20px;
+  min-width: 34px;
+  padding: 0 7px;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.roguetrader .add-track-points-button:hover,
+.roguetrader .add-track-points-button:focus {
+  background: rgba(143, 107, 46, 0.24);
+}
+
+.roguetrader .consequence-value-row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 6px;
+}
+
+.roguetrader .consequence-value-row .form-group {
+  margin: 0;
+}
+
+.roguetrader .consequence-value-row label {
+  color: rgba(233, 223, 199, 0.72);
+  display: block;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-bottom: 2px;
+  text-transform: uppercase;
+}
+
+.roguetrader .consequence-value-row input {
+  background: rgba(12, 10, 8, 0.55);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 5px;
+  color: var(--rt-text);
+  font-size: 0.72rem;
+  min-height: 24px;
+  padding: 2px 6px;
+  width: 100%;
+}
+
+.roguetrader .consequence-drop-hint {
+  color: rgba(233, 223, 199, 0.6);
+  font-size: 0.66rem;
+  margin: -2px 0 6px;
+}
+
+.roguetrader .consequence-table {
+  table-layout: fixed;
+}
+
+.roguetrader .consequence-table th,
+.roguetrader .consequence-table td {
+  padding: 3px 6px;
+  vertical-align: middle;
+}
+
+.roguetrader .consequence-table th:nth-child(1),
+.roguetrader .consequence-table td:nth-child(1) {
+  width: 38%;
+}
+
+.roguetrader .consequence-table th:nth-child(2),
+.roguetrader .consequence-table td:nth-child(2) {
+  width: 56%;
+}
+
+.roguetrader .consequence-table th:nth-child(3),
+.roguetrader .consequence-table td:nth-child(3) {
+  width: 6%;
+}
+
+.roguetrader .consequence-name-button {
+  color: var(--rt-text);
+  display: block;
+  overflow: hidden;
+  padding: 2px 6px;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.roguetrader .consequence-summary-cell {
+  color: rgba(233, 223, 199, 0.82);
+  font-size: 0.72rem;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roguetrader .consequence-delete-cell {
+  text-align: center;
+}
+
+.roguetrader .acquisitions-header {
+  align-items: start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.roguetrader .profit-factor-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
+}
+
+.roguetrader .profit-factor-box label {
+  color: var(--rt-accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roguetrader .acquisitions-table input {
+  color: var(--rt-text);
+  background: rgba(18, 13, 10, 0.78);
+  border-color: rgba(201, 151, 58, 0.22);
+  min-height: 24px;
+  width: 100%;
+}
+
+.roguetrader .acquisitions-table td,
+.roguetrader .acquisitions-table th {
+  color: var(--rt-text);
+}
+
+.roguetrader .acquisitions-table input::placeholder {
+  color: rgba(233, 223, 199, 0.48);
+}
+
+.roguetrader-attack-resolution,
+.roguetrader-attack-resolution-result {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(201, 151, 58, 0.22);
+  border-radius: 8px;
+  background: rgba(26, 18, 13, 0.72);
+  color: var(--rt-text);
+}
+
+.roguetrader-attack-resolution-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.roguetrader-attack-resolution-button {
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(201, 151, 58, 0.26);
+  background: rgba(53, 36, 23, 0.96);
+  color: var(--rt-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.roguetrader-attack-resolution p,
+.roguetrader-attack-resolution-result p,
+.roguetrader-attack-resolution strong,
+.roguetrader-attack-resolution-result strong {
+  color: var(--rt-text);
+}
+
+.roguetrader-damage-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.roguetrader-damage-entry {
+  padding: 8px 10px;
+  border: 1px solid rgba(201, 151, 58, 0.18);
+  border-radius: 8px;
+  background: rgba(26, 18, 13, 0.54);
+  color: var(--rt-text);
+}
+
+.roguetrader-damage-entry p {
+  margin: 0 0 4px;
+  color: var(--rt-text);
+}
+
+.roguetrader-damage-entry p:last-child {
+  margin-bottom: 0;
+}
+
+.roguetrader .acquisitions-table th:nth-child(1),
+.roguetrader .acquisitions-table td:nth-child(1) {
+  width: 38%;
+}
+
+.roguetrader .acquisitions-table th:nth-child(2),
+.roguetrader .acquisitions-table td:nth-child(2) {
+  width: 62%;
+}
+
+.roguetrader .empty-talents {
+  color: rgba(233, 223, 199, 0.7);
+  font-style: italic;
+  text-align: center;
+}
+
+.roguetrader .talents-section .talents-table th,
+.roguetrader .talents-section .talents-table td {
+  padding: 4px 10px;
+}
+
+.roguetrader .talents-section .talents-table td {
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roguetrader .talents-section .talent-name-button {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roguetrader .item-sheet-layout {
+  padding: 18px;
+}
+
+.roguetrader .item-sheet-header {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.roguetrader .item-sheet-icon {
+  width: 64px;
+  height: 64px;
+  border: 1px solid rgba(233, 223, 199, 0.25);
+  border-radius: 8px;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.roguetrader .item-sheet-header-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roguetrader .item-sheet-grid {
+  display: grid;
+  gap: 12px 14px;
+}
+
+.roguetrader .item-sheet-grid-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.roguetrader .item-sheet-subtitle {
+  color: rgba(233, 223, 199, 0.72);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.roguetrader .consequence-sheet .item-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roguetrader .weapon-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.roguetrader .inline-unit-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.roguetrader .inline-unit-field span {
+  color: var(--rt-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roguetrader .weapon-specials-section {
+  margin-top: 16px;
+}
+
+.roguetrader .weapon-specials-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px 14px;
+}
+
+.roguetrader .quality-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--rt-text);
+  font-size: 0.82rem;
+}
+
+.roguetrader .quality-checkbox input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.roguetrader .blast-value-field {
+  grid-column: span 2;
+}
+
+.roguetrader .weapon-description {
+  margin-top: 16px;
+}
+
+.roguetrader .armor-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.roguetrader .armor-locations-section,
+.roguetrader .armor-specials-section,
+.roguetrader .armor-description {
+  margin-top: 16px;
+}
+
+.roguetrader .armor-location-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+}
+
+.roguetrader .armor-location-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  gap: 10px;
+  align-items: end;
+}
+
+.roguetrader .armor-location-check {
+  min-height: 28px;
+}
+
+.roguetrader .armor-ap-field input {
+  text-align: center;
+}
+
+.roguetrader .armor-specials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+
+.roguetrader .gear-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.roguetrader .gear-short-description,
+.roguetrader .gear-description {
+  margin-top: 16px;
+}
+
+.roguetrader .consumable-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.roguetrader .consumable-short-description,
+.roguetrader .consumable-description {
+  margin-top: 16px;
+}
+
+.roguetrader .tool-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.roguetrader .tool-short-description,
+.roguetrader .tool-description {
+  margin-top: 16px;
+}
+
+.roguetrader .cybernetic-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.roguetrader .cybernetic-short-description,
+.roguetrader .cybernetic-description {
+  margin-top: 16px;
+}
+
+.roguetrader-roll-card h3 {
+  margin: 0 0 6px;
+}
+
+.roguetrader-roll-card p {
+  margin: 0 0 4px;
+}
+
+.roguetrader-roll-card .roguetrader-roll-hint {
+  color: #d26868;
+  font-size: 0.78rem;
+  font-style: italic;
+}
+
+.roguetrader-roll-card ul {
+  margin: 6px 0 0 18px;
+}
+
+.roguetrader-fear-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(155, 116, 180, 0.45);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at top right, rgba(122, 60, 143, 0.22), transparent 38%),
+    radial-gradient(circle at bottom left, rgba(70, 108, 139, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(25, 18, 31, 0.96), rgba(15, 12, 20, 0.98));
+  box-shadow:
+    inset 0 0 0 1px rgba(223, 210, 235, 0.06),
+    0 0 18px rgba(63, 36, 82, 0.28);
+  padding: 10px 12px;
+  color: #efe7f6;
+}
+
+.roguetrader-fear-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 24%),
+    repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 8px);
+  mix-blend-mode: screen;
+  opacity: 0.45;
+}
+
+.roguetrader-fear-card h3,
+.roguetrader-fear-card strong {
+  color: #f6ecff;
+}
+
+.roguetrader-fear-card h3 {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.roguetrader-fear-card p {
+  color: #e4d8ef;
+}
+
+.roguetrader-fear-card .roguetrader-roll-hint {
+  color: #f0a9c4;
+}
+
+.roguetrader-fear-card .roguetrader-attack-resolution {
+  border-color: rgba(168, 123, 198, 0.34);
+  background: rgba(18, 12, 24, 0.55);
+}
+
+.roguetrader-fear-card .roguetrader-attack-resolution-button {
+  border-color: rgba(184, 141, 217, 0.45);
+  background: rgba(66, 36, 84, 0.75);
+  color: #f6ecff;
+}
+
+.roguetrader-fear-card .roguetrader-attack-resolution-button:hover,
+.roguetrader-fear-card .roguetrader-attack-resolution-button:focus {
+  background: rgba(101, 55, 127, 0.9);
+}
+
+.roguetrader-fear-card-prompt {
+  border-left: 4px solid rgba(208, 170, 230, 0.7);
+}
+
+.roguetrader-fear-card-resolution {
+  border-left: 4px solid rgba(167, 111, 201, 0.78);
+}
+
+.roll-dialog .roll-dialog-summary {
+  margin-bottom: 12px;
+}
+
+.dialog .roguetrader.roll-dialog {
+  background:
+    linear-gradient(180deg, rgba(53, 41, 26, 0.96), rgba(22, 18, 15, 0.98));
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 10px;
+  color: var(--rt-text);
+  padding: 14px;
+}
+
+.roll-dialog .roll-dialog-title {
+  color: var(--rt-text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.roll-dialog .roll-dialog-target {
+  color: var(--rt-accent);
+  font-size: 0.8rem;
+  margin-top: 4px;
+}
+
+.roll-dialog .roll-dialog-notes {
+  margin: 8px 0 0 18px;
+}
+
+.roll-dialog .roll-dialog-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.roll-dialog .roll-dialog-fate,
+.roll-dialog .roll-dialog-assisted {
+  margin-top: 8px;
+}
+
+.focus-power-dialog .focus-power-slider-group {
+  margin-top: 12px;
+}
+
+.focus-power-dialog .focus-power-slider-labels {
+  color: rgba(233, 223, 199, 0.7);
+  display: grid;
+  font-size: 0.63rem;
+  gap: 6px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  margin-top: 8px;
+  text-align: center;
+}
+
+.roll-dialog .roll-dialog-fate {
+  display: inline-block;
+  margin-right: 16px;
+}
+
+.roll-dialog .roll-dialog-assisted {
+  display: inline-block;
+}
+
+.roll-dialog .roll-dialog-fate-toggle {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.roll-dialog .roll-dialog-fate-toggle input {
+  height: 13px;
+  width: 13px;
+}
+
+.roll-dialog .roll-dialog-fate-toggle span {
+  color: var(--rt-text);
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+
+.dialog .roguetrader.roll-dialog .form-group label {
+  color: var(--rt-accent);
+}
+
+.dialog .roguetrader.roll-dialog input,
+.dialog .roguetrader.roll-dialog select {
+  background: rgba(255, 248, 235, 0.08);
+  border: 1px solid rgba(233, 223, 199, 0.2);
+  color: var(--rt-text);
+}
+
+.dialog .roguetrader.roll-dialog select option {
+  background: #2a211a;
+  color: var(--rt-text);
+}
+
+
+
+.roguetrader .advancement-page {
+  padding: 24px;
+}
+
+.roguetrader .advancement-section-note {
+  color: rgba(233, 223, 199, 0.76);
+  font-size: 0.78rem;
+  margin: 4px 0 0;
+}
+
+.roguetrader .advancement-header-row {
+  align-items: flex-start;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+.roguetrader .advancement-summary-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  margin-top: 14px;
+}
+
+.roguetrader .advancement-summary-card {
+  background: rgba(255, 248, 235, 0.04);
+  border: 1px solid rgba(233, 223, 199, 0.12);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 7px 8px;
+}
+
+.roguetrader .advancement-summary-label {
+  color: rgba(233, 223, 199, 0.7);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-summary-value {
+  color: var(--rt-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.roguetrader .advancement-summary-input {
+  background: rgba(12, 10, 8, 0.55);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 6px;
+  color: var(--rt-text);
+  font-size: 0.8rem;
+  height: 28px;
+  min-height: 28px;
+  padding: 2px 6px;
+}
+
+.roguetrader .advancement-data-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(240px, 0.65fr);
+  margin-top: 14px;
+}
+
+.roguetrader .advancement-main-panel {
+  min-width: 0;
+}
+
+.roguetrader .advancement-log-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.roguetrader .advancement-alternate-rank-panel {
+  border-bottom: 1px solid rgba(233, 223, 199, 0.08);
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+.roguetrader .advancement-custom-purchase-panel {
+  border-bottom: 1px solid rgba(233, 223, 199, 0.08);
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+}
+
+.roguetrader .advancement-inline-toggle {
+  align-items: center;
+  color: var(--rt-text);
+  display: flex;
+  font-size: 0.72rem;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.roguetrader .advancement-inline-toggle input {
+  margin: 0;
+}
+
+.roguetrader .advancement-alternate-rank-panel .form-group {
+  margin-bottom: 8px;
+}
+
+.roguetrader .advancement-alternate-rank-panel .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.roguetrader .advancement-custom-purchase-panel .form-group {
+  margin-bottom: 8px;
+}
+
+.roguetrader .advancement-custom-purchase-panel .form-group:last-child {
+  margin-bottom: 0;
+}
+
+.roguetrader .advancement-alternate-rank-panel label {
+  color: rgba(233, 223, 199, 0.76);
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-custom-purchase-panel label {
+  color: rgba(233, 223, 199, 0.76);
+  display: block;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-alternate-rank-panel select {
+  background: rgba(12, 10, 8, 0.55);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 6px;
+  color: var(--rt-text);
+  font-size: 0.72rem;
+  min-height: 26px;
+  padding: 2px 6px;
+  width: 100%;
+}
+
+.roguetrader .advancement-custom-purchase-panel input,
+.roguetrader .advancement-custom-purchase-panel select {
+  background: rgba(12, 10, 8, 0.55);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 6px;
+  color: var(--rt-text);
+  font-size: 0.72rem;
+  min-height: 26px;
+  padding: 2px 6px;
+  width: 100%;
+}
+
+.roguetrader .advancement-custom-purchase-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 74px;
+}
+
+.roguetrader .add-custom-purchase-button {
+  background: rgba(143, 107, 46, 0.16);
+  border: 1px solid rgba(143, 107, 46, 0.38);
+  border-radius: 6px;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 700;
+  min-height: 24px;
+  padding: 2px 10px;
+  width: 100%;
+}
+
+.roguetrader .add-custom-purchase-button:hover {
+  background: rgba(143, 107, 46, 0.24);
+}
+
+.roguetrader .advancement-data-panel {
+  background: rgba(255, 248, 235, 0.03);
+  border: 1px solid rgba(233, 223, 199, 0.12);
+  border-radius: 10px;
+  min-width: 0;
+  padding: 10px;
+}
+
+.roguetrader .advancement-subtitle {
+  color: var(--rt-heading);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-subtitle-spaced {
+  margin-top: 14px;
+}
+
+.roguetrader .advancement-rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roguetrader .advancement-rank-block {
+  min-width: 0;
+}
+
+.roguetrader .advancement-rank-heading {
+  color: rgba(233, 223, 199, 0.82);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.roguetrader .advancement-table th,
+.roguetrader .advancement-table td {
+  border-bottom: 1px solid rgba(233, 223, 199, 0.08);
+  font-size: 0.72rem;
+  line-height: 1.15;
+  padding: 4px 5px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.roguetrader .advancement-table th {
+  color: var(--rt-heading);
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-characteristics-table th:first-child,
+.roguetrader .advancement-characteristics-table td:first-child {
+  width: 34%;
+}
+
+.roguetrader .advancement-rank-table th:nth-child(1),
+.roguetrader .advancement-rank-table td:nth-child(1) {
+  width: 38%;
+}
+
+.roguetrader .advancement-rank-table th:nth-child(2),
+.roguetrader .advancement-rank-table td:nth-child(2) {
+  width: 9%;
+}
+
+.roguetrader .advancement-rank-table th:nth-child(3),
+.roguetrader .advancement-rank-table td:nth-child(3) {
+  width: 12%;
+}
+
+.roguetrader .advancement-rank-table th:nth-child(4),
+.roguetrader .advancement-rank-table td:nth-child(4) {
+  width: 30%;
+  padding-left: 3px;
+  padding-right: 3px;
+}
+
+.roguetrader .advancement-rank-table th:nth-child(5),
+.roguetrader .advancement-rank-table td:nth-child(5) {
+  width: 11%;
+}
+
+.roguetrader .advancement-entry-name {
+  color: var(--rt-text);
+  font-weight: 700;
+}
+
+.roguetrader .advancement-entry-info-button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  justify-content: flex-start;
+  min-height: 0;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.roguetrader .advancement-entry-info-button:hover .advancement-entry-name,
+.roguetrader .advancement-entry-info-button:focus-visible .advancement-entry-name {
+  color: #f3d889;
+  text-decoration: underline;
+}
+
+.roguetrader .advancement-entry-meta {
+  color: rgba(233, 223, 199, 0.62);
+  font-size: 0.62rem;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-table tbody tr.is-purchased td {
+  background: rgba(84, 126, 77, 0.16);
+}
+
+.roguetrader .advancement-table tbody tr.is-complete td {
+  background: rgba(84, 126, 77, 0.22);
+}
+
+.roguetrader .advancement-empty-state {
+  color: rgba(233, 223, 199, 0.76);
+  font-size: 0.78rem;
+  margin-top: 14px;
+}
+
+.roguetrader .advancement-characteristics-table th:nth-child(6),
+.roguetrader .advancement-characteristics-table td:nth-child(6) {
+  width: 14%;
+}
+
+.roguetrader .advancement-characteristics-table th:nth-child(7),
+.roguetrader .advancement-characteristics-table td:nth-child(7) {
+  width: 10%;
+}
+
+.roguetrader .advancement-purchase-button,
+.roguetrader .characteristic-advance-purchase-button {
+  background: rgba(143, 107, 46, 0.16);
+  border: 1px solid rgba(143, 107, 46, 0.38);
+  border-radius: 6px;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 700;
+  min-height: 22px;
+  padding: 2px 8px;
+  width: 100%;
+}
+
+.roguetrader .advancement-purchase-button:hover,
+.roguetrader .characteristic-advance-purchase-button:hover {
+  background: rgba(143, 107, 46, 0.24);
+}
+
+.roguetrader .advancement-status-text {
+  color: rgba(233, 223, 199, 0.62);
+  display: inline-block;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-log-header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.roguetrader .add-xp-log-button {
+  background: rgba(143, 107, 46, 0.16);
+  border: 1px solid rgba(143, 107, 46, 0.38);
+  border-radius: 6px;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-size: 0.66rem;
+  font-weight: 700;
+  min-height: 24px;
+  padding: 2px 10px;
+}
+
+.roguetrader .advancement-log-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.roguetrader .advancement-log-entry {
+  background: rgba(255, 248, 235, 0.04);
+  border: 1px solid rgba(233, 223, 199, 0.08);
+  border-radius: 8px;
+  padding: 6px 7px;
+}
+
+.roguetrader .advancement-log-entry.is-spend {
+  background: rgba(129, 67, 49, 0.18);
+  border-color: rgba(191, 97, 72, 0.25);
+}
+
+.roguetrader .advancement-log-entry-header {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.roguetrader .advancement-log-amount {
+  color: #d8f0cb;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.roguetrader .advancement-log-entry.is-spend .advancement-log-amount {
+  color: #f0c0b5;
+}
+
+.roguetrader .advancement-log-date {
+  color: rgba(233, 223, 199, 0.58);
+  font-size: 0.62rem;
+}
+
+.roguetrader .advancement-log-type {
+  color: rgba(233, 223, 199, 0.64);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+  text-transform: uppercase;
+}
+
+.roguetrader .advancement-log-note {
+  color: rgba(233, 223, 199, 0.82);
+  font-size: 0.7rem;
+  line-height: 1.2;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+.roguetrader-advance-detail-dialog {
+  background: rgba(33, 25, 19, 0.96);
+  border: 1px solid rgba(233, 223, 199, 0.12);
+  border-radius: 8px;
+  color: var(--rt-text, #e9dfc7);
+  padding: 10px;
+}
+
+.dialog .roguetrader-advance-detail-dialog,
+.application .roguetrader-advance-detail-dialog {
+  color: var(--rt-text, #e9dfc7);
+}
+
+.roguetrader-advance-detail-type {
+  color: rgba(233, 223, 199, 0.66);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+
+.roguetrader-advance-detail-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.roguetrader-advance-detail-meta span {
+  background: rgba(255, 248, 235, 0.06);
+  border: 1px solid rgba(233, 223, 199, 0.12);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  padding: 2px 7px;
+}
+
+.roguetrader-advance-detail-block + .roguetrader-advance-detail-block {
+  margin-top: 10px;
+}
+
+.roguetrader-advance-detail-block h4 {
+  color: #d3aa54;
+  font-size: 0.78rem;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.roguetrader-advance-detail-block p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.roguetrader .starting-characteristic-lock-button,
+.roguetrader .starting-characteristics-roll-all-button,
+.roguetrader .starting-characteristic-roll-button,
+.roguetrader .starting-characteristic-reroll-button {
+  background: rgba(255, 248, 235, 0.06);
+  border: 1px solid rgba(233, 223, 199, 0.2);
+  border-radius: 6px;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-size: 0.72rem;
+  min-height: 28px;
+  padding: 4px 10px;
+}
+
+.roguetrader .starting-characteristics-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.roguetrader .starting-characteristic-roll-button,
+.roguetrader .starting-characteristic-reroll-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 25px;
+  min-height: 25px;
+  line-height: 1;
+  padding: 0 8px;
+}
+
+.roguetrader .starting-characteristics-roll-all-button,
+.roguetrader .starting-characteristic-lock-button {
+  background: rgba(143, 107, 46, 0.18);
+  border-color: rgba(143, 107, 46, 0.45);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.roguetrader .starting-characteristic-roll-button:disabled,
+.roguetrader .starting-characteristic-reroll-button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.roguetrader .starting-characteristics-table input {
+  color: var(--rt-text);
+  min-height: 26px;
+  text-align: center;
+  width: 88px;
+}
+
+.roguetrader .starting-characteristics-table th:nth-child(1),
+.roguetrader .starting-characteristics-table td:nth-child(1) {
+  width: 28%;
+}
+
+.roguetrader .starting-characteristics-table th:nth-child(2),
+.roguetrader .starting-characteristics-table td:nth-child(2),
+.roguetrader .starting-characteristics-table th:nth-child(3),
+.roguetrader .starting-characteristics-table td:nth-child(3),
+.roguetrader .starting-characteristics-table th:nth-child(4),
+.roguetrader .starting-characteristics-table td:nth-child(4) {
+  width: 14%;
+}
+
+.roguetrader .starting-characteristics-table th:nth-child(5),
+.roguetrader .starting-characteristics-table td:nth-child(5) {
+  width: 30%;
+}
+
+.roguetrader .armor-modifier-field textarea {
+  min-height: 56px;
+  resize: vertical;
+}
+
+.roguetrader .starting-characteristics-lock-state,
+.roguetrader .starting-characteristic-status {
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.72rem;
+  padding: 4px 10px;
+}
+
+.roguetrader .starting-characteristics-lock-state.is-locked,
+.roguetrader .starting-characteristic-status.used {
+  background: rgba(143, 107, 46, 0.22);
+  color: #f4e8c9;
+}
+
+.roguetrader .starting-characteristic-status.ready {
+  background: rgba(102, 134, 82, 0.22);
+  color: #d9ebc7;
+}
+
+.roguetrader .starting-characteristic-status.pending {
+  background: rgba(255, 248, 235, 0.08);
+  color: rgba(233, 223, 199, 0.82);
+}
+
+.roguetrader .advancement-launch-panel {
+  max-width: 760px;
+}
+
+.roguetrader .advancement-launch-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.roguetrader .open-advancement-window-button {
+  background: rgba(143, 107, 46, 0.18);
+  border: 1px solid rgba(143, 107, 46, 0.45);
+  border-radius: 8px;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 6px 14px;
+  text-transform: uppercase;
+}
+
+.roguetrader.advancement-window-app .window-content {
+  background: linear-gradient(180deg, rgba(53, 41, 26, 0.96), rgba(22, 18, 15, 0.98));
+  color: var(--rt-text);
+  padding: 18px;
+}
+
+.roguetrader .advancement-window {
+  padding: 0;
+}
+
+.roguetrader .character-creation-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.roguetrader .character-creation-tab-button {
+  background: rgba(255, 248, 235, 0.06);
+  border: 1px solid rgba(233, 223, 199, 0.2);
+  border-radius: 8px 8px 0 0;
+  color: rgba(233, 223, 199, 0.78);
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 700;
+  min-height: 34px;
+  padding: 6px 14px;
+  text-transform: uppercase;
+}
+
+.roguetrader .character-creation-tab-button.active {
+  background: rgba(143, 107, 46, 0.22);
+  color: var(--rt-text);
+}
+
+.roguetrader .character-creation-tab {
+  display: none;
+}
+
+.roguetrader .character-creation-tab.active {
+  display: block;
+}
+
+.roguetrader .origin-path-placeholder-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 16px;
+}
+
+.roguetrader .origin-path-placeholder-card {
+  background: rgba(255, 248, 235, 0.04);
+  border: 1px solid rgba(233, 223, 199, 0.14);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.roguetrader .origin-path-placeholder-card p {
+  color: rgba(233, 223, 199, 0.78);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.roguetrader .origin-path-world-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.roguetrader .home-world-select-button,
+.roguetrader .home-world-confirm-button,
+.roguetrader .home-world-option-button,
+.roguetrader .home-world-roll-wounds-button,
+.roguetrader .home-world-roll-fate-button {
+  background: rgba(255, 248, 235, 0.06);
+  border: 1px solid rgba(233, 223, 199, 0.2);
+  border-radius: 8px;
+  color: var(--rt-text);
+  cursor: pointer;
+  font-size: 0.76rem;
+  min-height: 32px;
+  padding: 6px 12px;
+}
+
+.roguetrader .home-world-select-button.active,
+.roguetrader .home-world-option-button.selected,
+.roguetrader .home-world-select-button.confirmed {
+  background: rgba(143, 107, 46, 0.22);
+  border-color: rgba(143, 107, 46, 0.5);
+  color: #f4e8c9;
+}
+
+.roguetrader .origin-path-detail-panel {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 248, 235, 0.04);
+  padding: 14px;
+}
+
+.roguetrader .origin-path-columns {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.95fr);
+}
+
+.roguetrader .origin-path-lore-block p {
+  color: rgba(233, 223, 199, 0.85);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0 0 10px;
+}
+
+.roguetrader .origin-path-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.roguetrader .origin-path-list li {
+  color: rgba(233, 223, 199, 0.86);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.roguetrader .origin-path-subtitle {
+  margin-top: 14px;
+}
+
+.roguetrader .origin-path-confirmed-section {
+  border-top: 1px solid rgba(233, 223, 199, 0.14);
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.roguetrader .origin-path-choice-buttons,
+.roguetrader .origin-path-roll-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.roguetrader .origin-path-choice-buttons .home-world-option-button {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: flex-start;
+  max-width: 280px;
+  min-height: 58px;
+  text-align: left;
+}
+
+.roguetrader .origin-path-option-name {
+  display: block;
+  font-weight: 700;
+}
+
+.roguetrader .origin-path-option-summary {
+  color: rgba(233, 223, 199, 0.76);
+  display: block;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.roguetrader .home-world-option-button:disabled,
+.roguetrader .home-world-roll-wounds-button:disabled,
+.roguetrader .home-world-roll-fate-button:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+.roguetrader .origin-path-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+  margin: 16px 0 14px;
+}
+
+.roguetrader .origin-path-tab-button {
+  align-items: center;
+  background: rgba(255, 248, 235, 0.05);
+  border: 1px solid rgba(233, 223, 199, 0.16);
+  border-radius: 8px;
+  color: rgba(233, 223, 199, 0.8);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.74rem;
+  font-weight: 700;
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 6px 12px;
+  text-transform: uppercase;
+  width: auto;
+}
+
+.roguetrader .origin-path-tab-button.active {
+  background: rgba(143, 107, 46, 0.22);
+  border-color: rgba(143, 107, 46, 0.5);
+  color: var(--rt-text);
+}
+
+.roguetrader .origin-path-tab-button.completed:not(.active) {
+  background: rgba(92, 121, 76, 0.22);
+  border-color: rgba(126, 171, 96, 0.45);
+  color: #eef6dd;
+}
+
+.roguetrader .origin-path-stage {
+  margin-top: 6px;
+}
+
+.roguetrader .origin-path-world-buttons.six-up {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.roguetrader .origin-path-empty-state {
+  border: 1px dashed rgba(233, 223, 199, 0.2);
+  border-radius: 10px;
+  color: rgba(233, 223, 199, 0.78);
+  font-size: 0.82rem;
+  padding: 16px;
+}
+.roguetrader.npc .window-content,
+.roguetrader.sheet.actor.npc .window-content {
+  padding: 0;
+}
+
+.roguetrader .npc-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.roguetrader .npc-sheet-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 84px;
+  gap: 12px;
+  align-items: start;
+}
+
+.roguetrader .npc-sheet-title-block {
+  display: grid;
+  gap: 6px;
+}
+
+.roguetrader .npc-name-input {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--rt-text);
+}
+
+.roguetrader .npc-subtitle-input {
+  font-size: 0.82rem;
+  color: var(--rt-text);
+}
+
+.roguetrader .npc-portrait {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+}
+
+.roguetrader .npc-characteristics-panel {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.roguetrader .npc-characteristics-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+}
+
+.roguetrader .npc-characteristics-grid-header button {
+  min-height: 28px;
+  border: 0;
+  border-right: 1px solid rgba(233, 223, 199, 0.12);
+  background: rgba(73, 52, 34, 0.85);
+  color: var(--rt-text);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.roguetrader .npc-characteristic-value-cell {
+  min-height: 36px;
+  border-top: 1px solid rgba(233, 223, 199, 0.12);
+  border-right: 1px solid rgba(233, 223, 199, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.roguetrader .npc-characteristics-grid-values input {
+  min-height: 36px;
+  border: 0;
+  border-radius: 0;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--rt-text);
+  background: transparent;
+  min-width: 0;
+}
+
+.roguetrader .npc-characteristic-value-cell.is-buffed input,
+.roguetrader .npc-characteristic-input.is-buffed {
+  color: #d6f0b3;
+  background: rgba(72, 118, 54, 0.24);
+}
+
+.roguetrader .npc-characteristic-value-cell.is-debuffed input,
+.roguetrader .npc-characteristic-input.is-debuffed {
+  color: #f2c0b4;
+  background: rgba(135, 49, 43, 0.24);
+}
+
+.roguetrader .npc-characteristic-derived-bonus {
+  flex: 0 0 auto;
+  color: rgba(233, 223, 199, 0.92);
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.roguetrader.ship.sheet .window-content,
+.roguetrader .ship-sheet {
+  background:
+    linear-gradient(180deg, rgba(53, 41, 26, 0.92), rgba(22, 18, 15, 0.97));
+  color: var(--rt-text);
+}
+
+.roguetrader .ship-sheet-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 100%;
+}
+
+.roguetrader .ship-sheet-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 16px;
+  align-items: stretch;
+}
+
+.roguetrader .ship-sheet-title-block,
+.roguetrader .ship-card {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 12px;
+  background: rgba(10, 8, 7, 0.3);
+}
+
+.roguetrader .ship-sheet-title-block {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.roguetrader .ship-sheet-name {
+  width: 100%;
+  font-size: 1.75rem;
+  font-weight: 700;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 248, 235, 0.06);
+  color: var(--rt-text);
+  padding: 8px 10px;
+}
+
+.roguetrader .ship-sheet-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 16px;
+}
+
+.roguetrader .ship-title-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.roguetrader .ship-stat-line,
+.roguetrader .ship-resource-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roguetrader .ship-stat-line label,
+.roguetrader .ship-resource-block label,
+.roguetrader .ship-card h2,
+.roguetrader .ship-section-header h2 {
+  color: var(--rt-accent);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.roguetrader .ship-sheet-art {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 260px;
+  background:
+    linear-gradient(180deg, rgba(18, 14, 12, 0.88), rgba(40, 31, 24, 0.84));
+}
+
+.roguetrader .ship-sheet-art img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.roguetrader .ship-sheet-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  gap: 16px;
+}
+
+.roguetrader .ship-roster-card {
+  margin-top: 16px;
+}
+
+.roguetrader .ship-npc-crew-panel {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(220px, 0.65fr) minmax(0, 1fr);
+}
+
+.roguetrader .ship-npc-crew-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roguetrader .ship-npc-crew-field label {
+  color: var(--rt-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.roguetrader .ship-npc-crew-summary {
+  align-items: center;
+  background: rgba(255, 248, 235, 0.04);
+  border: 1px solid rgba(233, 223, 199, 0.14);
+  border-radius: 10px;
+  display: flex;
+  gap: 16px;
+  min-height: 76px;
+  padding: 12px 14px;
+}
+
+.roguetrader .ship-npc-crew-target {
+  color: var(--rt-text);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  line-height: 1;
+  min-width: 48px;
+  text-align: center;
+}
+
+.roguetrader .ship-npc-crew-text {
+  color: rgba(233, 223, 199, 0.78);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.roguetrader .ship-roster-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.roguetrader .ship-roster-slot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(233, 223, 199, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 248, 235, 0.04);
+  min-width: 0;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+
+.roguetrader .ship-roster-slot:hover {
+  border-color: rgba(143, 107, 46, 0.42);
+  background: rgba(255, 248, 235, 0.06);
+}
+
+.roguetrader .ship-roster-portrait {
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  flex: 0 0 128px;
+}
+
+.roguetrader .ship-roster-content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+}
+
+.roguetrader .ship-roster-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.roguetrader .ship-roster-role {
+  color: var(--rt-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.roguetrader .ship-roster-assignment {
+  color: var(--rt-text);
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.roguetrader .ship-roster-hint {
+  color: rgba(233, 223, 199, 0.68);
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.roguetrader .ship-roster-clear {
+  align-items: center;
+  background: rgba(255, 248, 235, 0.05);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 6px;
+  color: var(--rt-text);
+  cursor: pointer;
+  display: inline-flex;
+  height: 26px;
+  justify-content: center;
+  padding: 0;
+  width: 26px;
+}
+
+.roguetrader .ship-roster-clear:hover {
+  background: rgba(143, 107, 46, 0.18);
+  border-color: rgba(143, 107, 46, 0.4);
+}
+
+.roguetrader .ship-roster-stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  color: var(--rt-text);
+}
+.roguetrader .ship-roster-stat label {
+  color: rgba(233, 223, 199, 0.72);
+  font-size: 0.72rem;
+}
+
+.roguetrader .ship-roster-stat strong {
+  color: var(--rt-text);
+  font-size: 0.95rem;
+}
+
+.roguetrader.ship-construction-app .window-content {
+  background:
+    linear-gradient(180deg, rgba(53, 41, 26, 0.92), rgba(22, 18, 15, 0.97));
+  color: var(--rt-text);
+  padding: 16px;
+}
+
+.roguetrader .ship-construction-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.roguetrader .ship-construction-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 16px;
+  align-items: end;
+}
+
+.roguetrader .ship-construction-header h1 {
+  color: var(--rt-text);
+  font-size: 1.4rem;
+  font-variant: small-caps;
+  letter-spacing: 0.05em;
+  margin: 0 0 4px;
+}
+
+.roguetrader .ship-construction-header p,
+.roguetrader .ship-construction-placeholder {
+  color: rgba(233, 223, 199, 0.78);
+  font-size: 0.82rem;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.roguetrader .ship-construction-stages {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.roguetrader .ship-construction-stage-button {
+  flex: 0 0 auto;
+  width: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  background: rgba(255, 248, 235, 0.06);
+  color: rgba(233, 223, 199, 0.82);
+  border-radius: 8px;
+  min-height: 32px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.roguetrader .ship-construction-stage-button.active {
+  background: rgba(143, 107, 46, 0.22);
+  border-color: rgba(143, 107, 46, 0.5);
+  color: var(--rt-text);
+}
+
+.roguetrader .ship-construction-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
+  gap: 8px;
+}
+
+.roguetrader .ship-construction-summary-card,
+.roguetrader .ship-construction-card {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 12px;
+  background: rgba(10, 8, 7, 0.3);
+}
+
+.roguetrader .ship-construction-summary-card {
+  padding: 8px 10px;
+  display: grid;
+  gap: 3px;
+}
+
+.roguetrader .ship-construction-summary-card-compact {
+  min-height: 0;
+}
+
+.roguetrader .ship-construction-summary-card label {
+  color: var(--rt-accent);
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roguetrader .ship-construction-summary-card strong {
+  color: var(--rt-text);
+  font-size: 0.9rem;
+}
+
+.roguetrader .ship-construction-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.16fr) minmax(300px, 0.84fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.roguetrader .ship-construction-left,
+.roguetrader .ship-construction-right {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.roguetrader .ship-construction-card {
+  padding: 14px 16px;
+}
+
+.roguetrader .ship-construction-card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.roguetrader .ship-construction-card-header h2 {
+  color: var(--rt-accent);
+  font-size: 1.1rem;
+  font-variant: small-caps;
+  margin: 0;
+}
+
+.roguetrader .ship-construction-card-header span {
+  color: rgba(233, 223, 199, 0.65);
+  font-size: 0.72rem;
+}
+
+.roguetrader .ship-construction-hull-list,
+.roguetrader .ship-construction-index-sample {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roguetrader .ship-construction-essential-slots {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.roguetrader .ship-construction-essential-group,
+.roguetrader .ship-construction-essential-preview {
+  border-top: 1px solid rgba(233, 223, 199, 0.12);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+.roguetrader .ship-construction-essential-slot {
+  border: 1px solid rgba(233, 223, 199, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 248, 232, 0.04);
+  color: rgba(233, 223, 199, 0.72);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+  min-height: 44px;
+  padding: 8px 10px;
+}
+
+.roguetrader .ship-construction-essential-slot.active {
+  border-color: rgba(143, 107, 46, 0.5);
+  background: rgba(143, 107, 46, 0.12);
+  color: var(--rt-text);
+}
+
+.roguetrader .ship-construction-essential-slot span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 400;
+  margin-top: 3px;
+}
+
+.roguetrader .ship-construction-hull-class-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 8px;
+  margin-bottom: 10px;
+}
+
+.roguetrader .ship-construction-hull-class-button {
+  border: 1px solid rgba(233, 223, 199, 0.16);
+  background: rgba(255, 248, 235, 0.05);
+  color: rgba(233, 223, 199, 0.8);
+  border-radius: 8px;
+  min-height: 26px;
+  padding: 4px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.roguetrader .ship-construction-hull-class-button.active {
+  background: rgba(143, 107, 46, 0.22);
+  border-color: rgba(143, 107, 46, 0.5);
+  color: var(--rt-text);
+}
+
+.roguetrader .ship-construction-hull-option {
+  align-items: start;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(233, 223, 199, 0.14);
+  border-radius: 10px;
+  background: rgba(255, 248, 232, 0.04);
+}
+
+.roguetrader .ship-construction-hull-option.selected {
+  border-color: rgba(143, 107, 46, 0.5);
+  background: rgba(143, 107, 46, 0.12);
+}
+
+.roguetrader .ship-construction-hull-option input {
+  margin-top: 4px;
+}
+
+.roguetrader .ship-construction-hull-content {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roguetrader .ship-construction-hull-topline,
+.roguetrader .ship-construction-index-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.roguetrader .ship-construction-hull-meta,
+.roguetrader .ship-construction-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  color: rgba(233, 223, 199, 0.78);
+  font-size: 0.74rem;
+}
+
+.roguetrader .ship-construction-hull-content p,
+.roguetrader .ship-construction-selected-hull h3 {
+  margin: 0;
+}
+
+.roguetrader .ship-construction-selected-image {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  margin-bottom: 10px;
+}
+
+.roguetrader .ship-construction-hull-profile-grid {
+  margin-top: 10px;
+}
+
+.roguetrader .ship-construction-hull-description,
+.roguetrader .ship-construction-hull-special-rules {
+  margin-top: 10px;
+}
+
+.roguetrader .ship-construction-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.roguetrader .ship-construction-summary-build {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
+.roguetrader .ship-sheet-left,
+.roguetrader .ship-sheet-right {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.roguetrader .ship-card {
+  padding: 14px 16px 16px;
+}
+
+.roguetrader .ship-card h2,
+.roguetrader .ship-section-header h2 {
+  margin: 0 0 12px;
+  font-size: 1.25rem;
+  font-variant: small-caps;
+}
+
+.roguetrader .ship-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 18px;
+  align-items: start;
+}
+
+.roguetrader .ship-profile-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roguetrader .ship-profile-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px;
+  gap: 10px;
+  align-items: center;
+}
+
+.roguetrader .ship-profile-grid label,
+.roguetrader .ship-profile-field label {
+  color: rgba(233, 223, 199, 0.9);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.roguetrader .ship-profile-roll {
+  background: transparent;
+  border: 0;
+  color: rgba(233, 223, 199, 0.9);
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 700;
+  justify-self: start;
+  padding: 0;
+  text-align: left;
+}
+
+.roguetrader .ship-profile-roll:hover,
+.roguetrader .ship-profile-roll:focus-visible {
+  color: #f3d889;
+  text-decoration: underline;
+}
+
+.roguetrader .ship-profile-field input {
+  text-align: center;
+}
+
+.roguetrader .ship-profile-grid input,
+.roguetrader .ship-stat-line input,
+.roguetrader .ship-resource-pair input,
+.roguetrader .ship-capacity-row input,
+.roguetrader .ship-history-field,
+.roguetrader .item-body-grid input,
+.roguetrader .item-body-grid select,
+.roguetrader .item-body-grid textarea {
+  background: rgba(255, 248, 235, 0.06);
+  color: var(--rt-text);
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  line-height: 1.1;
+  padding: 5px 8px;
+}
+
+.roguetrader .ship-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.roguetrader .ship-construction-submit-button {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(255, 248, 235, 0.12), rgba(255, 248, 235, 0.05));
+  color: var(--rt-text);
+  cursor: pointer;
+  font-family: var(--rt-font-body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 8px 14px;
+}
+
+.roguetrader .ship-construction-submit-button:hover,
+.roguetrader .ship-construction-submit-button:focus {
+  border-color: rgba(143, 107, 46, 0.5);
+  background: rgba(143, 107, 46, 0.2);
+}
+
+.roguetrader .ship-item-create,
+.roguetrader .ship-item-delete,
+.roguetrader .ship-weapon-fire,
+.roguetrader .ship-construct-button,
+.roguetrader .ship-apply-hull-button {
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  background: rgba(255, 248, 235, 0.06);
+  color: var(--rt-text);
+  border-radius: 8px;
+  min-height: 30px;
+  min-width: 30px;
+  padding: 4px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.roguetrader .ship-item-delete {
+  border-color: rgba(173, 86, 74, 0.38);
+  color: #f2c0b4;
+}
+
+.roguetrader .ship-hull-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roguetrader .ship-hull-summary-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.roguetrader .ship-hull-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  color: rgba(233, 223, 199, 0.9);
+  font-size: 0.82rem;
+}
+
+.roguetrader .ship-hull-rules {
+  color: rgba(233, 223, 199, 0.86);
+  font-size: 0.82rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.roguetrader .ship-component-list,
+.roguetrader .ship-weapon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roguetrader .ship-list-row,
+.roguetrader .ship-weapon-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 248, 232, 0.06);
+}
+
+.roguetrader .ship-weapon-row {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, auto) auto auto;
+}
+
+.roguetrader .ship-item-open {
+  border: 0;
+  background: transparent;
+  color: var(--rt-text);
+  text-align: left;
+  min-width: 0;
+  font-size: 0.9rem;
+}
+
+.roguetrader .ship-list-primary {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.roguetrader .ship-list-meta,
+.roguetrader .ship-weapon-stats,
+.roguetrader .ship-weapon-location,
+.roguetrader .ship-empty-state {
+  color: rgba(233, 223, 199, 0.82);
+  font-size: 0.82rem;
+}
+
+.roguetrader .ship-resources-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.roguetrader .ship-resource-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.roguetrader .ship-resource-derived {
+  opacity: 0.85;
+}
+
+.roguetrader .ship-weapon-capacity-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.roguetrader .ship-capacity-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 74px 74px;
+  gap: 8px;
+  align-items: center;
+}
+
+.roguetrader .ship-history-field {
+  width: 100%;
+  min-height: 110px;
+  resize: vertical;
+}
+
+.roguetrader .ship-traits-field {
+  min-height: 84px;
+}
+
+.roguetrader .item-body-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+
+.roguetrader .ship-component-sheet .item-subtitle,
+.roguetrader .ship-weapon-sheet .item-subtitle {
+  color: rgba(233, 223, 199, 0.82);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.roguetrader .item-body-grid-span {
+  grid-column: 1 / -1;
+}
+
+.roguetrader .ship-component-sheet textarea,
+.roguetrader .ship-weapon-sheet textarea {
+  min-height: 180px;
+  resize: vertical;
+}
+
+.roguetrader .ship-component-hull-flags {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.roguetrader .ship-component-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.roguetrader .ship-weapon-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+}
+
+.roguetrader .ship-weapon-top-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1fr);
+  gap: 12px 16px;
+  align-items: end;
+}
+
+.roguetrader .ship-weapon-type-field {
+  min-width: 0;
+}
+
+.roguetrader .ship-weapon-top-row .ship-weapon-stat-row {
+  justify-content: flex-start;
+}
+
+.roguetrader .ship-component-mini-field {
+  flex: 0 0 auto;
+  width: 82px;
+}
+
+.roguetrader .ship-weapon-mini-field {
+  flex: 0 0 auto;
+  width: 88px;
+}
+
+.roguetrader .ship-weapon-wide-field {
+  flex: 1 1 190px;
+  min-width: 180px;
+}
+
+.roguetrader .ship-component-origin-field {
+  flex: 1 1 180px;
+  min-width: 160px;
+}
+
+.roguetrader .ship-component-mini-field input,
+.roguetrader .ship-weapon-mini-field input,
+.roguetrader .ship-weapon-wide-field input,
+.roguetrader .ship-component-origin-field input {
+  min-height: 24px;
+  padding: 3px 6px;
+}
+
+.roguetrader .ship-component-hull-flag {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  color: var(--rt-text);
+  font-size: 0.78rem;
+}
+
+.roguetrader .ship-component-hull-flag input {
+  margin: 0;
+}
+
+.roguetrader .starship-hull-sheet .item-header {
+  margin-bottom: 10px;
+}
+
+.roguetrader .starship-hull-layout {
+  gap: 8px 10px;
+}
+
+.roguetrader .starship-hull-sheet .form-group {
+  gap: 2px;
+}
+
+.roguetrader .starship-hull-sheet .form-group label {
+  font-size: 0.68rem;
+}
+
+.roguetrader .starship-hull-sheet input,
+.roguetrader .starship-hull-sheet select,
+.roguetrader .starship-hull-sheet textarea {
+  min-height: 26px;
+  padding: 4px 7px;
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.roguetrader .starship-hull-autosize {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: hidden;
+  resize: none;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+
+.roguetrader .starship-hull-description {
+  min-height: 120px;
+}
+
+.roguetrader .starship-hull-special-rules {
+  min-height: 96px;
+}
+
+.roguetrader .starship-hull-capacity-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.roguetrader .starship-hull-stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.roguetrader .starship-hull-mini-field {
+  flex: 0 0 auto;
+  width: 72px;
+}
+
+.roguetrader .starship-hull-mini-field:nth-child(2),
+.roguetrader .starship-hull-mini-field:nth-child(4),
+.roguetrader .starship-hull-mini-field:nth-child(6) {
+  width: 92px;
+}
+
+.roguetrader .starship-hull-mini-field input {
+  text-align: center;
+  min-height: 24px;
+  padding: 3px 6px;
+}
+
+@media (max-width: 1100px) {
+  .roguetrader .ship-sheet-header,
+  .roguetrader .ship-sheet-main {
+    grid-template-columns: 1fr;
+  }
+
+  .roguetrader .ship-roster-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .roguetrader .ship-roster-portrait {
+    width: 96px;
+    height: 96px;
+    flex-basis: 96px;
+  }
+
+  .roguetrader .ship-sheet-art {
+    min-height: 220px;
+  }
+}
+
+.roguetrader .npc-characteristics-grid > *:last-child {
+  border-right: 0;
+}
+
+.roguetrader .npc-summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.roguetrader .npc-summary-card {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 10px;
+  background: rgba(31, 22, 17, 0.8);
+}
+
+.roguetrader .npc-summary-card label {
+  color: var(--rt-accent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.roguetrader .npc-summary-card input,
+.roguetrader .npc-summary-card span,
+.roguetrader .npc-summary-card div {
+  color: var(--rt-text);
+}
+
+.roguetrader .npc-summary-fields {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.roguetrader .npc-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+  gap: 12px;
+  min-height: 0;
+}
+
+.roguetrader .npc-left-column,
+.roguetrader .npc-right-column {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.roguetrader .npc-panel {
+  padding: 12px;
+}
+
+.roguetrader .npc-panel-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.roguetrader .npc-drop-hint {
+  color: rgba(233, 223, 199, 0.6);
+  font-size: 0.68rem;
+}
+
+.roguetrader .npc-skills-table th,
+.roguetrader .npc-skills-table td,
+.roguetrader .npc-simple-table th,
+.roguetrader .npc-simple-table td,
+.roguetrader .npc-weapons-table th,
+.roguetrader .npc-weapons-table td,
+.roguetrader .npc-inventory-table th,
+.roguetrader .npc-inventory-table td {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 0.74rem;
+}
+
+.roguetrader .npc-inventory-table td:first-child,
+.roguetrader .npc-inventory-table th:first-child {
+  width: 41px;
+  padding-right: 4px;
+}
+
+.roguetrader .npc-inventory-table td:nth-child(2),
+.roguetrader .npc-inventory-table th:nth-child(2) {
+  width: 37px;
+  padding-left: 0;
+  padding-right: 4px;
+}
+
+.roguetrader .npc-inventory-table {
+  table-layout: auto;
+}
+
+.roguetrader .npc-armor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.roguetrader .npc-armor-card {
+  display: grid;
+  gap: 2px;
+  padding: 8px;
+  border: 1px solid rgba(233, 223, 199, 0.16);
+  border-radius: 8px;
+  text-align: center;
+  background: rgba(255, 248, 235, 0.03);
+}
+
+.roguetrader .npc-armor-card span {
+  color: rgba(233, 223, 199, 0.72);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+}
+
+.roguetrader .npc-armor-card strong {
+  color: var(--rt-text);
+  font-size: 1rem;
+}
+
+.roguetrader .npc-item-open {
+  color: var(--rt-text);
+}
+
+.roguetrader .npc-item-open:hover,
+.roguetrader .npc-item-open:focus {
+  color: #fff7e3;
+}
+
+.roguetrader .npc-skill-list-wrap {
+  padding: 4px 6px 6px;
+}
+
+.roguetrader .npc-skill-list {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.roguetrader .npc-skill-name-button {
+  width: auto;
+  max-width: 100%;
+  justify-content: flex-start;
+  padding: 4px 6px;
+  border: 1px solid rgba(219, 185, 114, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--rt-text);
+  text-align: left;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.roguetrader .npc-skill-name-button:hover,
+.roguetrader .npc-skill-name-button:focus {
+  background: rgba(219, 185, 114, 0.12);
+  color: #fff7e3;
+}
+
+.roguetrader .npc-reference-item-button {
+  width: auto;
+  max-width: 100%;
+  justify-content: flex-start;
+  padding: 4px 6px;
+  border: 1px solid rgba(219, 185, 114, 0.2);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--rt-text);
+  text-align: left;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.roguetrader .npc-reference-item-button:hover,
+.roguetrader .npc-reference-item-button:focus {
+  background: rgba(219, 185, 114, 0.12);
+  color: #fff7e3;
+}
+
+.roguetrader .npc-sheet .item-toggle-equipped {
+  min-width: 33px;
+  width: 33px;
+  height: 33px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.roguetrader .equipped-weapon-hand {
+  color: rgba(233, 223, 199, 0.7);
+  font-size: 0.76rem;
+  margin-left: 4px;
+}
+
+.roguetrader-combat-fear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.roguetrader-combat-fear span {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.roguetrader-fear-target-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.roguetrader-fear-target {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chat-message .roguetrader.ship-augury-results,
+.chat-message .roguetrader.ship-augury-results * {
+  color: var(--rt-text);
+}
+
+.chat-message .roguetrader.ship-augury-results {
+  background: linear-gradient(180deg, rgba(53, 41, 26, 0.96), rgba(22, 18, 15, 0.98));
+  border: 1px solid rgba(233, 223, 199, 0.16);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.roguetrader.ship-augury-results h3 {
+  color: var(--rt-accent);
+  font-size: 0.98rem;
+  margin: 0 0 8px;
+}
+
+.roguetrader.ship-augury-results p,
+.roguetrader.ship-augury-results li {
+  color: var(--rt-text);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.roguetrader.ship-augury-results ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.roguetrader .ship-augury-contact-meta {
+  color: rgba(233, 223, 199, 0.72);
+}
+
+.roguetrader .ship-augury-contact-type.is-hostile {
+  color: #e58f8f;
+  font-weight: 700;
+}
+
+.roguetrader .ship-augury-contact-type.is-friendly {
+  color: #b8dca7;
+  font-weight: 700;
+}
+
+.roguetrader .ship-augury-contact-class {
+  color: rgba(233, 223, 199, 0.88);
+  font-style: italic;
+}

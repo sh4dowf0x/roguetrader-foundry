@@ -1,0 +1,58 @@
+<form class="{{cssClass}} talent-sheet" autocomplete="off">
+  <header class="sheet-header">
+    <div class="header-fields">
+      <h1 class="item-name">
+        <input
+          name="name"
+          type="text"
+          value="{{item.name}}"
+          placeholder="Talent or Trait Name"
+        />
+      </h1>
+    </div>
+  </header>
+
+  <section class="sheet-body">
+    <div class="form-group">
+      <label for="system.category">Type</label>
+      <select name="system.category">
+        {{selectOptions talentTypes selected=system.category}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.rating">Rating</label>
+      <select name="system.rating">
+        {{selectOptions ratingOptions selected=system.rating}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.prerequisites">Prerequisites</label>
+      <input
+        name="system.prerequisites"
+        type="text"
+        value="{{system.prerequisites}}"
+        placeholder="Characteristic, rank, other talents"
+      />
+    </div>
+
+    <div class="form-group stacked">
+      <label for="system.benefit">Benefit</label>
+      <textarea
+        name="system.benefit"
+        rows="3"
+        placeholder="Short summary of the effect"
+      >{{system.benefit}}</textarea>
+    </div>
+
+    <div class="form-group stacked">
+      <label for="system.description">Description</label>
+      <textarea
+        name="system.description"
+        rows="10"
+        placeholder="Full rules text and descriptive details"
+      >{{system.description}}</textarea>
+    </div>
+  </section>
+</form>

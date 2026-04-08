@@ -1,0 +1,596 @@
+<form class="{{cssClass}} character-sheet" autocomplete="off">
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="page-one">Character</a>
+    <a class="item" data-tab="page-two">Gear & Combat</a>
+    <a class="item" data-tab="page-three">Character Creation</a>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab" data-group="primary" data-tab="page-one">
+      <section class="character-overview">
+        <div class="portrait-panel">
+          <img class="character-portrait" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" alt="{{actor.name}}" />
+        </div>
+
+        <div class="identity-panel">
+          <div class="identity-grid">
+            <div class="form-group full-width">
+              <label for="name">Character Name</label>
+              <input name="name" type="text" value="{{actor.name}}" placeholder="Rogue Trader" />
+            </div>
+            <div class="form-group">
+              <label for="system.identity.careerPath">Career Path</label>
+              <input name="system.identity.careerPath" type="text" value="{{system.identity.careerPath}}" />
+            </div>
+            <div class="form-group">
+              <label for="rankDisplay">Rank</label>
+              <input name="rankDisplay" type="text" value="{{derived.rank}}" readonly />
+            </div>
+            <div class="form-group">
+              <label for="system.identity.homeWorld">Home World</label>
+              <input name="system.identity.homeWorld" type="text" value="{{system.identity.homeWorld}}" />
+            </div>
+            <div class="form-group">
+              <label for="system.identity.motivation">Motivation</label>
+              <input name="system.identity.motivation" type="text" value="{{system.identity.motivation}}" />
+            </div>
+            <div class="form-group">
+              <label>Spent XP</label>
+              <input type="number" value="{{advancementPage.spentXp}}" min="4500" step="1" readonly />
+            </div>
+            <div class="form-group fate-points-group">
+              <label>Fate Points</label>
+              <div class="fate-points-row">
+                <div class="fate-point-field">
+                  <span>Current</span>
+                  <input name="system.resources.fate.value" type="number" value="{{system.resources.fate.value}}" min="0" step="1" />
+                </div>
+                <div class="fate-point-field">
+                  <span>Max</span>
+                  <input name="system.resources.fate.max" type="number" value="{{system.resources.fate.max}}" min="0" step="1" />
+                </div>
+                <button class="spend-fate-heal-button" type="button">Heal with Fate</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="characteristics-section">
+        <div class="characteristics-table">
+          {{#each characteristics as |characteristic|}}
+            <div class="characteristic-column {{#unless characteristic.hasBonusCell}}no-bonus{{/unless}}">
+              <button class="characteristic-header characteristic-roll-button" type="button" data-characteristic-key="{{characteristic.key}}" title="Roll {{characteristic.label}}">{{characteristic.short}}</button>
+              <div class="characteristic-bottom">
+                <input
+                  class="characteristic-value-input {{characteristic.tempStateClass}}"
+                  data-characteristic-key="{{characteristic.key}}"
+                  type="number"
+                  value="{{characteristic.value}}"
+                  step="1"
+                  title="{{characteristic.tempTitle}}"
+                  readonly
+                />
+                {{#if characteristic.hasBonusCell}}
+                  <div class="characteristic-bonus-stack"><span class="characteristic-bonus-label">({{characteristic.bonus}})</span></div>
+                {{/if}}
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="skills-section">
+        <div class="skills-columns">
+          {{#each skillColumns as |column|}}
+            <div class="skills-column">
+              <div class="skills-header">
+                <span></span><span class="skill-name-header"></span><span>Basic</span><span>Trained</span><span>+10</span><span>+20</span><span>Bonus</span>
+              </div>
+              <div class="skills-list">
+                {{#each column as |skill|}}
+                  <div class="skill-row">
+                    <button class="skill-roll-button" type="button" data-item-id="{{skill.id}}" title="Roll {{skill.displayName}}"><i class="fas fa-dice-d20"></i></button>
+                    <button class="skill-name-button" type="button" data-item-id="{{skill.id}}">{{skill.displayName}}</button>
+                    <label class="skill-toggle"><input class="skill-field" type="checkbox" data-item-id="{{skill.id}}" data-field="basic" {{checked skill.basic}} disabled /></label>
+                    <label class="skill-toggle"><input class="skill-field" type="checkbox" data-item-id="{{skill.id}}" data-field="trained" {{checked skill.trained}} disabled /></label>
+                    <label class="skill-toggle"><input class="skill-field" type="checkbox" data-item-id="{{skill.id}}" data-field="advance10" {{checked skill.advance10}} disabled /></label>
+                    <label class="skill-toggle"><input class="skill-field" type="checkbox" data-item-id="{{skill.id}}" data-field="advance20" {{checked skill.advance20}} disabled /></label>
+                    <input class="skill-bonus-input skill-field" type="number" data-item-id="{{skill.id}}" data-field="bonus" value="{{skill.bonus}}" step="1" />
+                  </div>
+                {{/each}}
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="talents-section">
+        <h2 class="section-title">Talents & Traits</h2>
+        <div class="talents-table-wrap">
+          <table class="talents-table">
+            <thead><tr><th>Name</th><th>Type</th><th>Benefit</th></tr></thead>
+            <tbody>
+              {{#if talents.length}}
+                {{#each talents as |talent|}}
+                  <tr>
+                    <td><button class="talent-name-button" type="button" data-item-id="{{talent.id}}">{{talent.displayName}}</button></td>
+                    <td>{{talent.category}}</td>
+                    <td>{{talent.benefit}}</td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr><td class="empty-talents" colspan="3">No talents or traits recorded.</td></tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="psychic-techniques-section">
+        <h2 class="section-title">Psychic Techniques {{psychicTechniqueLimit.current}}/{{psychicTechniqueLimit.max}}</h2>
+        <div class="talents-table-wrap">
+          <table class="talents-table psychic-techniques-table">
+            <thead><tr><th></th><th>Name</th><th>Focus</th><th>Range</th><th>Sustain</th></tr></thead>
+            <tbody>
+              {{#if psychicTechniques.length}}
+                {{#each psychicTechniques as |power|}}
+                  <tr>
+                    <td><button class="psychic-technique-roll-button" type="button" data-item-id="{{power.id}}"><i class="fas fa-dice-d20"></i></button></td>
+                    <td><button class="psychic-technique-name-button" type="button" data-item-id="{{power.id}}">{{power.name}}</button></td>
+                    <td>{{power.focusPowerTest}}</td>
+                    <td>{{power.range}}</td>
+                    <td>{{power.sustain}}</td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr><td class="empty-talents" colspan="5">No psychic techniques recorded.</td></tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {{#if hasNavigatorPowers}}
+        <section class="navigator-powers-section">
+          <h2 class="section-title">Navigator Powers {{navigatorPowerLimit.current}}/{{navigatorPowerLimit.max}}</h2>
+          <div class="talents-table-wrap">
+            <table class="talents-table">
+              <thead><tr><th>Name</th><th>Mastery</th><th>Benefit</th></tr></thead>
+              <tbody>
+                {{#if navigatorPowers.length}}
+                  {{#each navigatorPowers as |power|}}
+                    <tr>
+                      <td><button class="navigator-power-name-button" type="button" data-item-id="{{power.id}}">{{power.name}}</button></td>
+                      <td>{{power.mastery}}</td>
+                      <td>{{power.benefit}}</td>
+                    </tr>
+                  {{/each}}
+                {{else}}
+                  <tr><td class="empty-talents" colspan="3">No navigator powers recorded.</td></tr>
+                {{/if}}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      {{/if}}
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="page-two">
+      <section class="page-two-top-row">
+        <div class="page-two-panel wounds-panel">
+          <h2 class="section-title section-title-left">Wounds</h2>
+          <div class="wounds-grid">
+            <div class="form-group">
+              <label for="system.resources.wounds.value">Current</label>
+              <input name="system.resources.wounds.value" type="number" value="{{system.resources.wounds.value}}" min="0" step="1" />
+            </div>
+            <div class="form-group">
+              <label for="system.resources.wounds.max">Max</label>
+              <input
+                class="characteristic-value-input {{pageTwo.wounds.tempStateClass}}"
+                name="woundsMaxDisplay"
+                type="number"
+                value="{{pageTwo.wounds.effectiveMax}}"
+                step="1"
+                title="{{pageTwo.wounds.tempTitle}}"
+                readonly
+              />
+            </div>
+            <div class="form-group">
+              <label for="system.resources.criticalDamage">Critical Damage</label>
+              <input name="system.resources.criticalDamage" type="number" value="{{system.resources.criticalDamage}}" step="1" />
+            </div>
+            <div class="form-group">
+              <label for="system.resources.fatigue">Fatigue</label>
+              <input name="system.resources.fatigue" type="number" value="{{system.resources.fatigue}}" min="0" step="1" />
+            </div>
+          </div>
+        </div>
+        <div class="page-two-panel">
+          <h2 class="section-title section-title-left">Movement</h2>
+          <div class="derived-values-grid">
+            <div class="derived-value-card"><span class="derived-value-label">Half Move</span><div class="derived-value-inline"><span class="derived-value-number">{{pageTwo.movement.halfMove}}</span></div></div>
+            <div class="derived-value-card"><span class="derived-value-label">Full Move</span><div class="derived-value-inline"><span class="derived-value-number">{{pageTwo.movement.fullMove}}</span></div></div>
+            <div class="derived-value-card"><span class="derived-value-label">Charge</span><div class="derived-value-inline"><span class="derived-value-number">{{pageTwo.movement.charge}}</span></div></div>
+            <div class="derived-value-card"><span class="derived-value-label">Run</span><div class="derived-value-inline"><span class="derived-value-number">{{pageTwo.movement.run}}</span></div></div>
+            <div class="derived-value-card"><span class="derived-value-label">Leap</span><div class="derived-value-inline"><span class="derived-value-number">{{pageTwo.movement.baseLeap}}</span></div></div>
+            <div class="derived-value-card"><span class="derived-value-label">Jump</span><div class="derived-value-inline"><span class="derived-value-number">{{pageTwo.movement.baseJump}}</span></div></div>
+          </div>
+          <div class="carry-panel">
+            <div class="carry-panel-header"><span class="carry-panel-title">Carrying Capacity</span><span class="carry-panel-subtitle">Index {{pageTwo.carrying.index}}</span></div>
+            <div class="carry-values-grid">
+              <div class="carry-value-card"><span class="derived-value-label">Carry</span><span class="derived-value-number">{{pageTwo.carrying.carry}}</span></div>
+              <div class="carry-value-card"><span class="derived-value-label">Lift</span><span class="derived-value-number">{{pageTwo.carrying.lift}}</span></div>
+              <div class="carry-value-card"><span class="derived-value-label">Push</span><span class="derived-value-number">{{pageTwo.carrying.push}}</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-two-middle-row">
+        <div class="page-two-panel armor-panel">
+          <h2 class="section-title section-title-left">Equipped Armor</h2>
+          <div class="armor-summary-grid">
+            {{#each pageTwo.armor.locations as |location|}}
+              <div class="armor-location-card">
+                <div class="armor-location-header"><span>{{location.label}}</span><span>{{location.roll}}</span></div>
+                <div class="armor-location-value">AP {{location.ap}}</div>
+              </div>
+            {{/each}}
+          </div>
+          <div class="equipped-list-block">
+            <div class="subsection-title">Worn Armor</div>
+            <div class="equipped-list">
+              {{#if pageTwo.armor.hasEquippedArmor}}
+                {{#each pageTwo.armor.equipped as |item|}}
+                  <div class="equipped-list-row"><button class="inventory-item-name-button" type="button" data-item-id="{{item.id}}">{{item.name}}</button><span>{{item.coverage}}</span></div>
+                {{/each}}
+              {{else}}
+                <div class="empty-talents">No armor equipped.</div>
+              {{/if}}
+            </div>
+          </div>
+        </div>
+        <div class="page-two-panel weapons-panel">
+          <h2 class="section-title section-title-left">Equipped Weapons</h2>
+          <table class="talents-table equipped-weapons-table">
+            <thead><tr><th></th><th>Name</th><th>Class</th><th>Damage</th><th>Pen</th><th>Range</th><th>RoF</th><th>Clip</th><th>Special</th></tr></thead>
+            <tbody>
+              {{#if pageTwo.weapons.hasEquippedWeapons}}
+                {{#each pageTwo.weapons.equipped as |weapon|}}
+                  <tr>
+                    <td class="equipped-weapon-action-cell">
+  <button class="weapon-attack-button npc-weapon-attack-icon-button" type="button" data-item-id="{{weapon.id}}" title="Attack"><i class="fas fa-crosshairs"></i></button>
+  {{#if weapon.isJammed}}
+    <button class="weapon-clear-jam-button" type="button" data-item-id="{{weapon.id}}" title="Clear Jam">Unjam</button>
+  {{/if}}
+  {{#if weapon.isHeavy}}
+    <button class="weapon-brace-button" type="button" data-item-id="{{weapon.id}}">{{#if weapon.alwaysBraced}}Auto{{else if weapon.isBraced}}Unbrace{{else}}Brace{{/if}}</button>
+  {{/if}}
+</td>
+                    <td><button class="inventory-item-name-button" type="button" data-item-id="{{weapon.id}}">{{weapon.name}}</button>{{#if weapon.handLabel}} <span class="equipped-weapon-hand">({{weapon.handLabel}})</span>{{/if}}</td>
+                    <td>{{weapon.classLabel}}</td><td>{{weapon.damage}}</td><td>{{weapon.penetration}}</td><td>{{weapon.range}}</td><td>{{weapon.rof}}</td><td>{{weapon.clip}}</td><td>{{weapon.specialRules}}</td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr><td class="empty-talents" colspan="9">No weapons equipped.</td></tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-two-gear-section">
+        <div class="page-two-panel gear-list-panel">
+          <div class="gear-list-header acquisitions-header">
+            <h2 class="section-title section-title-left">Gear List</h2>
+            <div class="encumbrance-summary"><div class="encumbrance-bar" aria-hidden="true"><span style="width: {{pageTwo.inventory.encumbrance.percent}}%;"></span></div><span>{{pageTwo.inventory.encumbrance.summaryLabel}}</span></div>
+          </div>
+          <table class="talents-table gear-list-table">
+            <thead><tr><th></th><th></th><th>Name</th><th>Type</th><th>Weight</th><th>Short Description</th><th></th></tr></thead>
+            <tbody>
+              {{#if pageTwo.inventory.hasItems}}
+                {{#each pageTwo.inventory.items as |item|}}
+                  <tr>
+                    <td class="gear-list-action-cell"><button class="item-toggle-equipped" type="button" data-item-id="{{item.id}}">{{#if item.equipped}}Unequip{{else}}Equip{{/if}}</button></td>
+                    <td class="gear-list-icon-cell"><img class="gear-list-icon" src="{{item.img}}" alt="{{item.name}}" /></td>
+                    <td><button class="inventory-item-name-button" type="button" data-item-id="{{item.id}}">{{item.name}}</button></td>
+                    <td>{{item.typeLabel}}</td>
+                    <td>{{item.weight}}</td>
+                    <td><span class="gear-list-short-description">{{item.shortDescription}}</span></td>
+                    <td class="gear-list-action-cell"><button class="item-delete-button" type="button" data-item-id="{{item.id}}">X</button></td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr><td class="empty-talents" colspan="7">No inventory items recorded.</td></tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page-two-bottom-row">
+        <div class="page-two-panel consequence-drop-zone" data-consequence-type="malignancy">
+          <div class="consequence-panel-header"><h2 class="section-title section-title-left">Corruption</h2><button class="add-track-points-button add-corruption-button" type="button" data-track="corruption">Add</button></div>
+          <div class="consequence-value-row">
+            <div class="form-group">
+              <label for="system.corruption.points">Points</label>
+              <input name="system.corruption.points" type="number" value="{{system.corruption.points}}" min="0" step="1" readonly />
+            </div>
+            <div class="form-group">
+              <label for="system.corruption.degree">Degree</label>
+              <input name="system.corruption.degreeDisplay" type="text" value="{{pageTwo.corruption.summaryLabel}}" readonly />
+            </div>
+          </div>
+          <div class="consequence-drop-hint">Drop malignancies here</div>
+          <table class="talents-table consequence-table"><thead><tr><th>Name</th><th>Effect</th><th></th></tr></thead><tbody>
+            {{#if pageTwo.malignancies.hasEntries}}{{#each pageTwo.malignancies.entries as |entry|}}<tr><td><button class="inventory-item-name-button consequence-name-button" type="button" data-item-id="{{entry.id}}">{{entry.name}}</button></td><td class="consequence-summary-cell">{{entry.summary}}</td><td class="consequence-delete-cell"><button class="item-delete-button" type="button" data-item-id="{{entry.id}}">X</button></td></tr>{{/each}}{{else}}<tr><td class="empty-talents" colspan="3">None</td></tr>{{/if}}
+          </tbody></table>
+        </div>
+        <div class="page-two-panel consequence-drop-zone" data-consequence-type="mentalDisorder">
+          <div class="consequence-panel-header"><h2 class="section-title section-title-left">Insanity</h2><button class="add-track-points-button add-insanity-button" type="button" data-track="insanity">Add</button></div>
+          <div class="consequence-value-row">
+            <div class="form-group">
+              <label for="system.insanity.points">Points</label>
+              <input name="system.insanity.points" type="number" value="{{system.insanity.points}}" min="0" step="1" readonly />
+            </div>
+            <div class="form-group">
+              <label for="system.insanity.degree">Degree</label>
+              <input name="system.insanity.degreeDisplay" type="text" value="{{pageTwo.insanity.summaryLabel}}" readonly />
+            </div>
+          </div>
+          <div class="consequence-drop-hint">Drop mental disorders here</div>
+          <table class="talents-table consequence-table"><thead><tr><th>Name</th><th>Effect</th><th></th></tr></thead><tbody>
+            {{#if pageTwo.mentalDisorders.hasEntries}}{{#each pageTwo.mentalDisorders.entries as |entry|}}<tr><td><button class="inventory-item-name-button consequence-name-button" type="button" data-item-id="{{entry.id}}">{{entry.name}}</button></td><td class="consequence-summary-cell">{{entry.summary}}</td><td class="consequence-delete-cell"><button class="item-delete-button" type="button" data-item-id="{{entry.id}}">X</button></td></tr>{{/each}}{{else}}<tr><td class="empty-talents" colspan="3">None</td></tr>{{/if}}
+          </tbody></table>
+        </div>
+        <div class="page-two-panel consequence-drop-zone" data-consequence-type="criticalInjury">
+          <h2 class="section-title section-title-left">Critical Injuries</h2>
+          <div class="consequence-drop-hint">Drop critical injuries here</div>
+          <table class="talents-table consequence-table"><thead><tr><th>Name</th><th>Effect</th><th></th></tr></thead><tbody>
+            {{#if pageTwo.criticalInjuries.hasEntries}}{{#each pageTwo.criticalInjuries.entries as |entry|}}<tr><td><button class="inventory-item-name-button consequence-name-button" type="button" data-item-id="{{entry.id}}">{{entry.name}}</button></td><td class="consequence-summary-cell">{{entry.summary}}</td><td class="consequence-delete-cell"><button class="item-delete-button" type="button" data-item-id="{{entry.id}}">X</button></td></tr>{{/each}}{{else}}<tr><td class="empty-talents" colspan="3">None</td></tr>{{/if}}
+          </tbody></table>
+        </div>
+        <div class="page-two-panel consequence-drop-zone" data-consequence-type="mutation">
+          <h2 class="section-title section-title-left">Mutations</h2>
+          <div class="consequence-drop-hint">Drop mutations here</div>
+          <table class="talents-table consequence-table"><thead><tr><th>Name</th><th>Effect</th><th></th></tr></thead><tbody>
+            {{#if pageTwo.mutations.hasEntries}}{{#each pageTwo.mutations.entries as |entry|}}<tr><td><button class="inventory-item-name-button consequence-name-button" type="button" data-item-id="{{entry.id}}">{{entry.name}}</button></td><td class="consequence-summary-cell">{{entry.summary}}</td><td class="consequence-delete-cell"><button class="item-delete-button" type="button" data-item-id="{{entry.id}}">X</button></td></tr>{{/each}}{{else}}<tr><td class="empty-talents" colspan="3">None</td></tr>{{/if}}
+          </tbody></table>
+        </div>
+      </section>
+
+      <section class="page-two-acquisitions-row">
+        <div class="page-two-panel acquisitions-panel">
+          <div class="acquisitions-header"><h2 class="section-title section-title-left">Acquisitions</h2></div>
+          <table class="talents-table acquisitions-table">
+            <thead><tr><th>Item</th><th>Notes</th></tr></thead>
+            <tbody>
+              <tr><td><input name="system.acquisitions.entries.entry1.item" type="text" value="{{system.acquisitions.entries.entry1.item}}" /></td><td><input name="system.acquisitions.entries.entry1.notes" type="text" value="{{system.acquisitions.entries.entry1.notes}}" placeholder="Outcome, modifiers, or notes" /></td></tr>
+              <tr><td><input name="system.acquisitions.entries.entry2.item" type="text" value="{{system.acquisitions.entries.entry2.item}}" /></td><td><input name="system.acquisitions.entries.entry2.notes" type="text" value="{{system.acquisitions.entries.entry2.notes}}" /></td></tr>
+              <tr><td><input name="system.acquisitions.entries.entry3.item" type="text" value="{{system.acquisitions.entries.entry3.item}}" /></td><td><input name="system.acquisitions.entries.entry3.notes" type="text" value="{{system.acquisitions.entries.entry3.notes}}" /></td></tr>
+              <tr><td><input name="system.acquisitions.entries.entry4.item" type="text" value="{{system.acquisitions.entries.entry4.item}}" /></td><td><input name="system.acquisitions.entries.entry4.notes" type="text" value="{{system.acquisitions.entries.entry4.notes}}" /></td></tr>
+              <tr><td><input name="system.acquisitions.entries.entry5.item" type="text" value="{{system.acquisitions.entries.entry5.item}}" /></td><td><input name="system.acquisitions.entries.entry5.notes" type="text" value="{{system.acquisitions.entries.entry5.notes}}" /></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="page-three">
+      <section class="advancement-page">
+        <div class="page-two-panel advancement-launch-panel">
+          <div class="advancement-header-row">
+            <div>
+              <h2 class="section-title section-title-left">Character Creation & Advancement</h2>
+              <p class="advancement-section-note">Use the character creation window for one-time setup, then track career advances here.</p>
+            </div>
+            <div class="advancement-launch-row">
+              <button class="open-advancement-window-button" type="button">Open Character Creation</button>
+              {{#if advancementPage.locked}}<span class="starting-characteristics-lock-state is-locked">Starting Characteristics Locked</span>{{/if}}
+            </div>
+          </div>
+          <div class="advancement-summary-grid">
+            <label class="advancement-summary-card"><span class="advancement-summary-label">Career</span><span class="advancement-summary-value">{{advancementPage.careerName}}</span></label>
+            <label class="advancement-summary-card"><span class="advancement-summary-label">Rank</span><span class="advancement-summary-value">{{advancementPage.rank}}</span></label>
+            <label class="advancement-summary-card"><span class="advancement-summary-label">Base XP</span><span class="advancement-summary-value">4500</span></label>
+            <label class="advancement-summary-card"><span class="advancement-summary-label">Awarded XP</span><span class="advancement-summary-value">{{advancementPage.earnedXp}}</span></label>
+            <label class="advancement-summary-card"><span class="advancement-summary-label">Total XP</span><span class="advancement-summary-value">{{advancementPage.totalXp}}</span></label>
+            <label class="advancement-summary-card"><span class="advancement-summary-label">Spent XP</span><span class="advancement-summary-value">{{advancementPage.spentXp}}</span></label>
+            <label class="advancement-summary-card"><span class="advancement-summary-label">Unspent XP</span><span class="advancement-summary-value">{{advancementPage.unspentXp}}</span></label>
+          </div>
+          {{#if advancementPage.hasAdvancementData}}
+            <div class="advancement-data-grid">
+              <section class="advancement-data-panel advancement-main-panel">
+                <h3 class="advancement-subtitle">Characteristic Advances</h3>
+                <table class="advancement-table advancement-characteristics-table">
+                  <thead><tr><th>Characteristic</th><th>Simple</th><th>Intermediate</th><th>Trained</th><th>Expert</th><th>Next</th><th></th></tr></thead>
+                  <tbody>
+                    {{#each advancementPage.characteristicAdvances as |advance|}}
+                      <tr class="{{#if advance.isPurchased}}is-purchased{{/if}} {{#if advance.isComplete}}is-complete{{/if}}">
+                        <td>{{advance.characteristic}}</td>
+                        {{#each advance.costs as |cost|}}
+                          <td>{{cost.value}}{{#if cost.purchased}}*{{/if}}</td>
+                        {{/each}}
+                        <td>{{advance.nextStageLabel}}{{#if advance.nextCost}} ({{advance.nextCost}}){{/if}}</td>
+                        <td>
+                          {{#if advance.canPurchase}}
+                            <button
+                              class="characteristic-advance-purchase-button"
+                              type="button"
+                              data-career-key="{{../advancementPage.careerKey}}"
+                              data-characteristic-key="{{advance.characteristicKey}}"
+                              data-stage-key="{{advance.nextStageKey}}"
+                              data-cost="{{advance.nextCost}}"
+                            >Buy</button>
+                          {{else}}
+                            <span class="advancement-status-text">{{#if advance.isComplete}}Done{{else}}Locked{{/if}}</span>
+                          {{/if}}
+                        </td>
+                      </tr>
+                    {{/each}}
+                  </tbody>
+                </table>
+
+                <h3 class="advancement-subtitle advancement-subtitle-spaced">Available Career Advances</h3>
+                <div class="advancement-rank-list">
+                  {{#each advancementPage.rankSections as |rankSection|}}
+                    <div class="advancement-rank-block">
+                      <div class="advancement-rank-heading">{{rankSection.title}}</div>
+                      <table class="advancement-table advancement-rank-table">
+                        <thead><tr><th>Advance</th><th>Cost</th><th>Type</th><th>Prerequisites</th><th></th></tr></thead>
+                        <tbody>
+                          {{#each rankSection.entries as |entry|}}
+                            <tr class="{{#if entry.isPurchased}}is-purchased{{/if}}">
+                              <td><button class="advancement-entry-info-button" type="button" data-advance-name="{{entry.name}}" data-advance-type="{{entry.type}}" data-prerequisites="{{entry.prerequisites}}" data-cost="{{entry.cost}}"><span class="advancement-entry-name">{{entry.name}}</span></button>{{#if entry.repeatableLabel}}<div class="advancement-entry-meta">{{entry.repeatableLabel}}</div>{{/if}}</td>
+                              <td>{{entry.cost}}</td>
+                              <td>{{entry.typeLabel}}</td>
+                              <td>{{entry.prerequisites}}</td>
+                              <td>
+                                {{#if entry.canPurchase}}
+                                  <button
+                                    class="advancement-purchase-button"
+                                    type="button"
+                                    data-purchase-key="{{entry.purchaseKey}}"
+                                    data-advance-name="{{entry.name}}"
+                                    data-advance-type="{{entry.type}}"
+                                    data-cost="{{entry.cost}}"
+                                    data-repeatable="{{entry.repeatable}}"
+                                  >{{entry.purchaseLabel}}</button>
+                                {{else}}
+                                  <span class="advancement-status-text">{{#if entry.isSupported}}{{#if entry.isSoldOut}}Owned{{else}}Locked{{/if}}{{else}}Choice{{/if}}</span>
+                                {{/if}}
+                              </td>
+                            </tr>
+                          {{/each}}
+                        </tbody>
+                      </table>
+                    </div>
+                  {{/each}}
+                </div>
+
+                <h3 class="advancement-subtitle advancement-subtitle-spaced">Custom Purchases</h3>
+                {{#if advancementPage.hasCustomPurchases}}
+                  <div class="advancement-rank-block">
+                    <table class="advancement-table advancement-rank-table advancement-custom-purchases-table">
+                      <thead><tr><th>Purchase</th><th>Cost</th><th>Type</th><th>Date</th><th></th></tr></thead>
+                      <tbody>
+                        {{#each advancementPage.customPurchases as |entry|}}
+                          <tr class="is-purchased">
+                            <td><span class="advancement-entry-name">{{entry.name}}</span></td>
+                            <td>{{entry.cost}}</td>
+                            <td>{{entry.typeLabel}}</td>
+                            <td>{{entry.purchasedOn}}</td>
+                            <td><span class="advancement-status-text">Owned</span></td>
+                          </tr>
+                        {{/each}}
+                      </tbody>
+                    </table>
+                  </div>
+                {{else}}
+                  <div class="advancement-empty-state">No custom purchases recorded yet.</div>
+                {{/if}}
+              </section>
+
+              <aside class="advancement-data-panel advancement-log-panel">
+                {{#if advancementPage.alternateRank.hasOptions}}
+                  <div class="advancement-alternate-rank-panel">
+                    <h3 class="advancement-subtitle">Alternate Rank</h3>
+                    <label class="advancement-inline-toggle">
+                      <input class="alternate-rank-setting" type="checkbox" data-field="enabled" {{checked advancementPage.alternateRank.enabled}} />
+                      <span>Enable alternate rank</span>
+                    </label>
+                    <div class="form-group">
+                      <label>Alternate Rank</label>
+                      <select class="alternate-rank-setting" data-field="selected">
+                        <option value="">None</option>
+                        {{#each advancementPage.alternateRank.options as |option|}}
+                          <option value="{{option.key}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                        {{/each}}
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Replace Rank</label>
+                      <select class="alternate-rank-setting" data-field="replacesRank">
+                        {{#each advancementPage.alternateRank.rankOptions as |option|}}
+                          <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                        {{/each}}
+                      </select>
+                    </div>
+                  </div>
+                {{/if}}
+                <div class="advancement-custom-purchase-panel">
+                  <h3 class="advancement-subtitle">Custom Purchase</h3>
+                  <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" data-custom-field="name" value="" placeholder="Elite advance or other purchase" />
+                  </div>
+                  <div class="advancement-custom-purchase-grid">
+                    <div class="form-group">
+                      <label>Type</label>
+                      <select data-custom-field="type">
+                        <option value="skill">Skill</option>
+                        <option value="talent">Talent</option>
+                        <option value="trait">Trait</option>
+                        <option value="power">Power</option>
+                        <option value="origin">Origin</option>
+                        <option value="buy-off">Buy-Off</option>
+                        <option value="miscellaneous" selected>Miscellaneous</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>XP</label>
+                      <input type="number" data-custom-field="cost" min="1" step="1" value="100" />
+                    </div>
+                  </div>
+                  <button class="add-custom-purchase-button" type="button">Add Purchase</button>
+                </div>
+                <div class="advancement-log-header">
+                  <h3 class="advancement-subtitle">XP Log</h3>
+                  <button class="add-xp-log-button" type="button">Add XP</button>
+                </div>
+                {{#if advancementPage.hasXpLogEntries}}
+                  <div class="advancement-log-list">
+                    {{#each advancementPage.xpLogEntries as |entry|}}
+                      <div class="advancement-log-entry is-{{entry.type}}">
+                        <div class="advancement-log-entry-header">
+                          <span class="advancement-log-amount">{{entry.amountLabel}}</span>
+                          <span class="advancement-log-date">{{entry.awardedOn}}</span>
+                        </div>
+                        <div class="advancement-log-type">{{entry.typeLabel}}</div>
+                        <div class="advancement-log-note">{{entry.note}}</div>
+                      </div>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <div class="advancement-empty-state">No XP entries recorded yet.</div>
+                {{/if}}
+              </aside>
+            </div>
+          {{else}}
+            <div class="advancement-empty-state">No career advancement table is available for this character yet.</div>
+          {{/if}}
+        </div>
+      </section>
+    </div>
+  </section>
+</form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

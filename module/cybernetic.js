@@ -1,0 +1,47 @@
+export class RogueTraderCyberneticSheet extends ItemSheet {
+  static register() {
+    Items.registerSheet("roguetrader", RogueTraderCyberneticSheet, {
+      types: ["cybernetic"],
+      makeDefault: true
+    });
+  }
+
+  static get defaultOptions() {
+    return foundry.utils.mergeObject(super.defaultOptions, {
+      classes: ["roguetrader", "sheet", "item", "cybernetic"],
+      width: 720,
+      height: 680,
+      template: "systems/roguetrader/templates/items/cybernetic.hbs",
+      submitOnChange: true,
+      submitOnClose: true,
+      closeOnSubmit: false
+    });
+  }
+
+  getData(options = {}) {
+    const context = super.getData(options);
+    context.item = this.item;
+    context.system = this.item.system;
+    context.availabilityOptions = {
+      ubiquitous: "Ubiquitous",
+      abundant: "Abundant",
+      plentiful: "Plentiful",
+      common: "Common",
+      average: "Average",
+      scarce: "Scarce",
+      rare: "Rare",
+      veryRare: "Very Rare",
+      extremelyRare: "Extremely Rare",
+      nearUnique: "Near Unique",
+      unique: "Unique"
+    };
+    context.craftsmanshipOptions = {
+      best: "Best",
+      good: "Good",
+      common: "Common",
+      poor: "Poor"
+    };
+
+    return context;
+  }
+}

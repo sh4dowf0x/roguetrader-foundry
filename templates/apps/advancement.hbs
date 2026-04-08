@@ -1,0 +1,654 @@
+<section class="roguetrader character-creation-window">
+  <nav class="character-creation-tabs">
+    <button class="character-creation-tab-button active" type="button" data-tab="step-one">{{tabs.stepOne}}</button>
+    <button class="character-creation-tab-button" type="button" data-tab="step-two">{{tabs.stepTwo}}</button>
+    <button class="character-creation-tab-button" type="button" data-tab="step-three">{{tabs.stepThree}}</button>
+  </nav>
+
+  <div class="character-creation-tab active" data-tab="step-one">
+    <div class="page-two-panel advancement-panel">
+      <div class="section-header section-header-inline">
+        <div>
+          <h2 class="section-title section-title-left">Step 1: Starting Characteristics</h2>
+          <p class="advancement-section-note">Roll each characteristic with {{formula}}. Each characteristic gets one free reroll before you lock them in.</p>
+        </div>
+
+        {{#if locked}}
+          <span class="starting-characteristics-lock-state is-locked">Locked In</span>
+        {{else}}
+          <div class="starting-characteristics-actions">
+            <button class="starting-characteristics-roll-all-button" type="button">
+              Roll All
+            </button>
+            <button class="starting-characteristic-lock-button" type="button">
+              Confirm & Lock
+            </button>
+          </div>
+        {{/if}}
+      </div>
+      <div class="talents-table-wrap page-two-table-wrap">
+        <table class="talents-table starting-characteristics-table">
+          <thead>
+            <tr>
+              <th>Characteristic</th>
+              <th>Value</th>
+              <th>Roll</th>
+              <th>Free Reroll</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each rows as |characteristic|}}
+              <tr>
+                <td>{{characteristic.label}} ({{characteristic.short}})</td>
+                <td>
+                  <input
+                    class="starting-characteristic-input"
+                    type="number"
+                    value="{{characteristic.value}}"
+                    data-characteristic-key="{{characteristic.key}}"
+                    step="1"
+                    {{#if ../locked}}disabled{{/if}}
+                  />
+                </td>
+                <td>
+                  <button
+                    class="starting-characteristic-roll-button"
+                    type="button"
+                    data-characteristic-key="{{characteristic.key}}"
+                    {{#if ../locked}}disabled{{/if}}
+                  >
+                    {{#if characteristic.generated}}Roll Again{{else}}Roll{{/if}}
+                  </button>
+                </td>
+                <td>
+                  <button
+                    class="starting-characteristic-reroll-button"
+                    type="button"
+                    data-characteristic-key="{{characteristic.key}}"
+                    {{#unless characteristic.canReroll}}disabled{{/unless}}
+                  >
+                    Re-roll
+                  </button>
+                </td>
+                <td>
+                  {{#if characteristic.rerolled}}
+                    <span class="starting-characteristic-status used">Free reroll used</span>
+                  {{else if characteristic.generated}}
+                    <span class="starting-characteristic-status ready">Rolled</span>
+                  {{else}}
+                    <span class="starting-characteristic-status pending">Not rolled</span>
+                  {{/if}}
+                </td>
+              </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="character-creation-tab" data-tab="step-two">
+    <div class="page-two-panel advancement-panel">
+      <h2 class="section-title section-title-left">Origin Path</h2>
+      <p class="advancement-section-note">Build the character through each Origin Path stage. Each tab will eventually apply skills, talents, and characteristic changes automatically.</p>
+
+      <nav class="origin-path-tabs">
+        {{#each originTabs as |tab|}}
+          <button
+            class="origin-path-tab-button {{#if tab.active}}active{{/if}} {{#if tab.completed}}completed{{/if}}"
+            type="button"
+            data-origin-tab="{{tab.key}}"
+          >
+            {{tab.label}}
+          </button>
+        {{/each}}
+      </nav>
+
+      {{#if isHomeWorldTab}}
+        <div class="origin-path-stage">
+          <div class="subsection-title">Choose a Home World</div>
+
+          <div class="origin-path-world-buttons six-up">
+            {{#each homeWorlds as |homeWorld|}}
+              <button
+                class="home-world-select-button {{#if homeWorld.selected}}active{{/if}} {{#if homeWorld.confirmed}}confirmed{{/if}}"
+                type="button"
+                data-home-world-key="{{homeWorld.key}}"
+              >
+                {{homeWorld.label}}
+              </button>
+            {{/each}}
+          </div>
+
+          {{#if hasSelectedHomeWorld}}
+            <div class="origin-path-detail-panel">
+              <div class="section-header section-header-inline">
+                <h3 class="section-title section-title-left origin-path-detail-title">{{selectedHomeWorld.label}}</h3>
+                {{#if homeWorldState.confirmed}}
+                  <span class="starting-characteristics-lock-state is-locked">Confirmed</span>
+                {{else}}
+                  <button class="home-world-confirm-button" type="button">Confirm Home World</button>
+                {{/if}}
+              </div>
+
+              <div class="origin-path-columns">
+                <div class="origin-path-lore-block">
+                  <div class="subsection-title">Lore</div>
+                  {{#each selectedHomeWorld.lore as |paragraph|}}
+                    <p>{{paragraph}}</p>
+                  {{/each}}
+                </div>
+
+                <div class="origin-path-effects-block">
+                  <div class="subsection-title">Benefits</div>
+                  <ul class="origin-path-list">
+                    {{#each selectedHomeWorld.positives as |entry|}}
+                      <li>{{entry}}</li>
+                    {{/each}}
+                  </ul>
+
+                  <div class="subsection-title origin-path-subtitle">Drawbacks</div>
+                  <ul class="origin-path-list">
+                    {{#each selectedHomeWorld.negatives as |entry|}}
+                      <li>{{entry}}</li>
+                    {{/each}}
+                  </ul>
+                </div>
+              </div>
+
+              {{#if showHomeWorldOptions}}
+                <div class="origin-path-confirmed-section">
+                  {{#if selectedHomeWorldChoice.length}}
+                    <div class="subsection-title">Required Choice</div>
+                    <div class="origin-path-choice-buttons">
+                      {{#each selectedHomeWorldChoice as |choice|}}
+                        <button
+                          class="home-world-option-button {{#if choice.selected}}selected{{/if}}"
+                          type="button"
+                          data-choice-key="{{choice.key}}"
+                          {{#if choice.selected}}disabled{{/if}}
+                        >
+                          {{choice.name}}
+                        </button>
+                      {{/each}}
+                    </div>
+                  {{/if}}
+
+                  <div class="origin-path-roll-actions">
+                    <button
+                      class="home-world-roll-wounds-button"
+                      type="button"
+                      {{#if homeWorldState.startingWoundsRolled}}disabled{{/if}}
+                    >
+                      {{homeWorldWoundsLabel}}
+                    </button>
+
+                    <button
+                      class="home-world-roll-fate-button"
+                      type="button"
+                      {{#if homeWorldState.startingFateRolled}}disabled{{/if}}
+                    >
+                      {{homeWorldFateLabel}}
+                    </button>
+                  </div>
+                </div>
+              {{/if}}
+            </div>
+          {{else}}
+            <div class="origin-path-empty-state">Select one of the six Home Worlds above to review its lore, strengths, drawbacks, and choices.</div>
+          {{/if}}
+        </div>
+      {{else}}
+        {{#if isBirthrightTab}}
+          <div class="origin-path-stage">
+            <div class="subsection-title">Choose a Birthright</div>
+
+            <div class="origin-path-world-buttons six-up">
+              {{#each birthrights as |birthright|}}
+                <button
+                  class="birthright-select-button home-world-select-button {{#if birthright.selected}}active{{/if}} {{#if birthright.confirmed}}confirmed{{/if}}"
+                  type="button"
+                  data-birthright-key="{{birthright.key}}"
+                >
+                  {{birthright.label}}
+                </button>
+              {{/each}}
+            </div>
+
+            {{#if hasSelectedBirthright}}
+              <div class="origin-path-detail-panel">
+                <div class="section-header section-header-inline">
+                  <h3 class="section-title section-title-left origin-path-detail-title">{{selectedBirthright.label}}</h3>
+                  {{#if birthrightState.confirmed}}
+                    <span class="starting-characteristics-lock-state is-locked">Confirmed</span>
+                  {{else}}
+                    <button class="birthright-confirm-button home-world-confirm-button" type="button">Confirm Birthright</button>
+                  {{/if}}
+                </div>
+
+                <div class="origin-path-columns">
+                  <div class="origin-path-lore-block">
+                    <div class="subsection-title">Lore</div>
+                    {{#each selectedBirthright.lore as |paragraph|}}
+                      <p>{{paragraph}}</p>
+                    {{/each}}
+                  </div>
+
+                  <div class="origin-path-effects-block">
+                    <div class="subsection-title">Benefits</div>
+                    <ul class="origin-path-list">
+                      {{#each selectedBirthright.positives as |entry|}}
+                        <li>{{entry}}</li>
+                      {{/each}}
+                    </ul>
+
+                    <div class="subsection-title origin-path-subtitle">Drawbacks</div>
+                    <ul class="origin-path-list">
+                      {{#each selectedBirthright.negatives as |entry|}}
+                        <li>{{entry}}</li>
+                      {{/each}}
+                    </ul>
+                  </div>
+                </div>
+
+                {{#if showBirthrightChoices}}
+                  <div class="origin-path-confirmed-section">
+                    {{#each selectedBirthrightChoiceGroups as |group|}}
+                      <div class="subsection-title">{{group.label}}</div>
+                      <div class="origin-path-choice-buttons">
+                        {{#each group.options as |option|}}
+                          <button
+                            class="birthright-option-button home-world-option-button {{#if option.selected}}selected{{/if}}"
+                            type="button"
+                            data-group-key="{{group.key}}"
+                            data-option-key="{{option.key}}"
+                            {{#if option.selected}}disabled{{/if}}
+                          >
+                            {{option.name}}
+                          </button>
+                        {{/each}}
+                      </div>
+                    {{/each}}
+                  </div>
+                {{/if}}
+              </div>
+            {{else}}
+              <div class="origin-path-empty-state">Select one of the Birthrights above to review its lore, strengths, drawbacks, and required choices.</div>
+            {{/if}}
+
+            {{#if showCareerChoices}}
+              <div class="origin-path-confirmed-section">
+                {{#each selectedCareerChoiceGroups as |group|}}
+                  <div class="subsection-title">{{group.label}}</div>
+                  <div class="origin-path-choice-buttons">
+                    {{#each group.options as |option|}}
+                      <button
+                        class="career-option-button home-world-option-button {{#if option.selected}}selected{{/if}}"
+                        type="button"
+                        data-group-key="{{group.key}}"
+                        data-option-key="{{option.key}}"
+                        {{#if option.selected}}disabled{{/if}}
+                      >
+                        <span class="origin-path-option-name">{{option.name}}</span>
+                        {{#if option.summary.length}}
+                          <span class="origin-path-option-summary">{{option.summary.[0]}}{{#if option.summary.[1]}}; {{option.summary.[1]}}{{/if}}{{#if option.summary.[2]}}; {{option.summary.[2]}}{{/if}}</span>
+                        {{/if}}
+                      </button>
+                    {{/each}}
+                  </div>
+                {{/each}}
+              </div>
+            {{/if}}
+          </div>
+        {{else}}
+          {{#if isLureOfTheVoidTab}}
+            <div class="origin-path-stage">
+              <div class="subsection-title">Choose a Lure of the Void</div>
+
+              <div class="origin-path-world-buttons six-up">
+                {{#each lureOfTheVoidOptions as |lure|}}
+                  <button
+                    class="lure-of-the-void-select-button home-world-select-button {{#if lure.selected}}active{{/if}} {{#if lure.confirmed}}confirmed{{/if}}"
+                    type="button"
+                    data-lure-of-the-void-key="{{lure.key}}"
+                  >
+                    {{lure.label}}
+                  </button>
+                {{/each}}
+              </div>
+
+              {{#if hasSelectedLureOfTheVoid}}
+                <div class="origin-path-detail-panel">
+                  <div class="section-header section-header-inline">
+                    <h3 class="section-title section-title-left origin-path-detail-title">{{selectedLureOfTheVoid.label}}</h3>
+                    {{#if lureOfTheVoidState.confirmed}}
+                      <span class="starting-characteristics-lock-state is-locked">Confirmed</span>
+                    {{else}}
+                      <button class="lure-of-the-void-confirm-button home-world-confirm-button" type="button">Confirm Lure of the Void</button>
+                    {{/if}}
+                  </div>
+
+                  <div class="origin-path-columns">
+                    <div class="origin-path-lore-block">
+                      <div class="subsection-title">Lore</div>
+                      {{#each selectedLureOfTheVoid.lore as |paragraph|}}
+                        <p>{{paragraph}}</p>
+                      {{/each}}
+                    </div>
+
+                    <div class="origin-path-effects-block">
+                      <div class="subsection-title">Benefits</div>
+                      <ul class="origin-path-list">
+                        {{#each selectedLureOfTheVoid.positives as |entry|}}
+                          <li>{{entry}}</li>
+                        {{/each}}
+                      </ul>
+
+                      <div class="subsection-title origin-path-subtitle">Drawbacks</div>
+                      <ul class="origin-path-list">
+                        {{#each selectedLureOfTheVoid.negatives as |entry|}}
+                          <li>{{entry}}</li>
+                        {{/each}}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {{#if showLureOfTheVoidChoices}}
+                    <div class="origin-path-confirmed-section">
+                      {{#each selectedLureOfTheVoidChoiceGroups as |group|}}
+                        <div class="subsection-title">{{group.label}}</div>
+                        <div class="origin-path-choice-buttons">
+                          {{#each group.options as |option|}}
+                            <button
+                              class="lure-of-the-void-option-button home-world-option-button {{#if option.selected}}selected{{/if}}"
+                              type="button"
+                              data-group-key="{{group.key}}"
+                              data-option-key="{{option.key}}"
+                              {{#if option.selected}}disabled{{/if}}
+                            >
+                              <span class="origin-path-option-name">{{option.name}}</span>
+                              {{#if option.summary.length}}
+                                <span class="origin-path-option-summary">{{option.summary.[0]}}{{#if option.summary.[1]}}; {{option.summary.[1]}}{{/if}}{{#if option.summary.[2]}}; {{option.summary.[2]}}{{/if}}</span>
+                              {{/if}}
+                            </button>
+                          {{/each}}
+                        </div>
+                      {{/each}}
+                    </div>
+                  {{/if}}
+                </div>
+              {{else}}
+                <div class="origin-path-empty-state">Select one of the Lure of the Void options above to review its lore, strengths, drawbacks, and required choices.</div>
+              {{/if}}
+            </div>
+          {{else}}
+            {{#if isTrialsAndTravailsTab}}
+              <div class="origin-path-stage">
+                <div class="subsection-title">Choose a Trials & Travails Path</div>
+
+                <div class="origin-path-world-buttons six-up">
+                  {{#each trialsAndTravailsOptions as |trial|}}
+                    <button
+                      class="trials-and-travails-select-button home-world-select-button {{#if trial.selected}}active{{/if}} {{#if trial.confirmed}}confirmed{{/if}}"
+                      type="button"
+                      data-trials-and-travails-key="{{trial.key}}"
+                    >
+                      {{trial.label}}
+                    </button>
+                  {{/each}}
+                </div>
+
+                {{#if hasSelectedTrialsAndTravails}}
+                  <div class="origin-path-detail-panel">
+                    <div class="section-header section-header-inline">
+                      <h3 class="section-title section-title-left origin-path-detail-title">{{selectedTrialsAndTravails.label}}</h3>
+                      {{#if trialsAndTravailsState.confirmed}}
+                        <span class="starting-characteristics-lock-state is-locked">Confirmed</span>
+                      {{else}}
+                        <button class="trials-and-travails-confirm-button home-world-confirm-button" type="button">Confirm Trials & Travails</button>
+                      {{/if}}
+                    </div>
+
+                    <div class="origin-path-columns">
+                      <div class="origin-path-lore-block">
+                        <div class="subsection-title">Lore</div>
+                        {{#each selectedTrialsAndTravails.lore as |paragraph|}}
+                          <p>{{paragraph}}</p>
+                        {{/each}}
+                      </div>
+
+                      <div class="origin-path-effects-block">
+                        <div class="subsection-title">Benefits</div>
+                        <ul class="origin-path-list">
+                          {{#each selectedTrialsAndTravails.positives as |entry|}}
+                            <li>{{entry}}</li>
+                          {{/each}}
+                        </ul>
+
+                        <div class="subsection-title origin-path-subtitle">Drawbacks</div>
+                        <ul class="origin-path-list">
+                          {{#each selectedTrialsAndTravails.negatives as |entry|}}
+                            <li>{{entry}}</li>
+                          {{/each}}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {{#if showTrialsAndTravailsChoices}}
+                      <div class="origin-path-confirmed-section">
+                        {{#each selectedTrialsAndTravailsChoiceGroups as |group|}}
+                          <div class="subsection-title">{{group.label}}</div>
+                          <div class="origin-path-choice-buttons">
+                            {{#each group.options as |option|}}
+                              <button
+                                class="trials-and-travails-option-button home-world-option-button {{#if option.selected}}selected{{/if}}"
+                                type="button"
+                                data-group-key="{{group.key}}"
+                                data-option-key="{{option.key}}"
+                                {{#if option.selected}}disabled{{/if}}
+                              >
+                                <span class="origin-path-option-name">{{option.name}}</span>
+                                {{#if option.summary.length}}
+                                  <span class="origin-path-option-summary">{{option.summary.[0]}}{{#if option.summary.[1]}}; {{option.summary.[1]}}{{/if}}{{#if option.summary.[2]}}; {{option.summary.[2]}}{{/if}}</span>
+                                {{/if}}
+                              </button>
+                            {{/each}}
+                          </div>
+                        {{/each}}
+                      </div>
+                    {{/if}}
+                  </div>
+                {{else}}
+                  <div class="origin-path-empty-state">Select one of the Trials & Travails options above to review its lore, strengths, drawbacks, and required choices.</div>
+                {{/if}}
+              </div>
+            {{else}}
+              {{#if isMotivationTab}}
+                <div class="origin-path-stage">
+                  <div class="subsection-title">Choose a Motivation</div>
+
+                  <div class="origin-path-world-buttons six-up">
+                    {{#each motivations as |motivation|}}
+                      <button
+                        class="motivation-select-button home-world-select-button {{#if motivation.selected}}active{{/if}} {{#if motivation.confirmed}}confirmed{{/if}}"
+                        type="button"
+                        data-motivation-key="{{motivation.key}}"
+                      >
+                        {{motivation.label}}
+                      </button>
+                    {{/each}}
+                  </div>
+
+                  {{#if hasSelectedMotivation}}
+                    <div class="origin-path-detail-panel">
+                      <div class="section-header section-header-inline">
+                        <h3 class="section-title section-title-left origin-path-detail-title">{{selectedMotivation.label}}</h3>
+                        {{#if motivationState.confirmed}}
+                          <span class="starting-characteristics-lock-state is-locked">Confirmed</span>
+                        {{else}}
+                          <button class="motivation-confirm-button home-world-confirm-button" type="button">Confirm Motivation</button>
+                        {{/if}}
+                      </div>
+
+                      <div class="origin-path-columns">
+                        <div class="origin-path-lore-block">
+                          <div class="subsection-title">Lore</div>
+                          {{#each selectedMotivation.lore as |paragraph|}}
+                            <p>{{paragraph}}</p>
+                          {{/each}}
+                        </div>
+
+                        <div class="origin-path-effects-block">
+                          <div class="subsection-title">Benefits</div>
+                          <ul class="origin-path-list">
+                            {{#each selectedMotivation.positives as |entry|}}
+                              <li>{{entry}}</li>
+                            {{/each}}
+                          </ul>
+
+                          {{#if selectedMotivation.negatives.length}}
+                            <div class="subsection-title origin-path-subtitle">Drawbacks</div>
+                            <ul class="origin-path-list">
+                              {{#each selectedMotivation.negatives as |entry|}}
+                                <li>{{entry}}</li>
+                              {{/each}}
+                            </ul>
+                          {{/if}}
+                        </div>
+                      </div>
+
+                      {{#if showMotivationChoices}}
+                        <div class="origin-path-confirmed-section">
+                          {{#each selectedMotivationChoiceGroups as |group|}}
+                            <div class="subsection-title">{{group.label}}</div>
+                            <div class="origin-path-choice-buttons">
+                              {{#each group.options as |option|}}
+                                <button
+                                  class="motivation-option-button home-world-option-button {{#if option.selected}}selected{{/if}}"
+                                  type="button"
+                                  data-group-key="{{group.key}}"
+                                  data-option-key="{{option.key}}"
+                                  {{#if option.selected}}disabled{{/if}}
+                                >
+                                  <span class="origin-path-option-name">{{option.name}}</span>
+                                  {{#if option.summary.length}}
+                                    <span class="origin-path-option-summary">{{option.summary.[0]}}{{#if option.summary.[1]}}; {{option.summary.[1]}}{{/if}}{{#if option.summary.[2]}}; {{option.summary.[2]}}{{/if}}</span>
+                                  {{/if}}
+                                </button>
+                              {{/each}}
+                            </div>
+                          {{/each}}
+                        </div>
+                      {{/if}}
+                    </div>
+                  {{else}}
+                    <div class="origin-path-empty-state">Select one of the Motivation options above to review its lore, strengths, drawbacks, and required choices.</div>
+                  {{/if}}
+                </div>
+              {{else}}
+                <div class="origin-path-stage">
+                  <div class="origin-path-empty-state">This Origin Path stage is scaffolded and ready for rules content next.</div>
+                </div>
+              {{/if}}
+            {{/if}}
+          {{/if}}
+        {{/if}}
+      {{/if}}
+    </div>
+  </div>
+  <div class="character-creation-tab" data-tab="step-three">
+    <div class="page-two-panel advancement-panel">
+      <h2 class="section-title section-title-left">Career</h2>
+      <p class="advancement-section-note">Choose the career that defines your starting role aboard the dynasty. The structure below is ready for the exact starting skills, equipment, and special abilities for each career.</p>
+
+      <div class="origin-path-stage">
+        <div class="subsection-title">Choose a Career</div>
+
+        <div class="origin-path-world-buttons six-up">
+          {{#each careers as |career|}}
+            <button
+              class="career-select-button home-world-select-button {{#if career.selected}}active{{/if}} {{#if career.confirmed}}confirmed{{/if}}"
+              type="button"
+              data-career-key="{{career.key}}"
+            >
+              {{career.label}}
+            </button>
+          {{/each}}
+        </div>
+
+        {{#if hasSelectedCareer}}
+          <div class="origin-path-detail-panel">
+            <div class="section-header section-header-inline">
+              <h3 class="section-title section-title-left origin-path-detail-title">{{selectedCareer.label}}</h3>
+              {{#if careerState.confirmed}}
+                <span class="starting-characteristics-lock-state is-locked">Confirmed</span>
+              {{else}}
+                <button class="career-confirm-button home-world-confirm-button" type="button">Confirm Career</button>
+              {{/if}}
+            </div>
+
+            <div class="origin-path-columns">
+              <div class="origin-path-lore-block">
+                <div class="subsection-title">Career Overview</div>
+                {{#each selectedCareer.overview as |paragraph|}}
+                  <p>{{paragraph}}</p>
+                {{/each}}
+              </div>
+
+              <div class="origin-path-effects-block">
+                <div class="subsection-title">Starting Skills</div>
+                <ul class="origin-path-list">
+                  {{#each selectedCareer.startingSkillsInfo as |entry|}}
+                    <li>{{entry}}</li>
+                  {{/each}}
+                </ul>
+
+                <div class="subsection-title origin-path-subtitle">Starting Equipment</div>
+                <ul class="origin-path-list">
+                  {{#each selectedCareer.startingEquipmentInfo as |entry|}}
+                    <li>{{entry}}</li>
+                  {{/each}}
+                </ul>
+
+                <div class="subsection-title origin-path-subtitle">Special Ability</div>
+                <ul class="origin-path-list">
+                  {{#each selectedCareer.specialAbilityInfo as |entry|}}
+                    <li>{{entry}}</li>
+                  {{/each}}
+                </ul>
+              </div>
+            </div>
+
+            {{#if showCareerChoices}}
+              <div class="origin-path-confirmed-section">
+                {{#each selectedCareerChoiceGroups as |group|}}
+                  <div class="subsection-title">{{group.label}}</div>
+                  <div class="origin-path-choice-buttons">
+                    {{#each group.options as |option|}}
+                      <button
+                        class="career-option-button home-world-option-button {{#if option.selected}}selected{{/if}}"
+                        type="button"
+                        data-group-key="{{group.key}}"
+                        data-option-key="{{option.key}}"
+                        {{#if option.selected}}disabled{{/if}}
+                      >
+                        <span class="origin-path-option-name">{{option.name}}</span>
+                        {{#if option.summary.length}}
+                          <span class="origin-path-option-summary">{{option.summary.[0]}}{{#if option.summary.[1]}}; {{option.summary.[1]}}{{/if}}{{#if option.summary.[2]}}; {{option.summary.[2]}}{{/if}}</span>
+                        {{/if}}
+                      </button>
+                    {{/each}}
+                  </div>
+                {{/each}}
+              </div>
+            {{/if}}
+          </div>
+        {{else}}
+          <div class="origin-path-empty-state">Select one of the eight careers above to review its overview, starting skills, equipment, and special ability.</div>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</section>
+

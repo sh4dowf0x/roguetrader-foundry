@@ -1,0 +1,87 @@
+<form class="{{cssClass}} skill-sheet" autocomplete="off">
+  <header class="sheet-header">
+    <div class="header-fields">
+      <h1 class="item-name">
+        <input
+          name="name"
+          type="text"
+          value="{{item.name}}"
+          placeholder="Skill Name"
+        />
+      </h1>
+    </div>
+  </header>
+
+  <section class="sheet-body">
+    <div class="form-group">
+      <label for="system.characteristic">Characteristic</label>
+      <select name="system.characteristic">
+        {{selectOptions characteristics selected=system.characteristic}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="system.specialization">Specialization</label>
+      <input
+        name="system.specialization"
+        type="text"
+        value="{{system.specialization}}"
+        placeholder="Xenos"
+      />
+    </div>
+
+    <div class="form-group stacked">
+      <label>
+        <input
+          name="system.basic"
+          type="checkbox"
+          {{checked system.basic}}
+        />
+        Basic
+      </label>
+      <label>
+        <input
+          name="system.trained"
+          type="checkbox"
+          {{checked system.trained}}
+        />
+        Trained
+      </label>
+      <label>
+        <input
+          name="system.advance10"
+          type="checkbox"
+          {{checked system.advance10}}
+        />
+        +10
+      </label>
+      <label>
+        <input
+          name="system.advance20"
+          type="checkbox"
+          {{checked system.advance20}}
+        />
+        +20
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label for="system.bonus">Bonus</label>
+      <input
+        name="system.bonus"
+        type="number"
+        value="{{system.bonus}}"
+        step="1"
+      />
+    </div>
+
+    <div class="form-group stacked">
+      <label for="system.description">Description</label>
+      <textarea
+        name="system.description"
+        rows="10"
+        placeholder="Describe what this skill covers, limitations, and special use cases."
+      >{{system.description}}</textarea>
+    </div>
+  </section>
+</form>

@@ -1,0 +1,124 @@
+<form class="roguetrader roll-dialog attack-dialog" autocomplete="off">
+  <div class="roll-dialog-summary">
+    <div class="roll-dialog-title">{{weaponName}}</div>
+    {{#if isFlameWeapon}}
+    <div class="roll-dialog-target">Flame Template: 30-degree cone, {{range}}</div>
+    {{else if isGrenadeWeapon}}
+    <div class="roll-dialog-target">Grenade Attack: place blast template, then roll BS (range {{range}})</div>
+    {{else}}
+    <div class="roll-dialog-target">Base Target: {{baseTarget}} ({{characteristicLabel}})</div>
+    {{/if}}
+    <ul class="roll-dialog-notes">
+      <li>Damage: {{damage}}</li>
+      <li>Pen: {{penetration}}</li>
+      <li>Range: {{range}}</li>
+      <li>RoF: {{rof}}</li>
+      <li>Clip: {{clip}}</li>
+      <li>Special: {{special}}</li>
+      {{#if isFlameWeapon}}
+      <li>Click Attack, then aim the cone from the attacker and click the canvas to confirm.</li>
+      <li>All targets in the cone may Dodge; one damage roll applies to each target hit.</li>
+      {{else if isGrenadeWeapon}}
+      <li>Click Attack, then place the circular blast template on the intended detonation point.</li>
+      <li>Success means it lands there. Failure means it scatters before detonating.</li>
+      <li>Grenades use Ballistic Skill and do not require a weapon training talent.</li>
+      {{/if}}
+      {{#each promptNotes as |note|}}
+      <li>{{note}}</li>
+      {{/each}}
+    </ul>
+  </div>
+
+  {{#unless isFlameWeapon}}
+  <div class="roll-dialog-grid">
+    <div class="form-group">
+      <label for="attackType">Attack Type</label>
+      <select name="attackType">
+        {{#each attackTypeOptions as |option|}}
+          <option value="{{option.key}}">{{option.label}}</option>
+        {{/each}}
+      </select>
+      {{#if showCalledShotLocation}}
+        <div class="attack-dialog-called-shot" data-called-shot-controls="true" style="display:none; margin-top: 6px;">
+          <select name="calledShotLocation">
+            {{#each calledShotLocationOptions as |option|}}
+              <option value="{{option.key}}">{{option.label}}</option>
+            {{/each}}
+          </select>
+        </div>
+      {{/if}}
+    </div>
+
+    <div class="form-group">
+      <label for="aim">Aim</label>
+      <select name="aim">
+        {{#each aimOptions as |option|}}
+          <option value="{{option.key}}">{{option.label}}</option>
+        {{/each}}
+      </select>
+    </div>
+
+    {{#if showRangeBand}}
+      <div class="form-group">
+        <label for="rangeBand">Range Band</label>
+        <select name="rangeBand">
+          {{#each rangeBandOptions as |option|}}
+            <option value="{{option.key}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+          {{/each}}
+        </select>
+        {{#if autoRangeBandLabel}}
+          <div class="help-text">Auto: {{autoRangeBandLabel}}{{#if autoRangeDistanceLabel}} from {{autoRangeDistanceLabel}}{{/if}}</div>
+        {{/if}}
+      </div>
+    {{/if}}
+
+    <div class="form-group">
+      <label for="miscModifier">Misc. Modifier</label>
+      <input name="miscModifier" type="number" value="{{defaultMiscModifier}}" step="1" />
+    </div>
+  </div>
+
+  <div class="form-group roll-dialog-fate">
+    <label class="roll-dialog-fate-toggle">
+      <input name="spendFate" type="checkbox" />
+      <span>Spend Fate (+10)</span>
+    </label>
+  </div>
+
+  {{#if showTwoWeaponFighting}}
+    <div class="form-group roll-dialog-fate">
+      <label class="roll-dialog-fate-toggle">
+        <input name="twoWeaponFighting" type="checkbox" {{#if defaultTwoWeaponFighting}}checked{{/if}} />
+        <span>Two-Weapon Fighting</span>
+      </label>
+    </div>
+  {{/if}}
+
+  {{#if showBraceHeavyWeapon}}
+    <div class="form-group roll-dialog-fate">
+      <label class="roll-dialog-fate-toggle">
+        <input name="braceHeavyWeapon" type="checkbox" {{#if defaultBraceHeavyWeapon}}checked{{/if}} />
+        <span>Brace Heavy Weapon</span>
+      </label>
+    </div>
+  {{/if}}
+
+  {{#if showMaximalMode}}
+    <div class="form-group roll-dialog-fate">
+      <label class="roll-dialog-fate-toggle">
+        <input name="maximalMode" type="checkbox" {{#if defaultMaximalMode}}checked{{/if}} />
+        <span>Maximal Mode</span>
+      </label>
+    </div>
+  {{/if}}
+
+  {{#if canAdvanceOnFullAuto}}
+    <div class="form-group roll-dialog-fate">
+      <label class="roll-dialog-fate-toggle">
+        <input name="fullAutoAdvance" type="checkbox" />
+        <span>Advance While Using Full Auto (changes Full Auto to -10)</span>
+      </label>
+    </div>
+  {{/if}}
+  {{/unless}}
+</form>

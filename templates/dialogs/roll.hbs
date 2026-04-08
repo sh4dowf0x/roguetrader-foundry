@@ -1,0 +1,58 @@
+<form class="roguetrader roll-dialog" autocomplete="off">
+  <div class="roll-dialog-summary">
+    <div class="roll-dialog-title">{{testLabel}}</div>
+    <div class="roll-dialog-target">Base Target: {{baseTarget}}</div>
+    {{#if notes.length}}
+      <ul class="roll-dialog-notes">
+        {{#each notes as |note|}}
+          <li>{{note}}</li>
+        {{/each}}
+      </ul>
+    {{/if}}
+  </div>
+
+  <div class="roll-dialog-grid">
+    <div class="form-group">
+      <label for="difficulty">Difficulty</label>
+      <select name="difficulty">
+        {{#each difficultyOptions as |option|}}
+          <option value="{{option.key}}" {{#if option.selected}}selected{{/if}}>
+            {{option.label}}
+          </option>
+        {{/each}}
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="otherModifier">Other Modifier</label>
+      <input
+        name="otherModifier"
+        type="number"
+        value="0"
+        step="1"
+      />
+    </div>
+  </div>
+
+  <div class="form-group roll-dialog-fate">
+    <label class="roll-dialog-fate-toggle">
+      <input
+        name="spendFate"
+        type="checkbox"
+      />
+      <span>Spend Fate (+10)</span>
+    </label>
+  </div>
+
+  <div class="form-group roll-dialog-assisted">
+    <label class="roll-dialog-fate-toggle">
+      <input
+        name="assisted"
+        type="checkbox"
+      />
+      <span>Assisted</span>
+    </label>
+  </div>
+</form>
+
+

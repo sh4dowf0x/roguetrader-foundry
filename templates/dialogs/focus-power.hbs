@@ -1,0 +1,43 @@
+<form class="roguetrader roll-dialog focus-power-dialog" autocomplete="off">
+  <div class="roll-dialog-summary">
+    <div class="roll-dialog-title">{{techniqueName}}</div>
+    <div class="roll-dialog-target">Focus Power Test: {{focusPowerTest}}</div>
+    <ul class="roll-dialog-notes">
+      <li>Base Psy Rating: {{basePsyRating}}</li>
+      <li>Mode: <span data-psy-mode-label>{{modeLabel}}</span></li>
+      <li>Psy Rating Used: <span data-psy-rating-used>{{psyRatingUsed}}</span></li>
+      <li>Psy Modifier: <span data-psy-modifier>+{{psyModifier}}</span></li>
+      <li>Phenomena: <span data-phenomena-text>{{phenomenaModifier}}</span></li>
+    </ul>
+  </div>
+
+  <div class="form-group focus-power-slider-group">
+    <label for="psyMode">Psy Mode</label>
+    <input
+      name="psyMode"
+      type="range"
+      min="0"
+      max="5"
+      step="1"
+      value="0"
+    />
+    <div class="focus-power-slider-labels">
+      <span>Fettered</span>
+      <span>Unfettered</span>
+      <span>Push 1</span>
+      <span>Push 2</span>
+      <span>Push 3</span>
+      <span>Push 4</span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="miscModifier">Misc. Modifier</label>
+    <input
+      name="miscModifier"
+      type="number"
+      value="0"
+      step="1"
+    />
+  </div>
+</form>

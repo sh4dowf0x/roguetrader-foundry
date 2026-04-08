@@ -1,0 +1,41 @@
+<form class="{{cssClass}} navigator-power-sheet" autocomplete="off">
+  <header class="sheet-header">
+    <div class="header-fields">
+      <h1 class="item-name">
+        <input
+          name="name"
+          type="text"
+          value="{{item.name}}"
+          placeholder="Navigator Power"
+        />
+      </h1>
+    </div>
+  </header>
+
+  <section class="sheet-body">
+    <div class="form-group">
+      <label for="system.mastery">Mastery</label>
+      <select name="system.mastery">
+        {{selectOptions masteryOptions selected=system.mastery}}
+      </select>
+    </div>
+
+    <div class="form-group stacked">
+      <label for="system.benefit">Benefit</label>
+      <textarea
+        name="system.benefit"
+        rows="3"
+        placeholder="Short summary of the navigator power"
+      >{{system.benefit}}</textarea>
+    </div>
+
+    <div class="form-group stacked">
+      <label for="system.description">Description</label>
+      <textarea
+        name="system.description"
+        rows="10"
+        placeholder="Full rules text and narrative details"
+      >{{system.description}}</textarea>
+    </div>
+  </section>
+</form>
