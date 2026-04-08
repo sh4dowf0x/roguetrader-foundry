@@ -487,6 +487,21 @@
           "crippled": {
             "active": false,
             "source": ""
+          },
+          "sensorsDamaged": {
+            "active": false,
+            "source": ""
+          },
+          "thrustersDamaged": {
+            "active": false,
+            "source": "",
+            "rollTotal": 0,
+            "turningDisabled": false,
+            "maneuverPenalty": 0
+          },
+          "shipFire": {
+            "active": false,
+            "source": ""
           }
         },
         "weaponCapacity": {

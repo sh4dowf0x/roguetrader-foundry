@@ -85,24 +85,30 @@
       </section>
     {{/if}}
     <section class="ship-sheet-main">
-      <div class="ship-sheet-left">
-        <section class="ship-card ship-profile-card">
-          <h2>Voidship Profile</h2>
-          <div class="ship-profile-grid">
-            <div class="ship-profile-column">
-              <div class="ship-profile-field">
-                <label>Speed</label>
-                <input name="system.speed" type="number" value="{{system.speed}}" step="1" />
+        <div class="ship-sheet-left">
+          <section class="ship-card ship-profile-card">
+            <h2>Voidship Profile</h2>
+            {{#if ship.isCrippled}}
+              <p class="ship-condition-note">Crippled: Speed halved, Manoeuvrability -10, Detection -10, Weapon Strength halved.</p>
+            {{/if}}
+            {{#if system.conditions.thrustersDamaged.active}}
+              <p class="ship-condition-note">Thrusters Damaged: {{#if system.conditions.thrustersDamaged.turningDisabled}}The ship cannot turn.{{else}}Manoeuvrability reduced by -20.{{/if}}</p>
+            {{/if}}
+            <div class="ship-profile-grid">
+              <div class="ship-profile-column">
+                <div class="ship-profile-field">
+                  <label>Speed</label>
+                  <input name="system.speed" type="number" value="{{ship.effectiveSpeed}}" step="1" readonly />
+                </div>
+                <div class="ship-profile-field">
+                  <label>Manoeuvrability</label>
+                  <input name="system.maneuverability" type="number" value="{{ship.effectiveManeuverability}}" step="1" readonly />
+                </div>
+                <div class="ship-profile-field">
+                  <button type="button" class="ship-profile-roll" data-ship-test="activeAugury">Detection</button>
+                  <input name="system.detection" type="number" value="{{ship.effectiveDetection}}" step="1" readonly />
+                </div>
               </div>
-              <div class="ship-profile-field">
-                <label>Manoeuvrability</label>
-                <input name="system.maneuverability" type="number" value="{{system.maneuverability}}" step="1" />
-              </div>
-              <div class="ship-profile-field">
-                <button type="button" class="ship-profile-roll" data-ship-test="activeAugury">Detection</button>
-                <input name="system.detection" type="number" value="{{system.detection}}" step="1" />
-              </div>
-            </div>
             <div class="ship-profile-column">
               <div class="ship-profile-field">
                 <label>Turret Rating</label>

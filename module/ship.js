@@ -603,6 +603,25 @@ export class RogueTraderShipSheet extends ActorSheet {
   async _rollActiveAugury() {
     await this._playActiveAugurySequence();
 
+    if (this.actor.isSensorsDamaged?.()) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader ship-critical-hit-card">
+            <div class="ship-critical-hit-banner">Active Augury Failed</div>
+            <h3>${this.actor.name}</h3>
+            <p><strong>Reason:</strong> Sensors Damaged</p>
+            <p>All sensor sweep attempts automatically fail until the damage is repaired.</p>
+          </div>
+        `
+      });
+      return {
+        success: false,
+        failedAutomatically: true,
+        reason: "Sensors Damaged"
+      };
+    }
+
     const detectionModifier = Number(this.actor.getEffectiveShipDetection?.() ?? this.actor.system?.detection ?? 0) || 0;
     const isNpcControlled = String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc";
 

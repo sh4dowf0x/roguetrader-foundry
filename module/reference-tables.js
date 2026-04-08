@@ -391,6 +391,111 @@ const REFERENCE_TABLE_DEFINITIONS = Object.freeze({
       }
     ]
   },
+  starshipCriticalHits: {
+    key: "starshipCriticalHits",
+    label: "Starship Critical Hits",
+    defaultCategory: "reference",
+    entries: [
+      {
+        min: 1,
+        max: 1,
+        name: "Holed",
+        benefit: "Attacker selects one known Component, other than the bridge or plasma/warp drives; it is depressurized.",
+        description: "A lucky hit has wrenched open the ship's hull, exposing it to space. The attacker selects one Component, only choosing one he knows of, that is not the bridge or plasma or warp drives. Emergency bulkheads slam into place to seal off the compartments, but this Component is depressurized."
+      },
+      {
+        min: 2,
+        max: 2,
+        name: "Internal Damage",
+        benefit: "Attacker selects one known Component, other than the bridge or plasma/warp drives; it is damaged.",
+        description: "The force of the hit ruptures bulkheads and smashes machinery. The attacker selects one Component, only choosing one he knows of, that is not the bridge or plasma or warp drives. This Component is damaged."
+      },
+      {
+        min: 3,
+        max: 3,
+        name: "Sensors Damaged",
+        benefit: "Until repaired, all shooting tests suffer -30 to hit and all sensor tests beyond immediate engaged range automatically fail.",
+        description: "The ship's auspex arrays have been knocked out, leaving the vessel blind. Until the damage is repaired, all shooting tests suffer a -30 to hit, and all sensory tests to detect anything beyond the ship's immediate engaged range automatically fail. Additionally, as the arrays are located outside the hull, any repairs must be attempted in the void."
+      },
+      {
+        min: 4,
+        max: 4,
+        name: "Thrusters Damaged",
+        benefit: "Roll 1d10. On 1-7, the ship can still manoeuvre slowly and Manoeuvrability is reduced by -20. On 8-10, the ship cannot turn.",
+        description: "The ship's manoeuvring thrusters are smashed, venting randomly and leaking fuel. Roll 1d10. On a 1-7, the ship can still manoeuvre, albeit slowly. Reduce the ship's Manoeuvrability bonus by -20. On an 8-10, the thrusters are completely damaged. The ship cannot turn. This damage can be repaired."
+      },
+      {
+        min: 5,
+        max: 5,
+        name: "Fire!",
+        benefit: "Attacker selects one known Component, other than the bridge or plasma/warp drive; it is now on fire.",
+        description: "Alarms scream through the hull as hungry flames roar through passageways and compartments. The blaze must be contained before it devours the entire ship. The attacker selects one Component, only choosing one he knows of, that is not the bridge or plasma or warp drive; this Component is now on fire. The fire follows all the rules for shipboard fires."
+      },
+      {
+        min: 6,
+        max: 6,
+        name: "Engines Crippled",
+        benefit: "Roll 1d10. On 1-7, reduce the ship's Speed by half. On 8-10, reduce the ship's Speed to 1.",
+        description: "Something pierces the immense drive tubes in the ship's stern, bleeding plasma into the void and leaving the vessel drifting in space. Roll 1d10. On a 1-7, the plasma drives are still usable, though heavily damaged. Reduce the ship's Speed by half. On an 8-10, the drives are completely wrecked. Reduce the ship's Speed to 1. This damage can be repaired."
+      },
+      {
+        min: 7,
+        max: 7,
+        name: "Surly Techsprites",
+        benefit: "Roll 1d10 for every Component. On 4+, the Component becomes unpowered until repaired. Morale takes 1d5 damage.",
+        description: "Something has jarred and shocked the ship's machine spirits, awakening their anger. Massive electrical surges knock out systems across the ship. Roll 1d10 for every Component. On a 4 or higher, the Component now counts as unpowered. Each Component must be repaired individually before it can receive power again. Morale takes 1d5 damage from the spooky atmosphere."
+      },
+      {
+        min: 8,
+        max: 8,
+        name: "Decapitation",
+        benefit: "All crew on the bridge must Dodge or be hit by 2d10 Explosive shrapnel. On 12+ the bridge is depressurized; on 16+ it is damaged.",
+        description: "A lucky hit strikes the ship's bridge, sending shrapnel scything across the compartment and opening it to space. All crewmembers on the bridge must make a Dodge reaction or be hit by shrapnel doing 2d10 Explosive damage. If the damage result is 12 or higher, the bridge Component is also depressurized. If the damage result is 16 or higher, the Component is damaged."
+      },
+      {
+        min: 9,
+        max: 10,
+        name: "Hull Breach",
+        benefit: "Attacker selects 1d5 known Components, not including the bridge. Roll 1d10 for each: 1-7 damaged and depressurized; 8-10 destroyed and crew inside killed. Crew Population and Morale are both halved.",
+        description: "The hull of the ship is ripped asunder by tremendous force, opening compartments to the void and doing massive structural damage. The attacker selects 1d5 Components, only choosing ones he knows of, and not including the bridge. Roll a 1d10 for each; on a 1-7 the Component is damaged and depressurized. On an 8-10 the Component is destroyed, and all crew inside are killed. Instead of rolling for Crew Population and Morale damage separately, the ship reduces both of its current values by half."
+      },
+      {
+        min: 11,
+        max: 11,
+        name: "Catastrophic Damage",
+        benefit: "Roll 1d10. On 1-7, the ship is a Space Hulk. On 8-9, its plasma drive explodes. On 10, its warp drive explodes instead; if it has no warp drive, it suffers a plasma drive explosion.",
+        description: "A succession of powerful blows and explosions rip through the ship, causing horrendous damage. Roll 1d10. On a 1-7, the ship is hulked. On an 8-9, the ship's plasma drive explodes. On a 10, the ship's warp drive explodes instead; if the ship does not have a warp drive, it suffers a plasma drive explosion."
+      }
+    ]
+  },
+  starshipCatastrophicDamage: {
+    key: "starshipCatastrophicDamage",
+    label: "Starship Catastrophic Damage",
+    defaultCategory: "reference",
+    entries: [
+      {
+        min: 1,
+        max: 7,
+        name: "Space Hulk",
+        benefit: "Ship becomes a drifting wreck. Roll 1d10 for each Component: 1-2 untouched but unpowered, 3-7 depressurized and damaged, 8-10 completely destroyed and all crew inside killed. Reduce Crew Population to 1d10.",
+        description: "Catastrophic damage leaves the ship a drifting, smouldering wreck. Uncontrolled fires burn in some compartments, others are open to space, and the rest are choked with the dead and dying. Roll 1d10 for each Component. On a 1-2, it is miraculously untouched, but is unpowered. On a 3-7, it is depressurized and damaged. On a 8-10, it is completely destroyed, and all crew inside are killed. Reduce Crew Population to 1d10."
+      },
+      {
+        min: 8,
+        max: 9,
+        name: "Plasma Drive Explosion",
+        benefit: "All starships within 1d10 VUs must make a Hard (-20) Pilot (Space Craft)+Manoeuvrability Test or be struck as 1d5 macrobattery hits doing 1d10+4 damage each; void shields and armour protect normally.",
+        description: "The starship's plasma drive explodes in a single, cataclysmic explosion. All starships within 1d10 VUs of the stricken craft must make a Hard (-20) Pilot (Space Craft)+Manoeuvrability Test or be struck by the flaming debris of the destroyed vessel. Treat this as 1d5 macrobattery hits doing 1d10+4 damage each, that void shields and armour will protect against normally."
+      },
+      {
+        min: 10,
+        max: 10,
+        name: "Warp Drive Explosion",
+        benefit: "All starships within 2d10 VUs must make a Hard (-20) Pilot (Space Craft)+Manoeuvrability Test or be struck by a chaos-storm as one lance strike doing 1d10 damage that void shields will not protect against. All starships within 1d5 VUs must also make a second Challenging (+0) Pilot (Space Craft)+Manoeuvrability Test or be sucked into the rift.",
+        description: "The starship's warp drive overloads and explodes, rending a seething hole in space, a maelstrom into the realm of chaos. Any starship within 2d10 VUs of the stricken craft must make a Hard (-20) Pilot (Space Craft)+Manoeuvrability Test or be struck by the chaos-storm, taking the equivalent of one lance strike doing 1d10 damage that void shields will not protect against. Additionally, every starship within 1d5 VUs of the stricken vessel must make a second Challenging (+0) Pilot (Space Craft)+Manoeuvrability Test, or be sucked into the rift. What happens next is up to the GM, but should be suitably horrible. Mass possessions and manifesting daemons are the norm, while the crew frantically tries to activate the Geller Field. The survival of those onboard the ship should by no means be guaranteed."
+      }
+    ]
+  },
   malignancies: {
     key: "malignancies",
     label: "Malignancies",

@@ -94,8 +94,26 @@ const ROGUETRADER_STATUS_EFFECTS = [
   {
     id: "crippled",
     name: "Crippled",
-    img: "icons/svg/broken-shield.svg",
+    img: "modules/game-icons-net/whitetransparent/ship-wreck.svg",
     statuses: ["crippled"]
+  },
+  {
+    id: "sensors-damaged",
+    name: "Sensors Damaged",
+    img: "icons/svg/blind.svg",
+    statuses: ["sensors-damaged"]
+  },
+  {
+    id: "thrusters-damaged",
+    name: "Thrusters Damaged",
+    img: "modules/game-icons-net/whitetransparent/boat-propeller.svg",
+    statuses: ["thrusters-damaged"]
+  },
+  {
+    id: "ship-fire",
+    name: "Fire!",
+    img: "icons/svg/fire.svg",
+    statuses: ["ship-fire"]
   }
 ];
 const ON_FIRE_SEQUENCE_NAME_PREFIX = "roguetrader-on-fire";
@@ -110,6 +128,8 @@ const FRENZIED_SEQUENCE_NAME_PREFIX = "roguetrader-frenzied";
 const FRENZIED_SEQUENCE_FILE = "jb2a.markers.runes02.dark_orange.02";
 const CRIPPLED_SEQUENCE_NAME_PREFIX = "roguetrader-crippled";
 const CRIPPLED_SEQUENCE_FILE = "jb2a.static_electricity.03.blue";
+const SHIP_FIRE_SEQUENCE_NAME_PREFIX = "roguetrader-ship-fire";
+const SHIP_FIRE_SEQUENCE_FILE = "jb2a.flames.orange.01";
 const DEAD_VISUAL_ALPHA = 0.6;
 const DEAD_VISUAL_TINT = "#7a2a2a";
 
@@ -197,6 +217,10 @@ function getFrenziedSequenceName(token) {
 
 function getCrippledSequenceName(token) {
   return `${CRIPPLED_SEQUENCE_NAME_PREFIX}-${token.document?.uuid ?? token.id}`;
+}
+
+function getShipFireSequenceName(token) {
+  return `${SHIP_FIRE_SEQUENCE_NAME_PREFIX}-${token.document?.uuid ?? token.id}`;
 }
 
 function getActorCanvasTokens(actor) {
@@ -739,6 +763,46 @@ async function stopCrippledSequencerEffect(actor) {
   }
 }
 
+async function playShipFireSequencerEffect(actor) {
+  if (!globalThis.Sequencer) return;
+
+  const tokens = getActorCanvasTokens(actor);
+  for (const token of tokens) {
+    if (!token) continue;
+
+    const sequenceName = getShipFireSequenceName(token);
+    if (Sequencer.EffectManager?.getEffects?.({ name: sequenceName }).length) continue;
+
+    try {
+      await new Sequence()
+        .effect()
+        .name(sequenceName)
+        .file(SHIP_FIRE_SEQUENCE_FILE)
+        .attachTo(token)
+        .persist()
+        .scaleToObject(1.35)
+        .opacity(0.92)
+        .play();
+    } catch (error) {
+      console.warn("Rogue Trader | Failed to play ship fire Sequencer effect.", error);
+    }
+  }
+}
+
+async function stopShipFireSequencerEffect(actor) {
+  if (!globalThis.Sequencer) return;
+
+  const tokens = getActorCanvasTokens(actor);
+  for (const token of tokens) {
+    const sequenceName = getShipFireSequenceName(token);
+    try {
+      await Sequencer.EffectManager?.endEffects?.({ name: sequenceName, object: token });
+    } catch (error) {
+      console.warn("Rogue Trader | Failed to stop ship fire Sequencer effect.", error);
+    }
+  }
+}
+
 Hooks.once("init", () => {
   console.log("Rogue Trader | Initializing system");
 
@@ -862,6 +926,9 @@ Hooks.once("ready", () => {
     }
     if (actor?.isCrippled?.()) {
       void playCrippledSequencerEffect(actor);
+    }
+    if (actor?.isShipOnFire?.()) {
+      void playShipFireSequencerEffect(actor);
     }
     if (actorHasDeadStatus(actor)) {
       void applyDeadTokenVisual(actor);
@@ -1422,6 +1489,22 @@ Hooks.on("createActiveEffect", async (effect, options, userId) => {
     });
     await playCrippledSequencerEffect(effect.parent);
   }
+  if (statuses.includes("sensors-damaged")) {
+    await effect.parent.update({
+      "system.conditions.sensorsDamaged.active": true
+    });
+  }
+  if (statuses.includes("thrusters-damaged")) {
+    await effect.parent.update({
+      "system.conditions.thrustersDamaged.active": true
+    });
+  }
+  if (statuses.includes("ship-fire")) {
+    await effect.parent.update({
+      "system.conditions.shipFire.active": true
+    });
+    await playShipFireSequencerEffect(effect.parent);
+  }
   if (statuses.some((status) => deadStatusIds.has(status))) {
     await applyDeadTokenVisual(effect.parent);
   }
@@ -1519,6 +1602,28 @@ Hooks.on("deleteActiveEffect", async (effect, options, userId) => {
       "system.conditions.crippled.source": ""
     });
     await stopCrippledSequencerEffect(effect.parent);
+  }
+  if (statuses.includes("sensors-damaged")) {
+    await effect.parent.update({
+      "system.conditions.sensorsDamaged.active": false,
+      "system.conditions.sensorsDamaged.source": ""
+    });
+  }
+  if (statuses.includes("thrusters-damaged")) {
+    await effect.parent.update({
+      "system.conditions.thrustersDamaged.active": false,
+      "system.conditions.thrustersDamaged.source": "",
+      "system.conditions.thrustersDamaged.rollTotal": 0,
+      "system.conditions.thrustersDamaged.turningDisabled": false,
+      "system.conditions.thrustersDamaged.maneuverPenalty": 0
+    });
+  }
+  if (statuses.includes("ship-fire")) {
+    await effect.parent.update({
+      "system.conditions.shipFire.active": false,
+      "system.conditions.shipFire.source": ""
+    });
+    await stopShipFireSequencerEffect(effect.parent);
   }
   if (statuses.some((status) => deadStatusIds.has(status)) && !actorHasDeadStatus(effect.parent)) {
     await clearDeadTokenVisual(effect.parent);

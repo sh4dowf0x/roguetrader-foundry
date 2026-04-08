@@ -1,4 +1,5 @@
 import { rollD100Test } from "./rolls.js";
+import { resolveReferenceTableResult } from "./reference-tables.js";
 
 const STARSHIP_BEARING_LABELS = {
   fore: "Fore",
@@ -271,6 +272,104 @@ async function markShieldsShortedForAttacker(targetShipActor, attackerShipActor)
   });
 }
 
+async function resolveStarshipCriticalHit(targetShipActor, shipActor, weapon, criticalDamage, options = {}) {
+  const rawCriticalDamage = Math.max(0, Number(criticalDamage ?? 0) || 0);
+  if (!rawCriticalDamage || !targetShipActor) return null;
+
+  const effectiveRoll = Math.max(1, Math.min(11, rawCriticalDamage));
+  const criticalEntry = resolveReferenceTableResult("starshipCriticalHits", effectiveRoll);
+  if (!criticalEntry) return null;
+
+  let catastrophicRoll = null;
+  let catastrophicEntry = null;
+  if (effectiveRoll >= 11) {
+    catastrophicRoll = await (new Roll("1d10")).evaluate({ async: true });
+    catastrophicEntry = resolveReferenceTableResult("starshipCatastrophicDamage", Number(catastrophicRoll.total ?? 0) || 0);
+  }
+
+  if (String(criticalEntry.name ?? "").trim().toLowerCase() === "sensors damaged") {
+    await targetShipActor.applySensorsDamaged?.({
+      sourceName: `${weapon?.name ?? "Starship Weapon"} (${shipActor?.name ?? "Unknown Ship"})`,
+      announced: false
+    });
+  }
+  let thrustersResult = null;
+  if (String(criticalEntry.name ?? "").trim().toLowerCase() === "thrusters damaged") {
+    thrustersResult = await targetShipActor.applyThrustersDamaged?.({
+      sourceName: `${weapon?.name ?? "Starship Weapon"} (${shipActor?.name ?? "Unknown Ship"})`,
+      announced: false
+    });
+  }
+  let shipFireResult = null;
+  if (String(criticalEntry.name ?? "").trim().toLowerCase() === "fire!") {
+    shipFireResult = await targetShipActor.applyShipFire?.({
+      sourceName: `${weapon?.name ?? "Starship Weapon"} (${shipActor?.name ?? "Unknown Ship"})`,
+      announced: false
+    });
+  }
+
+  const sourceLabel = String(options.sourceLabel ?? "").trim();
+  const sourceBlock = sourceLabel
+    ? `<p><strong>Source:</strong> ${sourceLabel}</p>`
+    : "";
+  const catastrophicBlock = catastrophicEntry
+    ? `
+      <div class="ship-critical-subresult">
+        <h4>Catastrophic Result</h4>
+        <p><strong>Roll:</strong> ${catastrophicRoll?.formula ?? "1d10"} = ${catastrophicRoll?.total ?? 0}</p>
+        <p><strong>${catastrophicEntry.name}</strong></p>
+        <p>${catastrophicEntry.description}</p>
+      </div>
+    `
+    : "";
+  const thrustersBlock = thrustersResult
+    ? `
+      <div class="ship-critical-subresult">
+        <h4>Thrusters Result</h4>
+        <p><strong>Roll:</strong> ${thrustersResult.roll?.formula ?? "1d10"} = ${thrustersResult.rollTotal}</p>
+        <p><strong>Effect:</strong> ${thrustersResult.turningDisabled ? "Thrusters completely damaged; the ship cannot turn." : "Manoeuvrability reduced by -20."}</p>
+      </div>
+    `
+    : "";
+  const shipFireBlock = shipFireResult
+    ? `
+      <div class="ship-critical-subresult">
+        <h4>Shipboard Fire</h4>
+        <p><strong>Crew Damage:</strong> ${shipFireResult.crewRoll?.formula ?? "1d5"} = ${shipFireResult.crewDamage} (${shipFireResult.currentCrew} -> ${shipFireResult.newCrew})</p>
+        <p><strong>Morale Damage:</strong> ${shipFireResult.moraleRoll?.formula ?? "1d10"} = ${shipFireResult.moraleDamage} (${shipFireResult.currentMorale} -> ${shipFireResult.newMorale})</p>
+      </div>
+    `
+    : "";
+
+  await ChatMessage.create({
+    speaker: ChatMessage.getSpeaker({ actor: shipActor ?? targetShipActor }),
+    content: `
+      <div class="roguetrader ship-critical-hit-card">
+        <div class="ship-critical-hit-banner">Critical Hit!</div>
+        <h3>${targetShipActor.name}</h3>
+        <p><strong>Critical Damage:</strong> ${rawCriticalDamage}</p>
+        <p><strong>Table Roll:</strong> ${effectiveRoll}</p>
+        ${sourceBlock}
+        <p><strong>${criticalEntry.name}</strong></p>
+        <p>${criticalEntry.description}</p>
+        ${thrustersBlock}
+        ${shipFireBlock}
+        ${catastrophicBlock}
+      </div>
+    `
+  });
+
+  return {
+    rawCriticalDamage,
+    effectiveRoll,
+    criticalEntry,
+    thrustersResult,
+    shipFireResult,
+    catastrophicRoll,
+    catastrophicEntry
+  };
+}
+
 async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackResult) {
   const targetShipActor = targetToken?.actor;
   if (!targetShipActor || targetShipActor.type !== "ship") return null;
@@ -305,10 +404,14 @@ async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackR
   const appliedDamage = Math.max(0, totalDamage - armor);
   const currentHullIntegrity = Math.max(0, Number(targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
   const newHullIntegrity = Math.max(0, currentHullIntegrity - appliedDamage);
+  const criticalDamage = currentHullIntegrity > 0
+    ? Math.max(0, appliedDamage - currentHullIntegrity)
+    : appliedDamage;
   const currentCrew = Math.max(0, Number(targetShipActor.system?.crew?.value ?? 0) || 0);
   const currentMorale = Math.max(0, Number(targetShipActor.system?.resources?.morale?.value ?? 0) || 0);
   const newCrew = Math.max(0, currentCrew - appliedDamage);
   const newMorale = Math.max(0, currentMorale - appliedDamage);
+  let criticalResult = null;
 
   if (appliedDamage > 0) {
     await targetShipActor.update({
@@ -317,6 +420,11 @@ async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackR
       "system.resources.morale.value": newMorale
     });
     await targetShipActor.syncCrippledState?.({ announced: true, sourceName: `${shipActor.name}: ${weapon.name}` });
+    if (criticalDamage > 0) {
+      criticalResult = await resolveStarshipCriticalHit(targetShipActor, shipActor, weapon, criticalDamage, {
+        sourceLabel: `${weapon.name} (${shipActor.name})`
+      });
+    }
   }
 
   await ChatMessage.create({
@@ -335,6 +443,7 @@ async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackR
         <p><strong>Hull Integrity:</strong> ${currentHullIntegrity} -> ${newHullIntegrity}</p>
         <p><strong>Crew:</strong> ${currentCrew} -> ${newCrew}</p>
         <p><strong>Morale:</strong> ${currentMorale} -> ${newMorale}</p>
+        <p><strong>Critical Hit:</strong> ${criticalResult ? `${criticalResult.effectiveRoll} - ${criticalResult.criticalEntry?.name ?? "Critical Result"}` : "None"}</p>
         ${damageRolls.length ? `<ul>${damageRolls.map((roll, index) => `<li>Hit ${index + 1}: ${roll.formula} = ${roll.total}</li>`).join("")}</ul>` : ""}
       </div>
     `
@@ -356,7 +465,8 @@ async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackR
     newCrew,
     currentMorale,
     newMorale,
-    damageRolls
+    damageRolls,
+    criticalResult
   };
 }
 
@@ -382,10 +492,16 @@ async function resolveLanceAttack(shipActor, weapon, targetToken, attackResult) 
   let runningMorale = currentMorale;
   let totalDamage = 0;
   const damageRolls = [];
+  const criticalHits = [];
+  const criticalResults = [];
 
   for (let index = 0; index < remainingHits; index += 1) {
     const damageRoll = await (new Roll(String(weapon.system?.damage ?? "0"))).evaluate({ async: true });
     const damageTotal = Number(damageRoll.total ?? 0) || 0;
+    const hullIntegrityBeforeHit = runningHullIntegrity;
+    const criticalDamage = hullIntegrityBeforeHit > 0
+      ? Math.max(0, damageTotal - hullIntegrityBeforeHit)
+      : damageTotal;
     totalDamage += damageTotal;
     runningHullIntegrity = Math.max(0, runningHullIntegrity - damageTotal);
     runningCrew = Math.max(0, runningCrew - damageTotal);
@@ -393,10 +509,17 @@ async function resolveLanceAttack(shipActor, weapon, targetToken, attackResult) 
     damageRolls.push({
       formula: damageRoll.formula,
       total: damageTotal,
+      criticalDamage,
       hullIntegrityAfter: runningHullIntegrity,
       crewAfter: runningCrew,
       moraleAfter: runningMorale
     });
+    if (criticalDamage > 0) {
+      criticalHits.push({
+        criticalDamage,
+        hitNumber: index + 1
+      });
+    }
   }
 
   const appliedDamage = totalDamage;
@@ -407,6 +530,17 @@ async function resolveLanceAttack(shipActor, weapon, targetToken, attackResult) 
       "system.resources.morale.value": runningMorale
     });
     await targetShipActor.syncCrippledState?.({ announced: true, sourceName: `${shipActor.name}: ${weapon.name}` });
+    for (const criticalHit of criticalHits) {
+      const criticalResult = await resolveStarshipCriticalHit(targetShipActor, shipActor, weapon, criticalHit.criticalDamage, {
+        sourceLabel: `${weapon.name} (${shipActor.name}) Hit ${criticalHit.hitNumber}`
+      });
+      if (criticalResult) {
+        criticalResults.push({
+          ...criticalResult,
+          hitNumber: criticalHit.hitNumber
+        });
+      }
+    }
   }
 
   await ChatMessage.create({
@@ -423,7 +557,8 @@ async function resolveLanceAttack(shipActor, weapon, targetToken, attackResult) 
         <p><strong>Hull Integrity:</strong> ${currentHullIntegrity} -> ${runningHullIntegrity}</p>
         <p><strong>Crew:</strong> ${currentCrew} -> ${runningCrew}</p>
         <p><strong>Morale:</strong> ${currentMorale} -> ${runningMorale}</p>
-        ${damageRolls.length ? `<ul>${damageRolls.map((roll, index) => `<li>Hit ${index + 1}: ${roll.formula} = ${roll.total} (HI ${roll.hullIntegrityAfter}, Crew ${roll.crewAfter}, Morale ${roll.moraleAfter})</li>`).join("")}</ul>` : ""}
+        <p><strong>Critical Hit:</strong> ${criticalResults.length ? criticalResults.map((entry) => `Hit ${entry.hitNumber}: ${entry.effectiveRoll} - ${entry.criticalEntry?.name ?? "Critical Result"}`).join("; ") : "None"}</p>
+        ${damageRolls.length ? `<ul>${damageRolls.map((roll, index) => `<li>Hit ${index + 1}: ${roll.formula} = ${roll.total} (HI ${roll.hullIntegrityAfter}, Crew ${roll.crewAfter}, Morale ${roll.moraleAfter}${roll.criticalDamage > 0 ? `, Crit ${roll.criticalDamage}` : ""})</li>`).join("")}</ul>` : ""}
       </div>
     `
   });
@@ -442,7 +577,9 @@ async function resolveLanceAttack(shipActor, weapon, targetToken, attackResult) 
     newCrew: runningCrew,
     currentMorale,
     newMorale: runningMorale,
-    damageRolls
+    damageRolls,
+    criticalHits,
+    criticalResults
   };
 }
 
@@ -523,17 +660,21 @@ async function rollStarshipWeaponAttack(shipActor, weaponRef, options = {}) {
       actor: null,
       title: `${shipActor.name}: Fire ${weapon.name}`,
       target: npcCrewRating,
-      modifier: Number(rangeData?.modifier ?? 0),
+      modifier: Number(rangeData?.modifier ?? 0) + Number(shipActor.getShipShootingModifier?.() ?? 0),
       breakdown: [
         `NPC Crew Rating: ${npcCrewRating}`,
-        ...(rangeData ? [`Range Modifier: ${rangeData.modifier >= 0 ? `+${rangeData.modifier}` : rangeData.modifier}`] : [])
+        ...(rangeData ? [`Range Modifier: ${rangeData.modifier >= 0 ? `+${rangeData.modifier}` : rangeData.modifier}`] : []),
+        ...((Number(shipActor.getShipShootingModifier?.() ?? 0) || 0) ? [`Sensors Damaged: ${Number(shipActor.getShipShootingModifier())}`] : [])
       ],
       extra
     })
     : await gunnerActor.rollCharacteristic("ballisticSkill", {
-      modifier: Number(rangeData?.modifier ?? 0),
+      modifier: Number(rangeData?.modifier ?? 0) + Number(shipActor.getShipShootingModifier?.() ?? 0),
       label: `${gunnerActor.name}: Fire ${weapon.name} (${shipActor.name})`,
-      extra
+      extra: [
+        ...extra,
+        ...((Number(shipActor.getShipShootingModifier?.() ?? 0) || 0) ? [`Sensors Damaged: ${Number(shipActor.getShipShootingModifier())}`] : [])
+      ]
     });
 
   if (result?.success && shipActor?._playAutomatedAttackAnimation) {

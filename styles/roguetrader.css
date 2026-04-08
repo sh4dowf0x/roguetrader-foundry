@@ -3277,6 +3277,14 @@
   text-decoration: underline;
 }
 
+.roguetrader .ship-condition-note {
+  color: #e5b39f;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0 0 8px;
+}
+
 .roguetrader .ship-profile-field input {
   text-align: center;
 }
@@ -3926,4 +3934,59 @@
 .roguetrader .ship-augury-contact-class {
   color: rgba(233, 223, 199, 0.88);
   font-style: italic;
+}
+
+.chat-message .roguetrader.ship-critical-hit-card,
+.chat-message .roguetrader.ship-critical-hit-card * {
+  color: #f4ddd7;
+}
+
+.chat-message .roguetrader.ship-critical-hit-card {
+  background:
+    radial-gradient(circle at top, rgba(201, 64, 52, 0.24), transparent 58%),
+    linear-gradient(180deg, rgba(44, 12, 10, 0.98), rgba(19, 8, 8, 0.99));
+  border: 1px solid rgba(219, 109, 94, 0.48);
+  border-radius: 10px;
+  box-shadow: 0 0 24px rgba(121, 28, 20, 0.28);
+  padding: 12px 14px;
+}
+
+.roguetrader.ship-critical-hit-card .ship-critical-hit-banner {
+  color: #ffb7ab;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+  text-shadow: 0 0 12px rgba(255, 120, 101, 0.35);
+  text-transform: uppercase;
+}
+
+.roguetrader.ship-critical-hit-card h3 {
+  color: #fff1eb;
+  font-size: 1rem;
+  margin: 0 0 8px;
+}
+
+.roguetrader.ship-critical-hit-card h4 {
+  color: #ffd6cc;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  margin: 10px 0 4px;
+  text-transform: uppercase;
+}
+
+.roguetrader.ship-critical-hit-card p {
+  color: #f4ddd7;
+  line-height: 1.34;
+  margin: 4px 0;
+}
+
+.roguetrader.ship-critical-hit-card strong {
+  color: #ffe7e1;
+}
+
+.roguetrader.ship-critical-hit-card .ship-critical-subresult {
+  border-top: 1px solid rgba(219, 109, 94, 0.24);
+  margin-top: 10px;
+  padding-top: 8px;
 }

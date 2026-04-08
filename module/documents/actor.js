@@ -144,6 +144,9 @@ const FATIGUED_STATUS_ID = "fatigued";
 const PRONE_STATUS_ID = "prone";
 const FRENZIED_STATUS_ID = "frenzied";
 const CRIPPLED_STATUS_ID = "crippled";
+const SENSORS_DAMAGED_STATUS_ID = "sensors-damaged";
+const THRUSTERS_DAMAGED_STATUS_ID = "thrusters-damaged";
+const SHIP_FIRE_STATUS_ID = "ship-fire";
 const FATIGUE_UNCONSCIOUS_FLAG = "fatigueUnconscious";
 const SIZE_MOVEMENT_MODIFIERS = Object.freeze({
   miniscule: -3,
@@ -2495,6 +2498,18 @@ export class RogueTraderActor extends Actor {
     return Boolean(this.statuses?.has?.(CRIPPLED_STATUS_ID) || this._getStatusEffectByStatusId(CRIPPLED_STATUS_ID));
   }
 
+  isSensorsDamaged() {
+    return Boolean(this.statuses?.has?.(SENSORS_DAMAGED_STATUS_ID) || this._getStatusEffectByStatusId(SENSORS_DAMAGED_STATUS_ID));
+  }
+
+  isThrustersDamaged() {
+    return Boolean(this.statuses?.has?.(THRUSTERS_DAMAGED_STATUS_ID) || this._getStatusEffectByStatusId(THRUSTERS_DAMAGED_STATUS_ID));
+  }
+
+  isShipOnFire() {
+    return Boolean(this.statuses?.has?.(SHIP_FIRE_STATUS_ID) || this._getStatusEffectByStatusId(SHIP_FIRE_STATUS_ID));
+  }
+
   isFatigued() {
     return Boolean(this.statuses?.has?.(FATIGUED_STATUS_ID) || this._getStatusEffectByStatusId(FATIGUED_STATUS_ID));
   }
@@ -2563,13 +2578,28 @@ export class RogueTraderActor extends Actor {
   getEffectiveShipManeuverability() {
     const baseManeuverability = this.getShipBaseManeuverability();
     if (this.type !== "ship") return baseManeuverability;
-    return this.isCrippled() ? baseManeuverability - 10 : baseManeuverability;
+    let effectiveManeuverability = baseManeuverability;
+    if (this.isCrippled()) effectiveManeuverability -= 10;
+    if (this.isThrustersDamaged() && !this.isShipTurningDisabled()) effectiveManeuverability -= 20;
+    return effectiveManeuverability;
   }
 
   getEffectiveShipDetection() {
     const baseDetection = this.getShipBaseDetection();
     if (this.type !== "ship") return baseDetection;
-    return this.isCrippled() ? baseDetection - 10 : baseDetection;
+    let effectiveDetection = baseDetection;
+    if (this.isCrippled()) effectiveDetection -= 10;
+    return effectiveDetection;
+  }
+
+  getShipShootingModifier() {
+    if (this.type !== "ship") return 0;
+    return this.isSensorsDamaged() ? -30 : 0;
+  }
+
+  isShipTurningDisabled() {
+    if (this.type !== "ship") return false;
+    return this.isThrustersDamaged() && Boolean(this.system?.conditions?.thrustersDamaged?.turningDisabled);
   }
 
   getEffectiveShipWeaponStrength(weaponRef) {
@@ -2976,7 +3006,7 @@ export class RogueTraderActor extends Actor {
     if (!this.isCrippled()) {
       await this.createEmbeddedDocuments("ActiveEffect", [{
         name: "Crippled",
-        img: "icons/svg/broken-shield.svg",
+        img: "modules/game-icons-net/whitetransparent/ship-wreck.svg",
         statuses: [CRIPPLED_STATUS_ID]
       }]);
     }
@@ -3042,6 +3072,232 @@ export class RogueTraderActor extends Actor {
 
     await this.clearCrippled({ announced: false });
     return false;
+  }
+
+  async applySensorsDamaged({ sourceName = "Starship Critical Hit", announced = true } = {}) {
+    if (this.type !== "ship") return false;
+
+    if (!this.isSensorsDamaged()) {
+      await this.createEmbeddedDocuments("ActiveEffect", [{
+        name: "Sensors Damaged",
+        img: "icons/svg/blind.svg",
+        statuses: [SENSORS_DAMAGED_STATUS_ID]
+      }]);
+    }
+
+    await this.update({
+      "system.conditions.sensorsDamaged.active": true,
+      "system.conditions.sensorsDamaged.source": String(sourceName ?? "Starship Critical Hit")
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Sensors Damaged</h3>
+            <p><strong>Status Applied:</strong> Sensors Damaged</p>
+            <p><strong>Effects:</strong> -30 to all shooting tests, and all sensor sweep attempts fail automatically.</p>
+            <p><strong>Source:</strong> ${sourceName}</p>
+          </div>
+        `
+      });
+    }
+
+    return true;
+  }
+
+  async clearSensorsDamaged({ announced = false } = {}) {
+    if (this.type !== "ship") return false;
+    if (!this.isSensorsDamaged()) return false;
+
+    const effect = this._getStatusEffectByStatusId(SENSORS_DAMAGED_STATUS_ID);
+    if (effect) {
+      await effect.delete();
+    }
+
+    await this.update({
+      "system.conditions.sensorsDamaged.active": false,
+      "system.conditions.sensorsDamaged.source": ""
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Sensors Repaired</h3>
+            <p><strong>Status Removed:</strong> Sensors Damaged</p>
+          </div>
+        `
+      });
+    }
+
+    return true;
+  }
+
+  async applyThrustersDamaged({ sourceName = "Starship Critical Hit", severityRoll = null, announced = true } = {}) {
+    if (this.type !== "ship") return false;
+
+    const roll = severityRoll instanceof Roll
+      ? severityRoll
+      : await (new Roll("1d10")).evaluate({ async: true });
+    const rollTotal = Math.max(1, Number(roll.total ?? 0) || 1);
+    const turningDisabled = rollTotal >= 8;
+    const maneuverPenalty = turningDisabled ? 0 : -20;
+
+    if (!this.isThrustersDamaged()) {
+      await this.createEmbeddedDocuments("ActiveEffect", [{
+        name: "Thrusters Damaged",
+        img: "modules/game-icons-net/whitetransparent/boat-propeller.svg",
+        statuses: [THRUSTERS_DAMAGED_STATUS_ID]
+      }]);
+    }
+
+    await this.update({
+      "system.conditions.thrustersDamaged.active": true,
+      "system.conditions.thrustersDamaged.source": String(sourceName ?? "Starship Critical Hit"),
+      "system.conditions.thrustersDamaged.rollTotal": rollTotal,
+      "system.conditions.thrustersDamaged.turningDisabled": turningDisabled,
+      "system.conditions.thrustersDamaged.maneuverPenalty": maneuverPenalty
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Thrusters Damaged</h3>
+            <p><strong>Status Applied:</strong> Thrusters Damaged</p>
+            <p><strong>Roll:</strong> ${roll.formula} = ${rollTotal}</p>
+            <p><strong>Effect:</strong> ${turningDisabled ? "Thrusters completely damaged; the ship cannot turn." : "Manoeuvrability reduced by -20."}</p>
+            <p><strong>Source:</strong> ${sourceName}</p>
+          </div>
+        `
+      });
+    }
+
+    return {
+      roll,
+      rollTotal,
+      turningDisabled,
+      maneuverPenalty
+    };
+  }
+
+  async clearThrustersDamaged({ announced = false } = {}) {
+    if (this.type !== "ship") return false;
+    if (!this.isThrustersDamaged()) return false;
+
+    const effect = this._getStatusEffectByStatusId(THRUSTERS_DAMAGED_STATUS_ID);
+    if (effect) {
+      await effect.delete();
+    }
+
+    await this.update({
+      "system.conditions.thrustersDamaged.active": false,
+      "system.conditions.thrustersDamaged.source": "",
+      "system.conditions.thrustersDamaged.rollTotal": 0,
+      "system.conditions.thrustersDamaged.turningDisabled": false,
+      "system.conditions.thrustersDamaged.maneuverPenalty": 0
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Thrusters Repaired</h3>
+            <p><strong>Status Removed:</strong> Thrusters Damaged</p>
+          </div>
+        `
+      });
+    }
+
+    return true;
+  }
+
+  async applyShipFire({ sourceName = "Starship Critical Hit", announced = true } = {}) {
+    if (this.type !== "ship") return false;
+
+    const crewRoll = await (new Roll("1d5")).evaluate({ async: true });
+    const moraleRoll = await (new Roll("1d10")).evaluate({ async: true });
+    const crewDamage = Math.max(0, Number(crewRoll.total ?? 0) || 0);
+    const moraleDamage = Math.max(0, Number(moraleRoll.total ?? 0) || 0);
+    const currentCrew = Math.max(0, Number(this.system?.crew?.value ?? 0) || 0);
+    const currentMorale = Math.max(0, Number(this.system?.resources?.morale?.value ?? 0) || 0);
+    const newCrew = Math.max(0, currentCrew - crewDamage);
+    const newMorale = Math.max(0, currentMorale - moraleDamage);
+
+    if (!this.isShipOnFire()) {
+      await this.createEmbeddedDocuments("ActiveEffect", [{
+        name: "Fire!",
+        img: "icons/svg/fire.svg",
+        statuses: [SHIP_FIRE_STATUS_ID]
+      }]);
+    }
+
+    await this.update({
+      "system.conditions.shipFire.active": true,
+      "system.conditions.shipFire.source": String(sourceName ?? "Starship Critical Hit"),
+      "system.crew.value": newCrew,
+      "system.resources.morale.value": newMorale
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Fire!</h3>
+            <p><strong>Status Applied:</strong> Shipboard Fire</p>
+            <p><strong>Immediate Crew Damage:</strong> ${crewRoll.formula} = ${crewDamage} (${currentCrew} -> ${newCrew})</p>
+            <p><strong>Immediate Morale Damage:</strong> ${moraleRoll.formula} = ${moraleDamage} (${currentMorale} -> ${newMorale})</p>
+            <p><strong>Source:</strong> ${sourceName}</p>
+          </div>
+        `
+      });
+    }
+
+    return {
+      crewRoll,
+      moraleRoll,
+      crewDamage,
+      moraleDamage,
+      currentCrew,
+      newCrew,
+      currentMorale,
+      newMorale
+    };
+  }
+
+  async clearShipFire({ announced = false } = {}) {
+    if (this.type !== "ship") return false;
+    if (!this.isShipOnFire()) return false;
+
+    const effect = this._getStatusEffectByStatusId(SHIP_FIRE_STATUS_ID);
+    if (effect) {
+      await effect.delete();
+    }
+
+    await this.update({
+      "system.conditions.shipFire.active": false,
+      "system.conditions.shipFire.source": ""
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Fire Contained</h3>
+            <p><strong>Status Removed:</strong> Shipboard Fire</p>
+          </div>
+        `
+      });
+    }
+
+    return true;
   }
 
   async applyPinned({ sourceName = "Suppressive Fire" } = {}) {
