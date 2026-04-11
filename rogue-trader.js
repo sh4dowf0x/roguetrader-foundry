@@ -1,6 +1,7 @@
 import { RogueTraderCharacterSheet } from "./module/character.js";
 import { RogueTraderNPCSheet } from "./module/npc.js";
 import { RogueTraderShipSheet } from "./module/ship.js";
+import { RogueTraderTorpedoSheet } from "./module/torpedo.js";
 import { RogueTraderShipComponentSheet } from "./module/ship-component.js";
 import { RogueTraderShipWeaponSheet } from "./module/ship-weapon.js";
 import { RogueTraderStarshipHullSheet } from "./module/starship-hull.js";
@@ -14,6 +15,8 @@ import {
   canWeaponFireAtTarget,
   getActiveStarshipGunnerActor,
   getPrimaryShipToken,
+  detonateAndRemoveTorpedo,
+  processShipLaunchedTorpedoesTurnStart,
   rollStarshipWeaponAttack
 } from "./module/starship-combat.js";
 import { RogueTraderActor } from "./module/documents/actor.js";
@@ -114,6 +117,96 @@ const ROGUETRADER_STATUS_EFFECTS = [
     name: "Fire!",
     img: "icons/svg/fire.svg",
     statuses: ["ship-fire"]
+  },
+  {
+    id: "engines-crippled",
+    name: "Engines Crippled",
+    img: "modules/game-icons-net/whitetransparent/boat-engine.svg",
+    statuses: ["engines-crippled"]
+  },
+  {
+    id: "crew-population-80",
+    name: "Crew Reduced (80%)",
+    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    statuses: ["crew-population-80"]
+  },
+  {
+    id: "crew-population-60",
+    name: "Crew Reduced (60%)",
+    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    statuses: ["crew-population-60"]
+  },
+  {
+    id: "crew-population-50",
+    name: "Crew Reduced (50%)",
+    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    statuses: ["crew-population-50"]
+  },
+  {
+    id: "crew-population-40",
+    name: "Crew Reduced (40%)",
+    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    statuses: ["crew-population-40"]
+  },
+  {
+    id: "crew-population-20",
+    name: "Crew Reduced (20%)",
+    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    statuses: ["crew-population-20"]
+  },
+  {
+    id: "crew-population-10",
+    name: "Crew Reduced (10%)",
+    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    statuses: ["crew-population-10"]
+  },
+  {
+    id: "crew-population-0",
+    name: "Ship is a Tomb",
+    img: "modules/game-icons-net/whitetransparent/black-flag.svg",
+    statuses: ["crew-population-0"]
+  },
+  {
+    id: "morale-80",
+    name: "Low Morale (80)",
+    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    statuses: ["morale-80"]
+  },
+  {
+    id: "morale-60",
+    name: "Low Morale (60)",
+    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    statuses: ["morale-60"]
+  },
+  {
+    id: "morale-50",
+    name: "Low Morale (50)",
+    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    statuses: ["morale-50"]
+  },
+  {
+    id: "morale-40",
+    name: "Low Morale (40)",
+    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    statuses: ["morale-40"]
+  },
+  {
+    id: "morale-20",
+    name: "Low Morale (20)",
+    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    statuses: ["morale-20"]
+  },
+  {
+    id: "morale-10",
+    name: "Low Morale (10)",
+    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    statuses: ["morale-10"]
+  },
+  {
+    id: "morale-0",
+    name: "Mutinous Crew",
+    img: "modules/game-icons-net/whitetransparent/black-flag.svg",
+    statuses: ["morale-0"]
   }
 ];
 const ON_FIRE_SEQUENCE_NAME_PREFIX = "roguetrader-on-fire";
@@ -132,6 +225,99 @@ const SHIP_FIRE_SEQUENCE_NAME_PREFIX = "roguetrader-ship-fire";
 const SHIP_FIRE_SEQUENCE_FILE = "jb2a.flames.orange.01";
 const DEAD_VISUAL_ALPHA = 0.6;
 const DEAD_VISUAL_TINT = "#7a2a2a";
+const ROGUETRADER_SOCKET_NAME = "system.roguetrader";
+const ROGUETRADER_SOCKET_PENDING = new Map();
+let ROGUETRADER_SOCKETLIB = null;
+
+function isPrimaryActiveGm() {
+  if (!game.user?.isGM) return false;
+  const activeGms = Array.from(game.users?.contents ?? []).filter((user) => user?.active && user?.isGM);
+  if (!activeGms.length) return true;
+  return activeGms[0]?.id === game.user.id;
+}
+
+async function handleRogueTraderSocketRequest(action, data = {}) {
+  switch (String(action ?? "")) {
+    case "actorUpdate": {
+      const actor = await fromUuid(String(data.actorUuid ?? ""));
+      if (!actor) throw new Error("Actor not found for socket actorUpdate.");
+      await actor.update(data.updateData ?? {});
+      return true;
+    }
+    case "actorSetFlag": {
+      const actor = await fromUuid(String(data.actorUuid ?? ""));
+      if (!actor) throw new Error("Actor not found for socket actorSetFlag.");
+      await actor.setFlag(String(data.scope ?? "roguetrader"), String(data.key ?? ""), data.value);
+      return true;
+    }
+    case "actorMethod": {
+      const actor = await fromUuid(String(data.actorUuid ?? ""));
+      if (!actor) throw new Error("Actor not found for socket actorMethod.");
+      const method = String(data.method ?? "").trim();
+      if (!method || typeof actor[method] !== "function") {
+        throw new Error(`Actor method not available: ${method}`);
+      }
+      return actor[method](...(Array.isArray(data.args) ? data.args : []));
+    }
+    case "tokenDelete": {
+      const tokenDocument = await fromUuid(String(data.tokenUuid ?? ""));
+      if (!tokenDocument) throw new Error("Token not found for socket tokenDelete.");
+      await tokenDocument.delete();
+      return true;
+    }
+    case "actorDelete": {
+      const actor = await fromUuid(String(data.actorUuid ?? ""));
+      if (!actor) throw new Error("Actor not found for socket actorDelete.");
+      await actor.delete();
+      return true;
+    }
+    case "torpedoDetonateAndCleanup": {
+      const torpedoActor = await fromUuid(String(data.torpedoActorUuid ?? ""));
+      const targetToken = await fromUuid(String(data.targetTokenUuid ?? ""));
+      if (!torpedoActor || torpedoActor.type !== "torpedo") {
+        throw new Error("Torpedo actor not found for socket torpedoDetonateAndCleanup.");
+      }
+      if (!targetToken) {
+        throw new Error("Target token not found for socket torpedoDetonateAndCleanup.");
+      }
+      return detonateAndRemoveTorpedo(torpedoActor, targetToken);
+    }
+    default:
+      throw new Error(`Unknown Rogue Trader socket action: ${action}`);
+  }
+}
+
+function requestRogueTraderSocket(action, data = {}) {
+  if (game.user?.isGM) {
+    return handleRogueTraderSocketRequest(action, data);
+  }
+
+  if (ROGUETRADER_SOCKETLIB) {
+    return ROGUETRADER_SOCKETLIB.executeAsGM("handleSocketRequest", action, data);
+  }
+
+  const activeGm = Array.from(game.users?.contents ?? []).find((user) => user?.active && user?.isGM);
+  if (!activeGm) {
+    return Promise.reject(new Error(`Rogue Trader socket request failed: no active GM for ${action}`));
+  }
+
+  const requestId = foundry.utils.randomID();
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      ROGUETRADER_SOCKET_PENDING.delete(requestId);
+      reject(new Error(`Rogue Trader socket request timed out: ${action}`));
+    }, 10000);
+
+    ROGUETRADER_SOCKET_PENDING.set(requestId, { resolve, reject, timeout });
+    game.socket?.emit(ROGUETRADER_SOCKET_NAME, {
+      type: "request",
+      requestId,
+      userId: game.user?.id,
+      action,
+      data
+    });
+  });
+}
 
 async function createWeaponAttackMacro(item, slot) {
   if (!item || item.type !== "weapon") return false;
@@ -780,7 +966,7 @@ async function playShipFireSequencerEffect(actor) {
         .file(SHIP_FIRE_SEQUENCE_FILE)
         .attachTo(token)
         .persist()
-        .scaleToObject(1.35)
+        .scaleToObject(0.95)
         .opacity(0.92)
         .play();
     } catch (error) {
@@ -816,7 +1002,7 @@ Hooks.once("init", () => {
 
   game.roguetrader = {
     config: {
-      actorTypes: ["character", "npc", "ship"],
+      actorTypes: ["character", "npc", "ship", "torpedo"],
       itemTypes: ["skill", "weapon", "armor", "gear", "consumable", "tool", "cybernetic", "talent", "psychicTechnique", "navigatorPower", "psychicPower", "shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon", "starshipHull", "mutation", "malignancy", "mentalDisorder", "criticalInjury"],
       statusEffects: ROGUETRADER_STATUS_EFFECTS
     },
@@ -859,6 +1045,9 @@ Hooks.once("init", () => {
       getPrimaryShipToken,
       fireWeapon: rollStarshipWeaponAttack
     },
+    socket: {
+      request: requestRogueTraderSocket
+    },
     rolls: {
       characteristic: (actor, characteristicKey, options = {}) => actor?.rollCharacteristic?.(characteristicKey, options),
       skill: (actor, skillRef, options = {}) => actor?.rollSkill?.(skillRef, options),
@@ -873,6 +1062,7 @@ Hooks.once("init", () => {
   RogueTraderCharacterSheet.register();
   RogueTraderNPCSheet.register();
   RogueTraderShipSheet.register();
+  RogueTraderTorpedoSheet.register();
   RogueTraderSkillSheet.register();
   RogueTraderTalentSheet.register();
   RogueTraderPsychicTechniqueSheet.register();
@@ -892,6 +1082,46 @@ Hooks.once("init", () => {
 Hooks.once("ready", () => {
   console.log("Rogue Trader | System ready");
 
+  game.socket?.on?.(ROGUETRADER_SOCKET_NAME, async (payload) => {
+    if (!payload || typeof payload !== "object") return;
+
+    if (payload.type === "response") {
+      if (String(payload.userId ?? "") !== String(game.user?.id ?? "")) return;
+      const pending = ROGUETRADER_SOCKET_PENDING.get(String(payload.requestId ?? ""));
+      if (!pending) return;
+      clearTimeout(pending.timeout);
+      ROGUETRADER_SOCKET_PENDING.delete(String(payload.requestId ?? ""));
+      if (payload.success === false) {
+        pending.reject(new Error(String(payload.error ?? "Rogue Trader socket request failed.")));
+      } else {
+        pending.resolve(payload.result);
+      }
+      return;
+    }
+
+    if (payload.type !== "request") return;
+    if (!isPrimaryActiveGm()) return;
+
+    try {
+      const result = await handleRogueTraderSocketRequest(payload.action, payload.data ?? {});
+      game.socket?.emit?.(ROGUETRADER_SOCKET_NAME, {
+        type: "response",
+        requestId: payload.requestId,
+        userId: payload.userId,
+        success: true,
+        result
+      });
+    } catch (error) {
+      game.socket?.emit?.(ROGUETRADER_SOCKET_NAME, {
+        type: "response",
+        requestId: payload.requestId,
+        userId: payload.userId,
+        success: false,
+        error: error?.message ?? String(error)
+      });
+    }
+  });
+
   for (const actor of game.actors?.contents ?? []) {
     if (actor?.ensureNaturalWeaponsState) {
       void actor.ensureNaturalWeaponsState();
@@ -904,6 +1134,12 @@ Hooks.once("ready", () => {
     }
     if (actor?.syncCrippledState) {
       void actor.syncCrippledState({ announced: false });
+    }
+    if (actor?.syncCrewPopulationStatusEffects) {
+      void actor.syncCrewPopulationStatusEffects();
+    }
+    if (actor?.syncMoraleStatusEffects) {
+      void actor.syncMoraleStatusEffects();
     }
   }
 
@@ -936,6 +1172,19 @@ Hooks.once("ready", () => {
   }
 });
 
+Hooks.once("socketlib.ready", () => {
+  if (!globalThis.socketlib?.registerSystem) return;
+
+  try {
+    ROGUETRADER_SOCKETLIB = globalThis.socketlib.registerSystem("roguetrader");
+    ROGUETRADER_SOCKETLIB.register("handleSocketRequest", handleRogueTraderSocketRequest);
+    console.log("Rogue Trader | socketlib bridge ready");
+  } catch (error) {
+    console.warn("Rogue Trader | Failed to initialize socketlib bridge.", error);
+    ROGUETRADER_SOCKETLIB = null;
+  }
+});
+
 Hooks.on("hotbarDrop", (bar, data, slot) => {
   if (data?.type !== "Item" || !data?.roguetraderWeaponMacro) return true;
 
@@ -955,11 +1204,26 @@ Hooks.on("updateCombat", async (combat, changed) => {
   const combatant = combat?.combatant;
   const actor = combatant?.actor;
   if (!actor) return;
+  if (actor.type === "ship" && actor.shouldSkipCrewPopulationTurn?.(combat)) {
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      flavor: `
+        <div class="roguetrader-roll-card">
+          <h3>${actor.name}: Skeleton Crew</h3>
+          <p><strong>Turn Skipped:</strong> With Crew Population at 20 or lower and the ship already Crippled, it may only act every other Strategic Round.</p>
+        </div>
+      `
+    });
+    await combat.nextTurn();
+    return;
+  }
   if (actor.handleRegenerationTurnStart) await actor.handleRegenerationTurnStart(combat);
   if (actor.handleOnFireTurnStart) await actor.handleOnFireTurnStart(combat);
   if (actor.handleStunnedTurnStart) await actor.handleStunnedTurnStart(combat);
   if (actor.handleSnaredTurnStart) await actor.handleSnaredTurnStart(combat);
   if (actor.handlePinnedTurnStart) await actor.handlePinnedTurnStart(combat);
+  if (actor.handleTorpedoReloadTurnStart) await actor.handleTorpedoReloadTurnStart(combat);
+  if (processShipLaunchedTorpedoesTurnStart) await processShipLaunchedTorpedoesTurnStart(actor, combat);
 });
 
 Hooks.on("renderCombatTracker", (app, html) => {
@@ -1505,6 +1769,11 @@ Hooks.on("createActiveEffect", async (effect, options, userId) => {
     });
     await playShipFireSequencerEffect(effect.parent);
   }
+  if (statuses.includes("engines-crippled")) {
+    await effect.parent.update({
+      "system.conditions.enginesCrippled.active": true
+    });
+  }
   if (statuses.some((status) => deadStatusIds.has(status))) {
     await applyDeadTokenVisual(effect.parent);
   }
@@ -1625,6 +1894,15 @@ Hooks.on("deleteActiveEffect", async (effect, options, userId) => {
     });
     await stopShipFireSequencerEffect(effect.parent);
   }
+  if (statuses.includes("engines-crippled")) {
+    await effect.parent.update({
+      "system.conditions.enginesCrippled.active": false,
+      "system.conditions.enginesCrippled.source": "",
+      "system.conditions.enginesCrippled.rollTotal": 0,
+      "system.conditions.enginesCrippled.speedHalved": false,
+      "system.conditions.enginesCrippled.speedReducedToOne": false
+    });
+  }
   if (statuses.some((status) => deadStatusIds.has(status)) && !actorHasDeadStatus(effect.parent)) {
     await clearDeadTokenVisual(effect.parent);
   }
@@ -1640,6 +1918,16 @@ Hooks.on("updateActor", async (actor, changed, options, userId) => {
   if (foundry.utils.hasProperty(changed, "system.resources.hullIntegrity.value")) {
     if (actor?.syncCrippledState) {
       await actor.syncCrippledState({ announced: true });
+    }
+  }
+  if (foundry.utils.hasProperty(changed, "system.crew.value")) {
+    if (actor?.syncCrewPopulationStatusEffects) {
+      await actor.syncCrewPopulationStatusEffects();
+    }
+  }
+  if (foundry.utils.hasProperty(changed, "system.resources.morale.value")) {
+    if (actor?.syncMoraleStatusEffects) {
+      await actor.syncMoraleStatusEffects();
     }
   }
 });

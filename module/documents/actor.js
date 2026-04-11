@@ -147,6 +147,39 @@ const CRIPPLED_STATUS_ID = "crippled";
 const SENSORS_DAMAGED_STATUS_ID = "sensors-damaged";
 const THRUSTERS_DAMAGED_STATUS_ID = "thrusters-damaged";
 const SHIP_FIRE_STATUS_ID = "ship-fire";
+const ENGINES_CRIPPLED_STATUS_ID = "engines-crippled";
+const CREW_POPULATION_80_STATUS_ID = "crew-population-80";
+const CREW_POPULATION_60_STATUS_ID = "crew-population-60";
+const CREW_POPULATION_50_STATUS_ID = "crew-population-50";
+const CREW_POPULATION_40_STATUS_ID = "crew-population-40";
+const CREW_POPULATION_20_STATUS_ID = "crew-population-20";
+const CREW_POPULATION_10_STATUS_ID = "crew-population-10";
+const CREW_POPULATION_0_STATUS_ID = "crew-population-0";
+const MORALE_80_STATUS_ID = "morale-80";
+const MORALE_60_STATUS_ID = "morale-60";
+const MORALE_50_STATUS_ID = "morale-50";
+const MORALE_40_STATUS_ID = "morale-40";
+const MORALE_20_STATUS_ID = "morale-20";
+const MORALE_10_STATUS_ID = "morale-10";
+const MORALE_0_STATUS_ID = "morale-0";
+const SHIP_CREW_POPULATION_THRESHOLDS = Object.freeze([
+  { threshold: 80, statusId: CREW_POPULATION_80_STATUS_ID, name: "Crew Reduced (80%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
+  { threshold: 60, statusId: CREW_POPULATION_60_STATUS_ID, name: "Crew Reduced (60%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
+  { threshold: 50, statusId: CREW_POPULATION_50_STATUS_ID, name: "Crew Reduced (50%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
+  { threshold: 40, statusId: CREW_POPULATION_40_STATUS_ID, name: "Crew Reduced (40%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
+  { threshold: 20, statusId: CREW_POPULATION_20_STATUS_ID, name: "Crew Reduced (20%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
+  { threshold: 10, statusId: CREW_POPULATION_10_STATUS_ID, name: "Crew Reduced (10%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
+  { threshold: 0, statusId: CREW_POPULATION_0_STATUS_ID, name: "Ship is a Tomb", img: "modules/game-icons-net/whitetransparent/black-flag.svg" }
+]);
+const SHIP_MORALE_THRESHOLDS = Object.freeze([
+  { threshold: 80, statusId: MORALE_80_STATUS_ID, name: "Low Morale (80)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
+  { threshold: 60, statusId: MORALE_60_STATUS_ID, name: "Low Morale (60)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
+  { threshold: 50, statusId: MORALE_50_STATUS_ID, name: "Low Morale (50)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
+  { threshold: 40, statusId: MORALE_40_STATUS_ID, name: "Low Morale (40)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
+  { threshold: 20, statusId: MORALE_20_STATUS_ID, name: "Low Morale (20)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
+  { threshold: 10, statusId: MORALE_10_STATUS_ID, name: "Low Morale (10)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
+  { threshold: 0, statusId: MORALE_0_STATUS_ID, name: "Mutinous Crew", img: "modules/game-icons-net/whitetransparent/black-flag.svg" }
+]);
 const FATIGUE_UNCONSCIOUS_FLAG = "fatigueUnconscious";
 const SIZE_MOVEMENT_MODIFIERS = Object.freeze({
   miniscule: -3,
@@ -2510,6 +2543,112 @@ export class RogueTraderActor extends Actor {
     return Boolean(this.statuses?.has?.(SHIP_FIRE_STATUS_ID) || this._getStatusEffectByStatusId(SHIP_FIRE_STATUS_ID));
   }
 
+  isEnginesCrippled() {
+    return Boolean(this.statuses?.has?.(ENGINES_CRIPPLED_STATUS_ID) || this._getStatusEffectByStatusId(ENGINES_CRIPPLED_STATUS_ID));
+  }
+
+  getShipCrewPopulation() {
+    if (this.type !== "ship") return 0;
+    return Math.max(0, Number(this.system?.crew?.value ?? 0) || 0);
+  }
+
+  getShipCrewPopulationPercent() {
+    if (this.type !== "ship") return 0;
+    const current = this.getShipCrewPopulation();
+    const maximum = Math.max(0, Number(this.system?.crew?.max ?? 0) || 0);
+    if (maximum <= 0) return current;
+    return Math.max(0, (current / maximum) * 100);
+  }
+
+  getShipMorale() {
+    if (this.type !== "ship") return 0;
+    return Math.max(0, Number(this.system?.resources?.morale?.value ?? 0) || 0);
+  }
+
+  getShipMoralePercent() {
+    if (this.type !== "ship") return 0;
+    const current = this.getShipMorale();
+    const maximum = Math.max(0, Number(this.system?.resources?.morale?.max ?? 0) || 0);
+    if (maximum <= 0) return current;
+    return Math.max(0, (current / maximum) * 100);
+  }
+
+  hasShipCrewPopulationThreshold(threshold) {
+    if (this.type !== "ship") return false;
+    return this.getShipCrewPopulationPercent() <= Math.max(0, Number(threshold ?? 0) || 0);
+  }
+
+  hasShipMoraleThreshold(threshold) {
+    if (this.type !== "ship") return false;
+    return this.getShipMoralePercent() <= Math.max(0, Number(threshold ?? 0) || 0);
+  }
+
+  isCrewPopulationCombatCrippled() {
+    if (this.type !== "ship") return false;
+    return this.hasShipCrewPopulationThreshold(20);
+  }
+
+  shouldSkipCrewPopulationTurn(combat = null) {
+    if (this.type !== "ship") return false;
+    const activeCombat = combat ?? game.combat ?? null;
+    if (!activeCombat?.started) return false;
+    if (!this.isCrippled() || !this.hasShipCrewPopulationThreshold(20)) return false;
+    const round = Math.max(0, Number(activeCombat.round ?? 0) || 0);
+    return round % 2 === 1;
+  }
+
+  getShipCommandModifier() {
+    if (this.type !== "ship") return 0;
+    let modifier = 0;
+    if (this.hasShipMoraleThreshold(80)) modifier -= 5;
+    if (this.hasShipMoraleThreshold(50)) modifier -= 10;
+    if (this.hasShipMoraleThreshold(10)) modifier -= 15;
+    return modifier;
+  }
+
+  getShipCrewPopulationShootingModifier() {
+    return 0;
+  }
+
+  getShipMoraleShootingModifier() {
+    if (this.type !== "ship") return 0;
+    let modifier = 0;
+    if (this.hasShipMoraleThreshold(60)) modifier -= 5;
+    if (this.hasShipMoraleThreshold(40)) modifier -= 5;
+    return modifier;
+  }
+
+  getShipCrewPopulationSpeedModifier() {
+    return 0;
+  }
+
+  getShipMoraleSpeedModifier() {
+    if (this.type !== "ship") return 0;
+    return this.hasShipMoraleThreshold(10) ? -10 : 0;
+  }
+
+  getShipCrewPopulationManeuverabilityModifier() {
+    if (this.type !== "ship") return 0;
+    return this.hasShipCrewPopulationThreshold(50) ? -10 : 0;
+  }
+
+  getShipMoraleManeuverabilityModifier() {
+    if (this.type !== "ship") return 0;
+    let modifier = 0;
+    if (this.hasShipMoraleThreshold(40)) modifier -= 10;
+    if (this.hasShipMoraleThreshold(10)) modifier -= 10;
+    return modifier;
+  }
+
+  getShipCrewPopulationDetectionModifier() {
+    return 0;
+  }
+
+  getShipMoraleDetectionModifier() {
+    if (this.type !== "ship") return 0;
+    return this.hasShipMoraleThreshold(10) ? -10 : 0;
+  }
+
   isFatigued() {
     return Boolean(this.statuses?.has?.(FATIGUED_STATUS_ID) || this._getStatusEffectByStatusId(FATIGUED_STATUS_ID));
   }
@@ -2557,29 +2696,51 @@ export class RogueTraderActor extends Actor {
   }
 
   getShipBaseSpeed() {
-    return Math.max(0, Number(this.system?.speed ?? 0) || 0);
+    const speedData = this.system?.speed;
+    if (speedData && typeof speedData === "object") {
+      return Math.max(0, (Number(speedData.permanent ?? 0) || 0) + (Number(speedData.temporary ?? 0) || 0));
+    }
+    return Math.max(0, Number(speedData ?? 0) || 0);
   }
 
   getShipBaseManeuverability() {
-    return Number(this.system?.maneuverability ?? 0) || 0;
+    const maneuverabilityData = this.system?.maneuverability;
+    if (maneuverabilityData && typeof maneuverabilityData === "object") {
+      return (Number(maneuverabilityData.permanent ?? 0) || 0) + (Number(maneuverabilityData.temporary ?? 0) || 0);
+    }
+    return Number(maneuverabilityData ?? 0) || 0;
   }
 
   getShipBaseDetection() {
-    return Number(this.system?.detection ?? 0) || 0;
+    const detectionData = this.system?.detection;
+    if (detectionData && typeof detectionData === "object") {
+      return (Number(detectionData.permanent ?? 0) || 0) + (Number(detectionData.temporary ?? 0) || 0);
+    }
+    return Number(detectionData ?? 0) || 0;
   }
 
   getEffectiveShipSpeed() {
     const baseSpeed = this.getShipBaseSpeed();
     if (this.type !== "ship") return baseSpeed;
-    if (!this.isCrippled()) return baseSpeed;
-    return Math.max(0, Math.ceil(baseSpeed / 2));
+    let effectiveSpeed = baseSpeed + this.getShipCrewPopulationSpeedModifier() + this.getShipMoraleSpeedModifier();
+    if (this.isCrippled() || this.isCrewPopulationCombatCrippled()) {
+      effectiveSpeed = Math.max(0, Math.ceil(effectiveSpeed / 2));
+    }
+    if (this.isEnginesCrippled()) {
+      if (Boolean(this.system?.conditions?.enginesCrippled?.speedReducedToOne)) {
+        effectiveSpeed = 1;
+      } else {
+        effectiveSpeed = Math.max(0, Math.ceil(effectiveSpeed / 2));
+      }
+    }
+    return Math.max(0, effectiveSpeed);
   }
 
   getEffectiveShipManeuverability() {
     const baseManeuverability = this.getShipBaseManeuverability();
     if (this.type !== "ship") return baseManeuverability;
-    let effectiveManeuverability = baseManeuverability;
-    if (this.isCrippled()) effectiveManeuverability -= 10;
+    let effectiveManeuverability = baseManeuverability + this.getShipCrewPopulationManeuverabilityModifier() + this.getShipMoraleManeuverabilityModifier();
+    if (this.isCrippled() || this.isCrewPopulationCombatCrippled()) effectiveManeuverability -= 10;
     if (this.isThrustersDamaged() && !this.isShipTurningDisabled()) effectiveManeuverability -= 20;
     return effectiveManeuverability;
   }
@@ -2587,14 +2748,14 @@ export class RogueTraderActor extends Actor {
   getEffectiveShipDetection() {
     const baseDetection = this.getShipBaseDetection();
     if (this.type !== "ship") return baseDetection;
-    let effectiveDetection = baseDetection;
-    if (this.isCrippled()) effectiveDetection -= 10;
+    let effectiveDetection = baseDetection + this.getShipCrewPopulationDetectionModifier() + this.getShipMoraleDetectionModifier();
+    if (this.isCrippled() || this.isCrewPopulationCombatCrippled()) effectiveDetection -= 10;
     return effectiveDetection;
   }
 
   getShipShootingModifier() {
     if (this.type !== "ship") return 0;
-    return this.isSensorsDamaged() ? -30 : 0;
+    return (this.isSensorsDamaged() ? -30 : 0) + this.getShipCrewPopulationShootingModifier() + this.getShipMoraleShootingModifier();
   }
 
   isShipTurningDisabled() {
@@ -2614,11 +2775,11 @@ export class RogueTraderActor extends Actor {
     };
 
     const rawValue = Math.max(0, Number(match[0]) || 0);
-    const effectiveValue = this.type === "ship" && this.isCrippled()
+    const effectiveValue = this.type === "ship" && (this.isCrippled() || this.isCrewPopulationCombatCrippled())
       ? Math.max(0, Math.ceil(rawValue / 2))
       : rawValue;
-    const label = this.type === "ship" && this.isCrippled() && effectiveValue !== rawValue
-      ? `${effectiveValue} (Crippled from ${rawValue})`
+    const label = this.type === "ship" && (this.isCrippled() || this.isCrewPopulationCombatCrippled()) && effectiveValue !== rawValue
+      ? `${effectiveValue} (Reduced from ${rawValue})`
       : `${effectiveValue}`;
 
     return {
@@ -3295,6 +3456,141 @@ export class RogueTraderActor extends Actor {
           </div>
         `
       });
+    }
+
+    return true;
+  }
+
+  async applyEnginesCrippled({ sourceName = "Starship Critical Hit", severityRoll = null, announced = true } = {}) {
+    if (this.type !== "ship") return false;
+
+    const roll = severityRoll instanceof Roll
+      ? severityRoll
+      : await (new Roll("1d10")).evaluate({ async: true });
+    const rollTotal = Math.max(1, Number(roll.total ?? 0) || 1);
+    const speedReducedToOne = rollTotal >= 8;
+    const speedHalved = !speedReducedToOne;
+
+    if (!this.isEnginesCrippled()) {
+      await this.createEmbeddedDocuments("ActiveEffect", [({
+        name: "Engines Crippled",
+        img: "modules/game-icons-net/whitetransparent/boat-engine.svg",
+        statuses: [ENGINES_CRIPPLED_STATUS_ID]
+      })]);
+    }
+
+    await this.update({
+      "system.conditions.enginesCrippled.active": true,
+      "system.conditions.enginesCrippled.source": String(sourceName ?? "Starship Critical Hit"),
+      "system.conditions.enginesCrippled.rollTotal": rollTotal,
+      "system.conditions.enginesCrippled.speedHalved": speedHalved,
+      "system.conditions.enginesCrippled.speedReducedToOne": speedReducedToOne
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Engines Crippled</h3>
+            <p><strong>Status Applied:</strong> Engines Crippled</p>
+            <p><strong>Roll:</strong> ${roll.formula} = ${rollTotal}</p>
+            <p><strong>Effect:</strong> ${speedReducedToOne ? "Drives totally wrecked; Speed reduced to 1." : "Speed reduced by half."}</p>
+            <p><strong>Source:</strong> ${sourceName}</p>
+          </div>
+        `
+      });
+    }
+
+    return {
+      roll,
+      rollTotal,
+      speedHalved,
+      speedReducedToOne
+    };
+  }
+
+  async clearEnginesCrippled({ announced = false } = {}) {
+    if (this.type !== "ship") return false;
+    if (!this.isEnginesCrippled()) return false;
+
+    const effect = this._getStatusEffectByStatusId(ENGINES_CRIPPLED_STATUS_ID);
+    if (effect) {
+      await effect.delete();
+    }
+
+    await this.update({
+      "system.conditions.enginesCrippled.active": false,
+      "system.conditions.enginesCrippled.source": "",
+      "system.conditions.enginesCrippled.rollTotal": 0,
+      "system.conditions.enginesCrippled.speedHalved": false,
+      "system.conditions.enginesCrippled.speedReducedToOne": false
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Engines Repaired</h3>
+            <p><strong>Status Removed:</strong> Engines Crippled</p>
+          </div>
+        `
+      });
+    }
+
+    return true;
+  }
+
+  async syncCrewPopulationStatusEffects() {
+    if (this.type !== "ship") return false;
+
+    for (const entry of SHIP_CREW_POPULATION_THRESHOLDS) {
+      const shouldBeActive = this.hasShipCrewPopulationThreshold(entry.threshold);
+      const existingEffect = this._getStatusEffectByStatusId(entry.statusId);
+
+      if (shouldBeActive && !existingEffect) {
+        await this.createEmbeddedDocuments("ActiveEffect", [{
+          name: entry.name,
+          img: entry.img,
+          statuses: [entry.statusId],
+          flags: {
+            roguetrader: {
+              derivedCrewPopulationStatus: true,
+              threshold: entry.threshold
+            }
+          }
+        }]);
+      } else if (!shouldBeActive && existingEffect) {
+        await existingEffect.delete();
+      }
+    }
+
+    return true;
+  }
+
+  async syncMoraleStatusEffects() {
+    if (this.type !== "ship") return false;
+
+    for (const entry of SHIP_MORALE_THRESHOLDS) {
+      const shouldBeActive = this.hasShipMoraleThreshold(entry.threshold);
+      const existingEffect = this._getStatusEffectByStatusId(entry.statusId);
+
+      if (shouldBeActive && !existingEffect) {
+        await this.createEmbeddedDocuments("ActiveEffect", [{
+          name: entry.name,
+          img: entry.img,
+          statuses: [entry.statusId],
+          flags: {
+            roguetrader: {
+              derivedMoraleStatus: true,
+              threshold: entry.threshold
+            }
+          }
+        }]);
+      } else if (!shouldBeActive && existingEffect) {
+        await existingEffect.delete();
+      }
     }
 
     return true;
@@ -4231,6 +4527,53 @@ export class RogueTraderActor extends Actor {
     return this.getCharacteristicManualModifier(characteristicKey)
       + this.getCharacteristicItemModifier(characteristicKey)
       + this.getCharacteristicConditionModifier(characteristicKey);
+  }
+
+  async handleTorpedoReloadTurnStart(combat = null) {
+    if (this.type !== "ship") return null;
+
+    const combatId = String(combat?.id ?? "");
+    const round = Number(combat?.round ?? 0);
+    const turn = Number(combat?.turn ?? 0);
+    const lastProcessed = this.getFlag("roguetrader", "torpedoReloadLastProcessed") ?? {};
+    const alreadyProcessed = String(lastProcessed.combatId ?? "") === combatId
+      && Number(lastProcessed.round ?? -1) === round
+      && Number(lastProcessed.turn ?? -1) === turn;
+    if (alreadyProcessed) return null;
+
+    await this.setFlag("roguetrader", "torpedoReloadLastProcessed", {
+      combatId,
+      round,
+      turn
+    });
+
+    const reloadableWeapons = Array.from(this.items ?? []).filter((item) =>
+      item?.type === "shipWeapon"
+      && String(item.system?.weaponClass ?? "").trim().toLowerCase() === "torpedo"
+      && Boolean(item.system?.torpedoLoading)
+      && String(item.system?.torpedoLoadingMode ?? "").trim() === "normal"
+    );
+
+    if (!reloadableWeapons.length) return [];
+
+    await this.updateEmbeddedDocuments("Item", reloadableWeapons.map((item) => ({
+      _id: item.id,
+      "system.torpedoLoaded": true,
+      "system.torpedoLoading": false,
+      "system.torpedoLoadingMode": ""
+    })));
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.name}: Torpedoes Loaded</h3>
+          <p>${reloadableWeapons.map((item) => `<strong>${item.name}</strong>`).join(", ")} ready to fire.</p>
+        </div>
+      `
+    });
+
+    return reloadableWeapons;
   }
 
   getBaseWoundsMax() {

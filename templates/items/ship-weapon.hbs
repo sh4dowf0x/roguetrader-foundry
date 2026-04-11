@@ -16,6 +16,21 @@
         </select>
       </div>
 
+      {{#if isTorpedoWeapon}}
+        <div class="form-group ship-weapon-type-field">
+          <label>Torpedo Type</label>
+          <select name="system.torpedoType">
+            {{selectOptions torpedoTypeOptions selected=system.torpedoType}}
+          </select>
+        </div>
+        <div class="form-group ship-weapon-type-field">
+          <label>Guidance</label>
+          <select name="system.torpedoGuidance">
+            {{selectOptions torpedoGuidanceOptions selected=system.torpedoGuidance}}
+          </select>
+        </div>
+      {{/if}}
+
       <div class="ship-weapon-stat-row">
         <div class="form-group ship-weapon-mini-field">
           <label>Power</label>
@@ -35,6 +50,13 @@
     </div>
 
     <div class="ship-weapon-stat-row item-body-grid-span">
+      {{#if isTorpedoWeapon}}
+        <div class="form-group ship-weapon-mini-field">
+          <label>Speed</label>
+          <input name="system.torpedoSpeed" type="number" value="{{system.torpedoSpeed}}" step="1" readonly />
+        </div>
+      {{/if}}
+
       <div class="form-group ship-weapon-mini-field">
         <label>Strength</label>
         <input name="system.strength" type="text" value="{{system.strength}}" />
@@ -42,17 +64,17 @@
 
       <div class="form-group ship-weapon-wide-field">
         <label>Damage</label>
-        <input name="system.damage" type="text" value="{{system.damage}}" />
+        <input name="system.damage" type="text" value="{{system.damage}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
       </div>
 
       <div class="form-group ship-weapon-mini-field">
         <label>Crit Rating</label>
-        <input name="system.critRating" type="text" value="{{system.critRating}}" />
+        <input name="system.critRating" type="text" value="{{system.critRating}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
       </div>
 
       <div class="form-group ship-weapon-wide-field">
         <label>Range</label>
-        <input name="system.range" type="text" value="{{system.range}}" />
+        <input name="system.range" type="text" value="{{system.range}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
       </div>
     </div>
 

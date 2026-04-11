@@ -35,7 +35,7 @@
     }
   ],
   "languages": [],
-  "socket": false,
+  "socket": true,
   "url": "",
   "manifest": "",
   "download": "",

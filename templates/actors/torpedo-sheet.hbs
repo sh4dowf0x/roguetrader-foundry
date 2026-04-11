@@ -1,0 +1,112 @@
+<form class="roguetrader torpedo-sheet" autocomplete="off">
+  <div class="ship-sheet-frame">
+    <header class="sheet-header item-header">
+      <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" />
+      <div class="header-fields">
+        <h1 class="item-name"><input name="name" type="text" value="{{actor.name}}" placeholder="Torpedo Salvo" /></h1>
+        <p class="item-subtitle">Torpedo</p>
+      </div>
+    </header>
+
+    <section class="item-body-grid">
+      <div class="form-group">
+        <label>Torpedo Type</label>
+        <select name="system.torpedoType">
+          {{selectOptions torpedoTypeOptions selected=system.torpedoType}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Guidance</label>
+        <select name="system.guidance">
+          {{selectOptions guidanceOptions selected=system.guidance}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Source Ship</label>
+        <input name="system.sourceShip" type="text" value="{{system.sourceShip}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Source Ship Name</label>
+        <input name="system.sourceShipName" type="text" value="{{system.sourceShipName}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Source Token UUID</label>
+        <input name="system.sourceTokenUuid" type="text" value="{{system.sourceTokenUuid}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Launcher</label>
+        <input name="system.launcher" type="text" value="{{system.launcher}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Salvo Strength</label>
+        <input name="system.salvoStrength" type="number" value="{{system.salvoStrength}}" step="1" />
+      </div>
+
+      <div class="form-group">
+        <label>Firing Actor</label>
+        <input name="system.firingActorName" type="text" value="{{system.firingActorName}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Firing Actor UUID</label>
+        <input name="system.firingActorUuid" type="text" value="{{system.firingActorUuid}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Stored Ballistic Skill</label>
+        <input name="system.firingBallisticSkill" type="number" value="{{system.firingBallisticSkill}}" step="1" />
+      </div>
+
+      <div class="form-group">
+        <label>Bearing</label>
+        <input name="system.bearing" type="number" value="{{system.bearing}}" step="1" />
+      </div>
+
+      <div class="form-group">
+        <label>Speed</label>
+        <input name="system.speed" type="number" value="{{system.speed}}" step="1" />
+      </div>
+
+      <div class="form-group">
+        <label>Range</label>
+        <input name="system.range" type="number" value="{{system.range}}" step="1" />
+      </div>
+
+      <div class="form-group">
+        <label>Remaining Range</label>
+        <input name="system.remainingRange" type="number" value="{{system.remainingRange}}" step="1" />
+      </div>
+
+      <div class="form-group">
+        <label>Damage</label>
+        <input name="system.damage" type="text" value="{{system.damage}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Crit Rating</label>
+        <input name="system.critRating" type="text" value="{{system.critRating}}" />
+      </div>
+
+      <div class="form-group">
+        <label>Active</label>
+        <input name="system.active" type="checkbox" {{checked system.active}} />
+      </div>
+
+      <div class="form-group">
+        <label>Launched</label>
+        <input name="system.launched" type="checkbox" {{checked system.launched}} />
+      </div>
+
+      <div class="form-group item-body-grid-span">
+        <label>Notes</label>
+        <textarea name="system.notes">{{system.notes}}</textarea>
+      </div>
+    </section>
+  </div>
+</form>

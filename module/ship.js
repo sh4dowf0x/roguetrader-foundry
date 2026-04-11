@@ -31,6 +31,11 @@ const NPC_CREW_RATING_OPTIONS = [
   { value: 50, label: "Veteran (50)" },
   { value: 60, label: "Elite (60)" }
 ];
+const TORPEDO_LOAD_OPTIONS = [
+  { value: "normal", label: "Load Normally" },
+  { value: "quickTechUse", label: "Load Quickly (Tech-Use -10)" },
+  { value: "quickCommand", label: "Load Quickly (Command -10)" }
+];
 const ACTIVE_AUGURY_SEQUENCE_FILE = "jb2a.template_circle.radar.loop.800px.001.sweep.greenpurple";
 const ACTIVE_AUGURY_RADIUS_METERS = 20;
 const ACTIVE_AUGURY_PING_FILE = "jb2a.template_circle.radar.loop.ping.001.300px.triangle.greenpurple";
@@ -43,8 +48,60 @@ const SHIP_ROSTER_ROLES = [
   { key: "masterOfAetherics", label: "Master of Aetherics", primaryLabel: "Scrutiny", characteristicKey: "perception", skillName: "Scrutiny" },
   { key: "masterGunner", label: "Master Gunner", primaryLabel: "Ballistic Skill", characteristicKey: "ballisticSkill", skillName: "" },
   { key: "chiefEnginseer", label: "Chief Enginseer", primaryLabel: "Tech-Use", characteristicKey: "intelligence", skillName: "Tech-Use" },
+  { key: "astropath", label: "Astropath", primaryLabel: "Psyniscience", characteristicKey: "perception", skillName: "Psyniscience" },
   { key: "navigator", label: "Navigator", primaryLabel: "Navigation (Stellar)", characteristicKey: "intelligence", skillName: "Navigation (Stellar)" }
 ];
+const STARSHIP_ACTION_DEFINITIONS = [
+  { key: "standardMove", label: "Standard Move", mode: "Move", subtype: "Manoeuvre", summary: "Move at half or full Speed; at end of move, turn 90 degrees for Transports, Frigates, and Raiders, or 45 degrees for all other hull types." },
+  { key: "adjustBearing", label: "Adjust Bearing", mode: "Move", subtype: "Manoeuvre", summary: "Pilot (Spacecraft) + Manoeuvrability; turn 1+DoS VUs earlier than a Standard Move." },
+  { key: "adjustSpeed", label: "Adjust Speed", mode: "Move", subtype: "Manoeuvre", summary: "Pilot (Spacecraft) + Manoeuvrability; increase or decrease Speed by 1+DoS, minimum 0." },
+  { key: "adjustSpeedBearing", label: "Adjust Speed & Bearing", mode: "Move", subtype: "Manoeuvre", summary: "-20 Pilot (Spacecraft) + Manoeuvrability; perform both Adjust Bearing and Adjust Speed at the same time." },
+  { key: "comeAbout", label: "Come About to New Heading", mode: "Move", subtype: "Manoeuvre", summary: "-10 Pilot (Spacecraft) + Manoeuvrability; turn when moved Half Speed and again at end; -20 Ballistic Skill." },
+  { key: "disengage", label: "Disengage", mode: "Move", subtype: "Manoeuvre", summary: "Cannot be performed if craft are within 8 VUs; opposed Pilot (Spacecraft) + Manoeuvrability vs Detection + Scrutiny within 20 VUs." },
+  { key: "evasiveManeuvers", label: "Evasive Manoeuvres", mode: "Move", subtype: "Manoeuvre", summary: "-10 Pilot (Spacecraft) + Manoeuvrability; attacks against the craft suffer penalties; the ship also takes a Ballistic Skill penalty." },
+  { key: "activeAugury", label: "Active Augury", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; learn information about celestial bodies, phenomena, and ships within 20 VUs; detects Silent Running." },
+  { key: "aidMachineSpirit", label: "Aid the Machine Spirit", mode: "Extended", subtype: "Technological", summary: "Grant +5 Manoeuvrability or Detection, plus +5 per 2 DoS." },
+  { key: "disinformation", label: "Disinformation", mode: "Extended", subtype: "Social", summary: "-10 Deceive or Blather; inflict 1d5 Morale damage, plus 1d5 per DoS." },
+  { key: "emergencyRepairs", label: "Emergency Repairs", mode: "Extended", subtype: "Technological", summary: "-10 Tech-Use; repair an Unpowered, Damaged, or Depressurised Component; time taken 1d5-DoS Turns." },
+  { key: "flankSpeed", label: "Flank Speed", mode: "Extended", subtype: "Manoeuvre", summary: "Tech-Use; +1 VU Speed plus +1 VU per DoS; 2 DoF causes Engine Crippled." },
+  { key: "focusedAugury", label: "Focused Augury", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; identify enemy components within 20 VUs, with more revealed at higher DoS." },
+  { key: "hailEnemy", label: "Hail the Enemy", mode: "Extended", subtype: "Social", summary: "Open communications with ships within range; can be performed by characters who have participated in Manoeuvre or Shooting." },
+  { key: "hitAndRun", label: "Hit & Run", mode: "Extended", subtype: "Attack", summary: "Pilot (Spacecraft), -10 per Turret Rating, 5 VU range; if successful, make a Command test to inflict critical effects and Hull Integrity damage." },
+  { key: "holdFast", label: "Hold Fast!", mode: "Extended", subtype: "Social", summary: "Air of Authority required; Willpower; on success reduce Morale damage by 1, plus DoS, minimum 1, during the current turn." },
+  { key: "jamCommunications", label: "Jam Communications", mode: "Extended", subtype: "Technological", summary: "-10 Tech-Use; if successful, target ship cannot use Social actions; range 10 VU + DoS." },
+  { key: "lockOnTarget", label: "Lock on Target", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; +5 Ballistic Skill for one weapon component, plus +5 per 2 DoS." },
+  { key: "prepareRepelBoarders", label: "Prepare to Repel Boarders!", mode: "Extended", subtype: "Social", summary: "Command; if successful +10 Command, plus +5 per DoS, against Boarding Actions as long as maintained." },
+  { key: "putBacksIntoIt", label: "Put your Backs into it!", mode: "Extended", subtype: "Social", summary: "Intimidate or Charm; boost one weapon, Emergency Repairs, or Firefighting; +1 additional action per 3 DoS." },
+  { key: "triage", label: "Triage", mode: "Extended", subtype: "Medical", summary: "-10 Medicae; reduce Crew Population damage by 1, plus DoS, minimum 1, during the current turn." },
+  { key: "silentRunning", label: "Silent Running", mode: "Extended", subtype: "Manoeuvre", summary: "Undetectable except with Augury; Manoeuvre Tests -10; +10 Pilot (Spacecraft) + Manoeuvrability to do a Standard Move." },
+  { key: "firefighting", label: "Firefighting", mode: "Extended", subtype: "Internal", summary: "-10 Command; if successful, remove Fire; may choose to vent into the void." },
+  { key: "fireWeapons", label: "Fire Weapons", mode: "Shooting", subtype: "Attack", summary: "Ballistic Skill; resolve weapon component attacks in the chosen firing order." },
+  { key: "ramming", label: "Ramming", mode: "Shooting", subtype: "Attack", summary: "End move within 1 VU; -20 Pilot (Spacecraft) + Manoeuvrability; both ships take damage." },
+  { key: "boarding", label: "Boarding", mode: "Shooting", subtype: "Attack", summary: "End move within 1 VU; Pilot (Spacecraft) + Manoeuvrability to entangle and board; opposed Command resolves damage." },
+  { key: "controlWeakMind", label: "Control the Weak Mind", mode: "Extended", subtype: "Astropathic", summary: "Compel power; choose one weapon on another vessel within range and force it to fire at a target of the Astropath's choice." },
+  { key: "darkLabyrinth", label: "Dark Labyrinth", mode: "Extended", subtype: "Astropathic", summary: "Delude power; ship counts as within a Tenebro-Maze for 1+DoS Turns." },
+  { key: "diviningTheWay", label: "Divining the Way", mode: "Extended", subtype: "Astropathic", summary: "Divination discipline; add 1d5 DoS to a Manoeuvre Action; once per combat." },
+  { key: "flashFire", label: "Flash Fire", mode: "Extended", subtype: "Astropathic", summary: "Telekinesis discipline; set a random component on Fire on a vessel within 6 VUs." },
+  { key: "illOmens", label: "Ill-Omens", mode: "Extended", subtype: "Astropathic", summary: "Terrify power; in response to Boarding Action, inflict 1d5+DoS Morale damage." },
+  { key: "inspiringPresence", label: "Inspiring Presence", mode: "Extended", subtype: "Astropathic", summary: "Inspire power; +10% x DoS to either Pilot (Spacecraft) or Command during Hit & Run." },
+  { key: "maskOfTheVoid", label: "Mask of the Void", mode: "Extended", subtype: "Astropathic", summary: "Delude power; choose a vessel within 10 VUs; Ballistic Skill and Astropathic actions suffer penalties." },
+  { key: "psychicDeflection", label: "Psychic Deflection", mode: "Extended", subtype: "Astropathic", summary: "Telekinesis discipline; counts as having 1(+DoS) extra Void Shield against one shot." },
+  { key: "quellFlames", label: "Quell Flames", mode: "Extended", subtype: "Astropathic", summary: "Telekinesis discipline; extinguish 1 fire, plus more at higher DoS." },
+  { key: "takingTheShot", label: "Taking the Shot", mode: "Extended", subtype: "Astropathic", summary: "Divination discipline; +10% Shooting Action during the entire combat." },
+  { key: "telepathicJamming", label: "Telepathic Jamming", mode: "Extended", subtype: "Astropathic", summary: "Psyniscience Focus Power; jam Astro-Telepathic signals within a VU-radius area." },
+  { key: "tiesThatBind", label: "The Ties that Bind", mode: "Extended", subtype: "Astropathic", summary: "Mind Link power; if successful, +5 to all players for the next Strategic Round." },
+  { key: "unnaturalResolve", label: "Unnatural Resolve", mode: "Extended", subtype: "Astropathic", summary: "Inspire power; restore 1d5(+DoS) Morale; once per game session." },
+  { key: "emergencyJump", label: "Emergency Jump", mode: "Extended", subtype: "Navigator", summary: "-30 Navigation (Warp); immediately translate into the Warp until next turn." },
+  { key: "relentlessPursuit", label: "Relentless Pursuit", mode: "Extended", subtype: "Navigator", summary: "-10 Navigation (Stellar); every DoS reduces DoS needed to catch in Stern Chase." },
+  { key: "scanningTheAether", label: "Scanning the Aether", mode: "Extended", subtype: "Navigator", summary: "-10 Psyniscience; Active Augury with extended range even if Augury is damaged." },
+  { key: "tacticalPositioning", label: "Tactical Positioning", mode: "Extended", subtype: "Navigator", summary: "-10 Psyniscience; adds 1 DoS to successful Ballistic Skill or Evasive Manoeuvres tests." },
+  { key: "tacticalRetreat", label: "Tactical Retreat", mode: "Extended", subtype: "Navigator", summary: "-10 Navigation (Stellar); every 2 DoS reduces DoS needed to escape in Stern Chase." },
+  { key: "warpInterference", label: "Warp Interference", mode: "Extended", subtype: "Navigator", summary: "-20 Psyniscience; target vessel suffers -10 Detection for 1(+DoS) Rounds." }
+];
+
+function isVoidshipCrewActor(actor) {
+  return actor?.type === "character" || actor?.type === "npc";
+}
 
 function normalizeSkillName(value) {
   return String(value ?? "").trim().toLowerCase();
@@ -81,6 +138,77 @@ function getDistanceVuBetweenTokens(leftToken, rightToken) {
   return getDistanceMetersBetweenTokens(leftToken, rightToken);
 }
 
+function getShipProfileStatData(statData) {
+  if (statData && typeof statData === "object") {
+    return {
+      permanent: Number(statData.permanent ?? 0) || 0,
+      temporary: Number(statData.temporary ?? 0) || 0
+    };
+  }
+
+  return {
+    permanent: Number(statData ?? 0) || 0,
+    temporary: 0
+  };
+}
+
+function getShipProfileDisplayData(statData, effectiveValue) {
+  const normalized = getShipProfileStatData(statData);
+  const effective = Number(effectiveValue ?? 0) || 0;
+  let stateClass = "";
+  if (effective > normalized.permanent) {
+    stateClass = "is-buffed";
+  } else if (effective < normalized.permanent) {
+    stateClass = "is-debuffed";
+  }
+
+  return {
+    ...normalized,
+    effective,
+    stateClass
+  };
+}
+
+function getShipCurrentPermanentDisplayData(currentValue, permanentValue) {
+  const current = Number(currentValue ?? 0) || 0;
+  const permanent = Number(permanentValue ?? 0) || 0;
+  let stateClass = "";
+  if (current > permanent) {
+    stateClass = "is-buffed";
+  } else if (current < permanent) {
+    stateClass = "is-debuffed";
+  }
+
+  return {
+    current,
+    permanent,
+    stateClass
+  };
+}
+
+function getShipUsageDisplayData(usedValue, totalValue) {
+  const used = Number(usedValue ?? 0) || 0;
+  const total = Number(totalValue ?? 0) || 0;
+  let stateClass = "";
+  if (used > total) {
+    stateClass = "is-debuffed";
+  }
+
+  return {
+    current: used,
+    permanent: total,
+    stateClass
+  };
+}
+
+function getActorInitials(actor) {
+  const name = String(actor?.name ?? "").trim();
+  if (!name) return "";
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (!parts.length) return "";
+  return parts.slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("");
+}
+
 export class RogueTraderShipSheet extends ActorSheet {
   static register() {
     Actors.registerSheet("roguetrader", RogueTraderShipSheet, {
@@ -95,6 +223,7 @@ export class RogueTraderShipSheet extends ActorSheet {
       width: 1280,
       height: 940,
       template: "systems/roguetrader/templates/actors/ship-sheet.hbs",
+      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "page-one" }],
       submitOnChange: true,
       submitOnClose: true,
       closeOnSubmit: false
@@ -104,6 +233,9 @@ export class RogueTraderShipSheet extends ActorSheet {
   getData(options = {}) {
     const context = super.getData(options);
     const items = Array.from(this.actor.items ?? []);
+    const speedData = getShipProfileStatData(this.actor.system?.speed);
+    const maneuverabilityData = getShipProfileStatData(this.actor.system?.maneuverability);
+    const detectionData = getShipProfileStatData(this.actor.system?.detection);
     const effectiveSpeed = this.actor.getEffectiveShipSpeed?.() ?? (Number(this.actor.system?.speed ?? 0) || 0);
     const effectiveManeuverability = this.actor.getEffectiveShipManeuverability?.() ?? (Number(this.actor.system?.maneuverability ?? 0) || 0);
     const effectiveDetection = this.actor.getEffectiveShipDetection?.() ?? (Number(this.actor.system?.detection ?? 0) || 0);
@@ -128,15 +260,27 @@ export class RogueTraderShipSheet extends ActorSheet {
       .sort((left, right) => left.name.localeCompare(right.name))
       .map((item) => this._buildCargoEntry(item));
 
-    const essentialPowerUsed = essentialComponents.reduce((total, component) => total + component.power, 0);
-    const supplementalPowerUsed = supplementalComponents.reduce((total, component) => total + component.power, 0);
+    const essentialPowerUsed = essentialComponents
+      .filter((component) => String(component.componentType ?? "").trim() !== "plasmaDrives")
+      .reduce((total, component) => total + Math.abs(Number(component.power ?? 0) || 0), 0);
+    const supplementalPowerUsed = supplementalComponents.reduce((total, component) => total + Math.abs(Number(component.power ?? 0) || 0), 0);
+    const shipWeaponPowerUsed = shipWeapons.reduce((total, weapon) => total + Math.abs(Number(weapon.power ?? 0) || 0), 0);
     const essentialSpaceUsed = essentialComponents.reduce((total, component) => total + component.space, 0);
     const supplementalSpaceUsed = supplementalComponents.reduce((total, component) => total + component.space, 0);
-    const powerUsed = essentialPowerUsed + supplementalPowerUsed;
-    const spaceUsed = essentialSpaceUsed + supplementalSpaceUsed;
+    const shipWeaponSpaceUsed = shipWeapons.reduce((total, weapon) => total + (Number(weapon.space ?? 0) || 0), 0);
+    const powerUsed = essentialPowerUsed + supplementalPowerUsed + shipWeaponPowerUsed;
+    const spaceUsed = essentialSpaceUsed + supplementalSpaceUsed + shipWeaponSpaceUsed;
+    const totalPower = Number(this.actor.system?.power?.value ?? 0) || 0;
+    const totalSpace = Number(this.actor.system?.space?.value ?? 0) || 0;
     const weaponLocationUsage = this._buildWeaponLocationUsage(shipWeapons);
     const activeHull = this._getActiveHullEntry(starshipHulls);
     const roster = this._buildShipRoster();
+    const shipActions = this._buildShipActions();
+    const shipEffects = this._buildShipEffects({
+      speedData,
+      maneuverabilityData,
+      detectionData
+    });
 
     context.actor = this.actor;
     context.system = this.actor.system;
@@ -148,11 +292,16 @@ export class RogueTraderShipSheet extends ActorSheet {
       supplementalComponents,
       shipWeapons,
       cargo,
+      effects: shipEffects,
+      actions: shipActions,
       roster,
       hasEssentialComponents: essentialComponents.length > 0,
       hasSupplementalComponents: supplementalComponents.length > 0,
       hasShipWeapons: shipWeapons.length > 0,
       hasCargo: cargo.length > 0,
+      hasEffects: shipEffects.length > 0,
+      hasActions: shipActions.length > 0,
+      torpedoLoadOptions: TORPEDO_LOAD_OPTIONS,
       art: this.actor.img || "icons/svg/ship.svg",
       controlMode: String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc" ? "npc" : "player",
       controlModeOptions: SHIP_CONTROL_MODE_OPTIONS.map((option) => ({
@@ -166,6 +315,27 @@ export class RogueTraderShipSheet extends ActorSheet {
       })),
       isNpcControlled: String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc",
       isCrippled: Boolean(this.actor.isCrippled?.()),
+      profileStats: {
+        speed: getShipProfileDisplayData(speedData, effectiveSpeed),
+        maneuverability: getShipProfileDisplayData(maneuverabilityData, effectiveManeuverability),
+        detection: getShipProfileDisplayData(detectionData, effectiveDetection)
+      },
+      resourceStats: {
+        hullIntegrity: getShipCurrentPermanentDisplayData(
+          this.actor.system?.resources?.hullIntegrity?.value,
+          this.actor.system?.resources?.hullIntegrity?.max
+        ),
+        crew: getShipCurrentPermanentDisplayData(
+          this.actor.system?.crew?.value,
+          this.actor.system?.crew?.max
+        ),
+        morale: getShipCurrentPermanentDisplayData(
+          this.actor.system?.resources?.morale?.value,
+          this.actor.system?.resources?.morale?.max
+        ),
+        power: getShipUsageDisplayData(powerUsed, totalPower),
+        space: getShipUsageDisplayData(spaceUsed, totalSpace)
+      },
       effectiveSpeed,
       effectiveManeuverability,
       effectiveDetection,
@@ -199,12 +369,15 @@ export class RogueTraderShipSheet extends ActorSheet {
     html.find(".ship-item-open").attr("draggable", true);
     html.find(".ship-item-open").on("click", this._onItemOpen.bind(this));
     html.find(".ship-item-open").on("dragstart", this._onItemDragStart.bind(this));
+    html.find(".ship-roster-slot[draggable='true']").on("dragstart", this._onRosterActorDragStart.bind(this));
     html.find(".ship-item-delete").on("click", this._onDeleteItem.bind(this));
     html.find(".ship-weapon-fire").on("click", this._onShipWeaponFire.bind(this));
+    html.find(".ship-weapon-load").on("click", this._onShipWeaponLoad.bind(this));
     html.find(".ship-item-create").on("click", this._onCreateItem.bind(this));
     html.find(".ship-construct-button").on("click", this._onConstructVoidship.bind(this));
     html.find(".ship-roster-clear").on("click", this._onClearRosterAssignment.bind(this));
     html.find(".ship-profile-roll").on("click", this._onShipProfileRoll.bind(this));
+    html.find(".ship-action-button").on("click", this._onShipActionAssign.bind(this));
   }
 
   _buildStarshipHullEntry(item) {
@@ -239,25 +412,45 @@ export class RogueTraderShipSheet extends ActorSheet {
     return {
       id: item.id,
       name: item.name,
+      componentType: String(item.system?.componentType ?? item.system?.categoryType ?? "").trim(),
+      shipPointCost: Number(item.system?.shipPointCost ?? 0) || 0,
       power: Number(item.system?.power ?? 0) || 0,
       space: Number(item.system?.space ?? 0) || 0,
+      generation: Number(item.system?.generation ?? 0) || 0,
+      origin: String(item.system?.origin ?? "").trim(),
       shortDescription: String(item.system?.shortDescription ?? "").trim()
     };
   }
 
   _buildShipWeaponEntry(item) {
     const locationKey = String(item.system?.location ?? "dorsal").trim().toLowerCase();
+    const weaponClass = String(item.system?.weaponClass ?? "macrobattery").trim().toLowerCase();
     const strengthData = this.actor.getEffectiveShipWeaponStrength?.(item) ?? {
       effectiveValue: 0,
       label: String(item.system?.strength ?? "").trim()
     };
+    const isTorpedoTube = weaponClass === "torpedo";
+    const torpedoLoaded = isTorpedoTube ? Boolean(item.system?.torpedoLoaded ?? true) : false;
+    const torpedoLoading = isTorpedoTube ? Boolean(item.system?.torpedoLoading) : false;
+    const torpedoLoadingMode = String(item.system?.torpedoLoadingMode ?? "").trim();
+    const torpedoLoadingModeLabel = torpedoLoadingMode === "normal"
+      ? "Loading"
+      : torpedoLoadingMode === "quickTechUse"
+        ? "Quick Load (Tech-Use)"
+        : torpedoLoadingMode === "quickCommand"
+          ? "Quick Load (Command)"
+          : "Loading";
     return {
       id: item.id,
+      img: item.img || "icons/svg/item-bag.svg",
       name: item.name,
-      weaponClass: String(item.system?.weaponClass ?? "macrobattery").trim().toLowerCase(),
-      weaponClassLabel: SHIP_WEAPON_CLASS_LABELS[String(item.system?.weaponClass ?? "macrobattery").trim().toLowerCase()] ?? "Weapon",
+      weaponClass,
+      weaponClassLabel: SHIP_WEAPON_CLASS_LABELS[weaponClass] ?? "Weapon",
+      shipPointCost: Number(item.system?.shipPointCost ?? 0) || 0,
       power: Number(item.system?.power ?? 0) || 0,
       space: Number(item.system?.space ?? 0) || 0,
+      torpedoType: String(item.system?.torpedoType ?? "").trim().toLowerCase(),
+      torpedoSpeed: Number(item.system?.torpedoSpeed ?? 0) || 0,
       strength: strengthData.label,
       rawStrength: String(item.system?.strength ?? "").trim(),
       effectiveStrength: Number(strengthData.effectiveValue ?? 0) || 0,
@@ -266,8 +459,64 @@ export class RogueTraderShipSheet extends ActorSheet {
       range: String(item.system?.range ?? "").trim(),
       location: locationKey,
       locationLabel: SHIP_WEAPON_LOCATION_LABELS[locationKey] ?? "Unknown",
-      shortDescription: String(item.system?.shortDescription ?? "").trim()
+      shortDescription: String(item.system?.shortDescription ?? "").trim(),
+      isTorpedoTube,
+      torpedoLoaded,
+      torpedoLoading,
+      torpedoLoadingMode,
+      torpedoLoadingModeLabel
     };
+  }
+
+  _getCurrentShipActionActor() {
+    const assignedCharacter = game.user?.character;
+    if (isVoidshipCrewActor(assignedCharacter)) return assignedCharacter;
+
+    const controlledToken = canvas?.tokens?.controlled?.find?.((token) => token?.actor && token.actor.type !== "ship");
+    if (isVoidshipCrewActor(controlledToken?.actor)) return controlledToken.actor;
+
+    return null;
+  }
+
+  async _rollShipActionSkillTest({ title, skillName, characteristicKey, modifier = 0 } = {}) {
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc";
+    if (isNpcControlled) {
+      const npcCrewRating = Number(this.actor.system?.npcCrewRating ?? 0) || 0;
+      return rollD100Test({
+        actor: null,
+        title,
+        target: npcCrewRating,
+        modifier,
+        breakdown: [
+          `NPC Crew Rating: ${npcCrewRating}`,
+          `Action Modifier: ${modifier >= 0 ? `+${modifier}` : modifier}`
+        ]
+      });
+    }
+
+    const actionActor = this._getCurrentShipActionActor();
+    if (!actionActor) {
+      ui.notifications?.warn("Rogue Trader | Select your character or a controlled crew token first.");
+      return null;
+    }
+
+    const roleLike = { characteristicKey, skillName };
+    const primaryValue = this._getRosterRolePrimaryValue(actionActor, roleLike);
+    if (primaryValue?.value == null) {
+      ui.notifications?.warn(`Rogue Trader | ${actionActor.name} cannot use ${skillName}.`);
+      return null;
+    }
+
+    return rollD100Test({
+      actor: actionActor,
+      title,
+      target: primaryValue.value,
+      modifier,
+      breakdown: [
+        `${skillName}: ${primaryValue.label}`,
+        `Action Modifier: ${modifier >= 0 ? `+${modifier}` : modifier}`
+      ]
+    });
   }
 
   _buildCargoEntry(item) {
@@ -277,6 +526,139 @@ export class RogueTraderShipSheet extends ActorSheet {
       typeLabel: this._getCargoTypeLabel(item.type),
       shortDescription: String(item.system?.shortDescription ?? item.system?.description ?? "").trim()
     };
+  }
+
+  _buildShipActions() {
+    const actionAssignments = this.actor.system?.actionAssignments ?? {};
+
+    return STARSHIP_ACTION_DEFINITIONS.map((action) => {
+      const actorUuid = String(actionAssignments?.[action.key]?.actorUuid ?? "").trim();
+      const assignedActor = actorUuid ? fromUuidSync(actorUuid) : null;
+      const initials = assignedActor ? getActorInitials(assignedActor) : "";
+      const tooltip = `${action.label}\n${action.mode} • ${action.subtype}\n${action.summary}`;
+
+      return {
+        ...action,
+        actorUuid,
+        assignedActor,
+        assignedName: assignedActor?.name ?? "",
+        initials,
+        isAssigned: Boolean(assignedActor),
+        tooltip
+      };
+    });
+  }
+
+  _buildShipEffects({ speedData, maneuverabilityData, detectionData } = {}) {
+    const actor = this.actor;
+    const effects = [];
+    const pushEffect = (source, type, effectText) => {
+      const cleanSource = String(source ?? "").trim();
+      const cleanType = String(type ?? "").trim();
+      const cleanEffect = String(effectText ?? "").trim();
+      if (!cleanSource || !cleanType || !cleanEffect) return;
+      effects.push({
+        source: cleanSource,
+        type: cleanType,
+        effect: cleanEffect
+      });
+    };
+
+    const speedTemporary = Number(speedData?.temporary ?? 0) || 0;
+    const maneuverabilityTemporary = Number(maneuverabilityData?.temporary ?? 0) || 0;
+    const detectionTemporary = Number(detectionData?.temporary ?? 0) || 0;
+
+    if (speedTemporary) {
+      pushEffect("Temporary Speed Modifier", speedTemporary > 0 ? "Buff" : "Debuff", `SPD ${speedTemporary > 0 ? "+" : ""}${speedTemporary}`);
+    }
+    if (maneuverabilityTemporary) {
+      pushEffect("Temporary Manoeuvrability Modifier", maneuverabilityTemporary > 0 ? "Buff" : "Debuff", `MAN ${maneuverabilityTemporary > 0 ? "+" : ""}${maneuverabilityTemporary}`);
+    }
+    if (detectionTemporary) {
+      pushEffect("Temporary Detection Modifier", detectionTemporary > 0 ? "Buff" : "Debuff", `DET ${detectionTemporary > 0 ? "+" : ""}${detectionTemporary}`);
+    }
+
+    if (actor.isCrippled?.()) {
+      pushEffect("Crippled", "Critical Damage", "SPD halved, MAN -10, DET -10, ship weapon Strength halved (rounded up).");
+    }
+    if (actor.isSensorsDamaged?.()) {
+      pushEffect("Sensors Damaged", "Critical Damage", "All ship shooting tests suffer -30, and Active Augury automatically fails.");
+    }
+    if (actor.isThrustersDamaged?.()) {
+      pushEffect(
+        "Thrusters Damaged",
+        "Critical Damage",
+        actor.isShipTurningDisabled?.()
+          ? "The ship cannot turn."
+          : "MAN -20."
+      );
+    }
+    if (actor.isShipOnFire?.()) {
+      pushEffect("Fire!", "Critical Damage", "Shipboard fire is active.");
+    }
+    if (actor.isEnginesCrippled?.()) {
+      pushEffect(
+        "Engines Crippled",
+        "Critical Damage",
+        Boolean(actor.system?.conditions?.enginesCrippled?.speedReducedToOne)
+          ? "SPD reduced to 1."
+          : "SPD halved."
+      );
+    }
+
+    const currentCrew = Math.max(0, Number(actor.system?.crew?.value ?? 0) || 0);
+    const currentMorale = Math.max(0, Number(actor.system?.resources?.morale?.value ?? 0) || 0);
+    if (currentCrew <= 80) {
+      pushEffect("Crew Reduced (80%)", "Crew Population", "The ship increases all travel times by 1d5 days.");
+    }
+    if (currentCrew <= 60) {
+      pushEffect("Crew Reduced (60%)", "Crew Population", "All Tests involving Boarding Actions, repulsing Hit and Run attacks, fighting fires, and making Emergency Repairs suffer -5.");
+    }
+    if (currentCrew <= 50) {
+      pushEffect("Crew Reduced (50%)", "Crew Population", "MAN -10.");
+    }
+    if (currentCrew <= 40) {
+      pushEffect("Crew Reduced (40%)", "Crew Population", "The ship loses any bonus to Achievement Points it would normally receive for its Components.");
+    }
+    if (currentCrew <= 20) {
+      pushEffect(
+        "Crew Reduced (20%)",
+        "Crew Population",
+        actor.isCrippled?.()
+          ? "With the ship already Crippled, it may only take a Strategic Turn on every other Strategic Round."
+          : "In combat, the ship counts as Crippled."
+      );
+    }
+    if (currentCrew <= 10) {
+      pushEffect("Crew Reduced (10%)", "Crew Population", "The ship may not perform Boarding Actions or Hit and Run attacks. Any attempt to repulse a Boarding Action or Hit and Run attack, fight fires, or make Emergency Repairs suffers -20.");
+    }
+    if (currentCrew <= 0) {
+      pushEffect("Ship is a Tomb", "Crew Population", "The ship becomes an empty tomb and cannot operate again without at least some crew to run it.");
+    }
+
+    if (currentMorale <= 80) {
+      pushEffect("Low Morale (80)", "Morale", "All Command Tests involving the ship or its crew suffer -5.");
+    }
+    if (currentMorale <= 60) {
+      pushEffect("Low Morale (60)", "Morale", "All Ballistic Skill Tests made to fire the ship's weapons suffer -5.");
+    }
+    if (currentMorale <= 50) {
+      pushEffect("Low Morale (50)", "Morale", "All Command Tests involving the ship or its crew suffer an additional -10 (-15 total).");
+    }
+    if (currentMorale <= 40) {
+      pushEffect("Low Morale (40)", "Morale", "MAN -10. Ship weapon Ballistic Skill Tests suffer an additional -5 (-10 total).");
+    }
+    if (currentMorale <= 20) {
+      pushEffect("Low Morale (20)", "Morale", "The ship may no longer perform Boarding Actions or Hit and Run attacks.");
+    }
+    if (currentMorale <= 10) {
+      pushEffect("Low Morale (10)", "Morale", "Command Tests suffer an additional -15 (-30 total). SPD, MAN, and DET suffer an additional -10.");
+    }
+    if (currentMorale <= 0) {
+      pushEffect("Mutinous Crew", "Morale", "The crew rises in a murderous frenzy and seizes control of the ship.");
+    }
+
+    return effects;
   }
 
   _buildShipRoster() {
@@ -406,9 +788,12 @@ export class RogueTraderShipSheet extends ActorSheet {
       "system.crewComplement": String(system.crewComplement ?? ""),
       "system.acceleration": String(system.acceleration ?? ""),
       "system.description": String(system.description ?? ""),
-      "system.speed": Number(system.speed ?? 0) || 0,
-      "system.maneuverability": Number(system.maneuverability ?? 0) || 0,
-      "system.detection": Number(system.detection ?? 0) || 0,
+      "system.speed.permanent": Number(system.speed ?? 0) || 0,
+      "system.speed.temporary": 0,
+      "system.maneuverability.permanent": Number(system.maneuverability ?? 0) || 0,
+      "system.maneuverability.temporary": 0,
+      "system.detection.permanent": Number(system.detection ?? 0) || 0,
+      "system.detection.temporary": 0,
       "system.turretRating": Number(system.turretRating ?? 0) || 0,
       "system.shields": Number(system.shields ?? 0) || 0,
       "system.armor": Number(system.armor ?? 0) || 0,
@@ -459,6 +844,19 @@ export class RogueTraderShipSheet extends ActorSheet {
     }));
   }
 
+  _onRosterActorDragStart(event) {
+    const actorUuid = String(event.currentTarget?.dataset?.actorUuid ?? "").trim();
+    if (!actorUuid) return;
+
+    const actor = fromUuidSync(actorUuid);
+    if (!isVoidshipCrewActor(actor)) return;
+
+    event.originalEvent?.dataTransfer?.setData("text/plain", JSON.stringify({
+      type: "Actor",
+      uuid: actor.uuid
+    }));
+  }
+
   async _onDeleteItem(event) {
     event.preventDefault();
     const itemId = String(event.currentTarget?.dataset?.itemId ?? "");
@@ -500,6 +898,12 @@ export class RogueTraderShipSheet extends ActorSheet {
         power: 0,
         space: 0,
         weaponClass: "macrobattery",
+        torpedoType: "",
+        torpedoGuidance: "standard",
+        torpedoSpeed: 0,
+        torpedoLoaded: true,
+        torpedoLoading: false,
+        torpedoLoadingMode: "",
         allowedHulls: {
           transport: false,
           raider: false,
@@ -539,9 +943,9 @@ export class RogueTraderShipSheet extends ActorSheet {
         mass: "",
         crewComplement: "",
         acceleration: "",
-        speed: 0,
-        maneuverability: 0,
-        detection: 0,
+        speed: { permanent: 0, temporary: 0 },
+        maneuverability: { permanent: 0, temporary: 0 },
+        detection: { permanent: 0, temporary: 0 },
         hullIntegrity: 0,
         armor: 0,
         turretRating: 0,
@@ -580,6 +984,32 @@ export class RogueTraderShipSheet extends ActorSheet {
     });
   }
 
+  async _onShipActionAssign(event) {
+    event.preventDefault();
+    const actionKey = String(event.currentTarget?.dataset?.actionKey ?? "").trim();
+    if (!actionKey) return;
+
+    const currentActor = this._getCurrentShipActionActor();
+    const existingActorUuid = String(this.actor.system?.actionAssignments?.[actionKey]?.actorUuid ?? "").trim();
+
+    if (!currentActor) {
+      if (!existingActorUuid) {
+        ui.notifications?.warn("Rogue Trader | Select your character or a controlled crew token first.");
+        return;
+      }
+
+      await this.actor.update({
+        [`system.actionAssignments.${actionKey}.actorUuid`]: ""
+      });
+      return;
+    }
+
+    const nextActorUuid = existingActorUuid === currentActor.uuid ? "" : currentActor.uuid;
+    await this.actor.update({
+      [`system.actionAssignments.${actionKey}.actorUuid`]: nextActorUuid
+    });
+  }
+
   async _onShipWeaponFire(event) {
     event.preventDefault();
     const itemId = String(event.currentTarget?.dataset?.itemId ?? "");
@@ -589,7 +1019,113 @@ export class RogueTraderShipSheet extends ActorSheet {
       return;
     }
 
-    await rollStarshipWeaponAttack(this.actor, item);
+    const result = await rollStarshipWeaponAttack(this.actor, item);
+    if (result && String(item.system?.weaponClass ?? "").trim().toLowerCase() === "torpedo") {
+      await item.update({
+        "system.torpedoLoaded": false,
+        "system.torpedoLoading": false,
+        "system.torpedoLoadingMode": ""
+      });
+    }
+  }
+
+  async _onShipWeaponLoad(event) {
+    event.preventDefault();
+    const itemId = String(event.currentTarget?.dataset?.itemId ?? "");
+    const item = this.actor.items.get(itemId);
+    if (!item || item.type !== "shipWeapon") {
+      ui.notifications?.warn("Rogue Trader | Could not find that ship weapon.");
+      return;
+    }
+
+    if (String(item.system?.weaponClass ?? "").trim().toLowerCase() !== "torpedo") {
+      ui.notifications?.warn("Rogue Trader | Only torpedo tubes use loading actions.");
+      return;
+    }
+
+    if (item.system?.torpedoLoaded) {
+      ui.notifications?.warn("Rogue Trader | That torpedo tube is already loaded.");
+      return;
+    }
+
+    if (item.system?.torpedoLoading) {
+      ui.notifications?.warn("Rogue Trader | That torpedo tube is already loading.");
+      return;
+    }
+
+    const root = event.currentTarget?.closest?.("tr") ?? null;
+    const select = root?.querySelector?.(`.ship-weapon-load-mode[data-item-id="${itemId}"]`);
+    const selectedMode = String(select?.value ?? "normal").trim() || "normal";
+
+    if (selectedMode === "normal") {
+      if (game.combat) {
+        await item.update({
+          "system.torpedoLoaded": false,
+          "system.torpedoLoading": true,
+          "system.torpedoLoadingMode": "normal"
+        });
+        await ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+          content: `
+            <div class="roguetrader-roll-card">
+              <h3>${this.actor.name}: ${item.name}</h3>
+              <p><strong>Action:</strong> Load Normally</p>
+              <p>The torpedo tube will be loaded at the start of the ship's next turn.</p>
+            </div>
+          `
+        });
+      } else {
+        await item.update({
+          "system.torpedoLoaded": true,
+          "system.torpedoLoading": false,
+          "system.torpedoLoadingMode": ""
+        });
+        await ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+          content: `
+            <div class="roguetrader-roll-card">
+              <h3>${this.actor.name}: ${item.name}</h3>
+              <p><strong>Action:</strong> Load Normally</p>
+              <p>The torpedo tube is loaded.</p>
+            </div>
+          `
+        });
+      }
+      return;
+    }
+
+    const quickLoadConfig = selectedMode === "quickCommand"
+      ? {
+        skillName: "Command",
+        characteristicKey: "fellowship",
+        actionLabel: "Load Quickly (Command -10)"
+      }
+      : {
+        skillName: "Tech-Use",
+        characteristicKey: "intelligence",
+        actionLabel: "Load Quickly (Tech-Use -10)"
+      };
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: ${item.name} ${quickLoadConfig.actionLabel}`,
+      skillName: quickLoadConfig.skillName,
+      characteristicKey: quickLoadConfig.characteristicKey,
+      modifier: -10
+    });
+
+    if (result?.success) {
+      await item.update({
+        "system.torpedoLoaded": true,
+        "system.torpedoLoading": false,
+        "system.torpedoLoadingMode": ""
+      });
+    } else {
+      await item.update({
+        "system.torpedoLoaded": false,
+        "system.torpedoLoading": false,
+        "system.torpedoLoadingMode": ""
+      });
+    }
   }
 
   async _onShipProfileRoll(event) {
@@ -763,8 +1299,9 @@ export class RogueTraderShipSheet extends ActorSheet {
   }
 
   async _onDrop(event) {
+    const actionButton = event.target?.closest?.("[data-action-key]");
     const rosterSlot = event.target?.closest?.("[data-ship-roster-role]");
-    if (!rosterSlot) return super._onDrop(event);
+    if (!actionButton && !rosterSlot) return super._onDrop(event);
 
     let data = null;
     try {
@@ -773,13 +1310,33 @@ export class RogueTraderShipSheet extends ActorSheet {
       data = null;
     }
 
+    const droppedActor = await this._resolveDroppedRosterActor(data);
+
+    if (actionButton) {
+      const actionKey = String(actionButton.dataset?.actionKey ?? "").trim();
+      if (!actionKey || !STARSHIP_ACTION_DEFINITIONS.some((entry) => entry.key === actionKey)) {
+        return super._onDrop(event);
+      }
+
+      if (!isVoidshipCrewActor(droppedActor) || !this._isActorAssignedToShipRoster(droppedActor?.uuid)) {
+        ui.notifications?.warn("Rogue Trader | Drop a crew member already assigned to the voidship roster onto an action.");
+        return super._onDrop(event);
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      await this.actor.update({
+        [`system.actionAssignments.${actionKey}.actorUuid`]: droppedActor.uuid
+      });
+      return this.render(false);
+    }
+
     const role = String(rosterSlot.dataset?.shipRosterRole ?? "").trim();
     if (!role || !SHIP_ROSTER_ROLES.some((entry) => entry.key === role)) {
       return super._onDrop(event);
     }
 
-    const droppedActor = await this._resolveDroppedRosterActor(data);
-    if (!droppedActor || droppedActor.type === "ship") {
+    if (!isVoidshipCrewActor(droppedActor)) {
       return super._onDrop(event);
     }
 
@@ -789,6 +1346,14 @@ export class RogueTraderShipSheet extends ActorSheet {
       [`system.roster.${role}.actorUuid`]: droppedActor.uuid
     });
     return this.render(false);
+  }
+
+  _isActorAssignedToShipRoster(actorUuid) {
+    const targetUuid = String(actorUuid ?? "").trim();
+    if (!targetUuid) return false;
+    return SHIP_ROSTER_ROLES.some((role) =>
+      String(this.actor.system?.roster?.[role.key]?.actorUuid ?? "").trim() === targetUuid
+    );
   }
 
   async _resolveDroppedRosterActor(data) {

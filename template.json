@@ -3,7 +3,8 @@
     "types": [
       "character",
       "npc",
-      "ship"
+      "ship",
+      "torpedo"
     ],
     "templates": {
       "common": {
@@ -449,9 +450,18 @@
       "class": "",
       "hull": "",
       "activeHullItemId": "",
-      "speed": 0,
-      "maneuverability": 0,
-      "detection": 0,
+      "speed": {
+        "permanent": 0,
+        "temporary": 0
+      },
+      "maneuverability": {
+        "permanent": 0,
+        "temporary": 0
+      },
+      "detection": {
+        "permanent": 0,
+        "temporary": 0
+      },
       "turretRating": 0,
       "shields": 0,
       "armor": 0,
@@ -502,6 +512,13 @@
           "shipFire": {
             "active": false,
             "source": ""
+          },
+          "enginesCrippled": {
+            "active": false,
+            "source": "",
+            "rollTotal": 0,
+            "speedHalved": false,
+            "speedReducedToOne": false
           }
         },
         "weaponCapacity": {
@@ -527,14 +544,42 @@
           "chiefEnginseer": {
             "actorUuid": ""
           },
+          "astropath": {
+            "actorUuid": ""
+          },
           "navigator": {
             "actorUuid": ""
           }
         },
+        "actionAssignments": {},
         "pastHistory": "",
         "traits": ""
+      },
+      "torpedo": {
+        "templates": [
+          "common"
+        ],
+        "torpedoType": "",
+      "guidance": "standard",
+      "sourceShip": "",
+      "sourceShipName": "",
+      "sourceTokenUuid": "",
+      "launcher": "",
+      "salvoStrength": 0,
+      "firingActorUuid": "",
+      "firingActorName": "",
+      "firingBallisticSkill": 0,
+      "speed": 0,
+        "damage": "",
+        "critRating": "",
+        "range": 0,
+        "remainingRange": 0,
+        "bearing": 0,
+        "active": false,
+        "launched": false,
+        "notes": ""
       }
-  },
+    },
   "Item": {
     "types": [
       "skill",
@@ -797,6 +842,12 @@
       "power": 0,
       "space": 0,
       "weaponClass": "macrobattery",
+      "torpedoType": "",
+      "torpedoGuidance": "standard",
+      "torpedoSpeed": 0,
+      "torpedoLoaded": true,
+      "torpedoLoading": false,
+      "torpedoLoadingMode": "",
       "allowedHulls": {
         "transport": false,
         "raider": false,
