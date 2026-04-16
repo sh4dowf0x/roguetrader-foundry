@@ -2299,11 +2299,14 @@ export class RogueTraderActor extends Actor {
     getArmourBreakdownForLocation(locationLabel, { sourceWeapon = null, sourceRangeBand = "standard" } = {}) {
       const sourceKey = getArmourSourceKeyFromHitLocation(locationLabel);
       const equippedArmor = (this.items ?? []).filter((item) => item.type === "armor" && item.system?.equipped);
+      const installedCybernetics = (this.items ?? []).filter((item) => item.type === "cybernetic");
       const primitiveAttack = isPrimitiveWeapon(sourceWeapon);
       const scatterAttack = isScatterWeapon(sourceWeapon)
         && ["long", "extreme"].includes(String(sourceRangeBand ?? "standard").trim().toLowerCase());
       let wornArmour = 0;
       let primitiveAdjustedArmour = 0;
+      let cyberneticArmour = 0;
+      let primitiveAdjustedCyberneticArmour = 0;
 
       for (const item of equippedArmor) {
         if (!item.system?.locations?.[sourceKey]) continue;
@@ -2318,9 +2321,22 @@ export class RogueTraderActor extends Actor {
           : itemAp;
       }
 
+      for (const item of installedCybernetics) {
+        const addsArmour = Boolean(item.system?.addsArmour)
+          || ["head", "arms", "body", "legs"].some((key) => Number(item.system?.armourBonus?.[key] ?? 0) > 0);
+        if (!addsArmour) continue;
+        const itemAp = Number(item.system?.armourBonus?.[sourceKey] ?? 0);
+        if (!Number.isFinite(itemAp) || itemAp <= 0) continue;
+        cyberneticArmour += itemAp;
+        primitiveAdjustedCyberneticArmour += primitiveAttack
+          ? itemAp * 2
+          : itemAp;
+      }
+
       const machineArmour = this.getMachineArmourBonus();
       const naturalArmour = this.getNaturalArmourBonus();
       const finalWornArmour = scatterAttack ? primitiveAdjustedArmour * 2 : primitiveAdjustedArmour;
+      const finalCyberneticArmour = scatterAttack ? primitiveAdjustedCyberneticArmour * 2 : primitiveAdjustedCyberneticArmour;
       const finalMachineArmour = scatterAttack ? machineArmour * 2 : machineArmour;
       const finalNaturalArmour = scatterAttack ? naturalArmour * 2 : naturalArmour;
 
@@ -2328,10 +2344,12 @@ export class RogueTraderActor extends Actor {
         primitiveAttack,
         scatterAttack,
         wornArmour,
+        cyberneticArmour,
         effectiveWornArmour: finalWornArmour,
+        effectiveCyberneticArmour: finalCyberneticArmour,
         machineArmour: finalMachineArmour,
         naturalArmour: finalNaturalArmour,
-        totalArmour: finalWornArmour + finalMachineArmour + finalNaturalArmour
+        totalArmour: finalWornArmour + finalCyberneticArmour + finalMachineArmour + finalNaturalArmour
       };
     }
 

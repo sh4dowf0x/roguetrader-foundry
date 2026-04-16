@@ -310,6 +310,33 @@
         </div>
       </section>
 
+      <section class="page-two-cybernetics-section">
+        <div class="page-two-panel cybernetics-list-panel">
+          <div class="gear-list-header acquisitions-header">
+            <h2 class="section-title section-title-left">Cybernetics</h2>
+          </div>
+          <table class="talents-table cybernetics-list-table">
+            <thead><tr><th></th><th>Name</th><th>Type</th><th>Weight</th><th>Short Description</th><th></th></tr></thead>
+            <tbody>
+              {{#if pageTwo.cybernetics.hasItems}}
+                {{#each pageTwo.cybernetics.items as |item|}}
+                  <tr>
+                    <td class="gear-list-icon-cell"><img class="gear-list-icon" src="{{item.img}}" alt="{{item.name}}" /></td>
+                    <td><button class="inventory-item-name-button" type="button" data-item-id="{{item.id}}">{{item.name}}</button></td>
+                    <td>{{item.typeLabel}}</td>
+                    <td>{{item.weight}}</td>
+                    <td><span class="gear-list-short-description">{{item.shortDescription}}</span></td>
+                    <td class="gear-list-action-cell"><button class="item-delete-button" type="button" data-item-id="{{item.id}}">X</button></td>
+                  </tr>
+                {{/each}}
+              {{else}}
+                <tr><td class="empty-talents" colspan="6">No cybernetics installed.</td></tr>
+              {{/if}}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       <section class="page-two-bottom-row">
         <div class="page-two-panel consequence-drop-zone" data-consequence-type="malignancy">
           <div class="consequence-panel-header"><h2 class="section-title section-title-left">Corruption</h2><button class="add-track-points-button add-corruption-button" type="button" data-track="corruption">Add</button></div>

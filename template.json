@@ -729,7 +729,14 @@
         "common"
       ],
       "weight": 0,
-      "shortDescription": ""
+      "shortDescription": "",
+      "addsArmour": false,
+      "armourBonus": {
+        "head": 0,
+        "arms": 0,
+        "body": 0,
+        "legs": 0
+      }
     },
     "talent": {
       "templates": [

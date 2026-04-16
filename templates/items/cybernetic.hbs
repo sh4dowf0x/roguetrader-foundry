@@ -40,6 +40,39 @@
     </div>
   </section>
 
+  <section class="cybernetic-armour-section">
+    <div class="form-group checkbox-row cybernetic-armour-toggle">
+      <label class="checkbox-inline">
+        <input name="system.addsArmour" type="checkbox" {{checked system.addsArmour}} />
+        <span>Adds Armour</span>
+      </label>
+    </div>
+
+    {{#if system.addsArmour}}
+      <div class="item-sheet-grid cybernetic-armour-grid">
+        <div class="form-group compact">
+          <label for="system.armourBonus.head">Head</label>
+          <input name="system.armourBonus.head" type="number" value="{{system.armourBonus.head}}" min="0" step="1" />
+        </div>
+
+        <div class="form-group compact">
+          <label for="system.armourBonus.arms">Arms</label>
+          <input name="system.armourBonus.arms" type="number" value="{{system.armourBonus.arms}}" min="0" step="1" />
+        </div>
+
+        <div class="form-group compact">
+          <label for="system.armourBonus.body">Body</label>
+          <input name="system.armourBonus.body" type="number" value="{{system.armourBonus.body}}" min="0" step="1" />
+        </div>
+
+        <div class="form-group compact">
+          <label for="system.armourBonus.legs">Legs</label>
+          <input name="system.armourBonus.legs" type="number" value="{{system.armourBonus.legs}}" min="0" step="1" />
+        </div>
+      </div>
+    {{/if}}
+  </section>
+
   <section class="form-group stacked cybernetic-short-description">
     <label for="system.shortDescription">Short Description</label>
     <textarea name="system.shortDescription" rows="3" placeholder="Short description">{{system.shortDescription}}</textarea>

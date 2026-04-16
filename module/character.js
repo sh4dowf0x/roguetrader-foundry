@@ -273,6 +273,8 @@ export class RogueTraderCharacterSheet extends ActorSheet {
     const inventoryItems = this.actor.items
       .filter((item) => INVENTORY_ITEM_TYPES.has(item.type))
       .sort((left, right) => left.name.localeCompare(right.name));
+    const gearInventoryItems = inventoryItems.filter((item) => item.type !== "cybernetic");
+    const cyberneticItems = inventoryItems.filter((item) => item.type === "cybernetic");
     const equippedArmor = inventoryItems.filter((item) => item.type === "armor" && item.system.equipped);
     const equippedWeapons = this.actor.getEquippedWeaponsInHandOrder?.()
       ?? inventoryItems.filter((item) => item.type === "weapon" && item.system.equipped);
@@ -373,7 +375,7 @@ export class RogueTraderCharacterSheet extends ActorSheet {
           summaryLabel: `${this._formatWeight(carriedWeight)}/${carryingCapacity.carry}`,
           percent: Math.round(encumbrancePercent)
         },
-        items: inventoryItems.map((item) => ({
+        items: gearInventoryItems.map((item) => ({
           id: item.id,
           name: item.name,
           img: item.img,
@@ -383,7 +385,19 @@ export class RogueTraderCharacterSheet extends ActorSheet {
           shortDescription: this._getItemShortDescription(item),
           equipped: Boolean(item.system.equipped)
         })),
-        hasItems: inventoryItems.length > 0
+        hasItems: gearInventoryItems.length > 0
+      },
+      cybernetics: {
+        items: cyberneticItems.map((item) => ({
+          id: item.id,
+          name: item.name,
+          img: item.img,
+          type: item.type,
+          typeLabel: this._getItemTypeLabel(item.type),
+          weight: this._formatWeight(this._getEffectiveCarriedWeight(item)),
+          shortDescription: this._getItemShortDescription(item)
+        })),
+        hasItems: cyberneticItems.length > 0
       },
       malignancies: {
         entries: malignancies,
@@ -2253,11 +2267,20 @@ export class RogueTraderCharacterSheet extends ActorSheet {
 
   _buildArmorLocationSummary(equippedArmor) {
     const machineArmourBonus = Number(this.actor.getMachineArmourBonus?.() ?? 0);
+    const installedCybernetics = this.actor.items.filter((item) => item.type === "cybernetic");
 
     return ARMOR_LOCATION_DEFINITIONS.map((location) => {
       const coveringArmor = equippedArmor.filter((item) => Boolean(item.system.locations?.[location.sourceKey]));
+      const coveringCybernetics = installedCybernetics.filter((item) =>
+        Boolean(item.system?.addsArmour)
+        || ["head", "arms", "body", "legs"].some((key) => Number(item.system?.armourBonus?.[key] ?? 0) > 0)
+      );
       const wornAp = coveringArmor.reduce((total, item) => total + Number(item.system.ap?.[location.sourceKey] ?? 0), 0);
-      const ap = wornAp + machineArmourBonus;
+      const cyberneticAp = coveringCybernetics.reduce(
+        (total, item) => total + Number(item.system?.armourBonus?.[location.sourceKey] ?? 0),
+        0
+      );
+      const ap = wornAp + cyberneticAp + machineArmourBonus;
 
       return {
         key: location.key,
@@ -2265,8 +2288,14 @@ export class RogueTraderCharacterSheet extends ActorSheet {
         roll: location.roll,
         ap,
         wornAp,
+        cyberneticAp,
         machineArmourBonus,
-        names: coveringArmor.map((item) => item.name)
+        names: [
+          ...coveringArmor.map((item) => item.name),
+          ...coveringCybernetics
+            .filter((item) => Number(item.system?.armourBonus?.[location.sourceKey] ?? 0) > 0)
+            .map((item) => item.name)
+        ]
       };
     });
   }

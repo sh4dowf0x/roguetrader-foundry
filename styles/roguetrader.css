@@ -564,6 +564,7 @@
 
 .roguetrader .page-two-middle-row,
 .roguetrader .page-two-gear-section,
+.roguetrader .page-two-cybernetics-section,
 .roguetrader .page-two-bottom-row,
 .roguetrader .page-two-final-row,
 .roguetrader .page-two-acquisitions-row {
@@ -791,7 +792,9 @@
 .roguetrader .equipped-weapons-table th,
 .roguetrader .equipped-weapons-table td,
 .roguetrader .gear-list-table th,
-.roguetrader .gear-list-table td {
+.roguetrader .gear-list-table td,
+.roguetrader .cybernetics-list-table th,
+.roguetrader .cybernetics-list-table td {
   font-size: 0.76rem;
   padding: 4px 8px;
 }
@@ -836,14 +839,33 @@
   width: 9%;
 }
 
+.roguetrader .cybernetics-list-table th:nth-child(1),
+.roguetrader .cybernetics-list-table td:nth-child(1),
+.roguetrader .cybernetics-list-table th:nth-child(6),
+.roguetrader .cybernetics-list-table td:nth-child(6) {
+  width: 9%;
+}
+
 .roguetrader .gear-list-table th:nth-child(2),
 .roguetrader .gear-list-table td:nth-child(2) {
   width: 5%;
 }
 
+.roguetrader .cybernetics-list-table th:nth-child(2),
+.roguetrader .cybernetics-list-table td:nth-child(2) {
+  width: 24%;
+}
+
 .roguetrader .gear-list-table th:nth-child(3),
 .roguetrader .gear-list-table td:nth-child(3) {
   width: 20%;
+}
+
+.roguetrader .cybernetics-list-table th:nth-child(3),
+.roguetrader .cybernetics-list-table td:nth-child(3) {
+  width: 12%;
+  padding-left: 5px;
+  padding-right: 5px;
 }
 
 .roguetrader .gear-list-table th:nth-child(4),
@@ -853,11 +875,23 @@
   padding-right: 5px;
 }
 
+.roguetrader .cybernetics-list-table th:nth-child(4),
+.roguetrader .cybernetics-list-table td:nth-child(4) {
+  width: 10%;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+
 .roguetrader .gear-list-table th:nth-child(5),
 .roguetrader .gear-list-table td:nth-child(5) {
   width: 10%;
   padding-left: 5px;
   padding-right: 5px;
+}
+
+.roguetrader .cybernetics-list-table th:nth-child(5),
+.roguetrader .cybernetics-list-table td:nth-child(5) {
+  width: 36%;
 }
 
 .roguetrader .gear-list-table th:nth-child(6),
@@ -896,6 +930,15 @@
 }
 
 .roguetrader .gear-list-table .inventory-item-name-button {
+  color: var(--rt-text);
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.roguetrader .cybernetics-list-table .inventory-item-name-button {
   color: var(--rt-text);
   display: block;
   overflow: hidden;
@@ -1014,6 +1057,8 @@
 
 .roguetrader .gear-list-table .inventory-item-name-button:hover,
 .roguetrader .gear-list-table .inventory-item-name-button:focus,
+.roguetrader .cybernetics-list-table .inventory-item-name-button:hover,
+.roguetrader .cybernetics-list-table .inventory-item-name-button:focus,
 .roguetrader .equipped-list .inventory-item-name-button:hover,
 .roguetrader .equipped-list .inventory-item-name-button:focus,
 .roguetrader .equipped-weapons-table .inventory-item-name-button:hover,
@@ -1517,6 +1562,41 @@
 
 .roguetrader .cybernetic-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.roguetrader .cybernetic-armour-section {
+  margin-top: 10px;
+}
+
+.roguetrader .cybernetic-armour-toggle {
+  margin: 0;
+}
+
+.roguetrader .cybernetic-armour-toggle .checkbox-inline {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+}
+
+.roguetrader .cybernetic-armour-grid {
+  grid-template-columns: repeat(4, max-content);
+  gap: 8px 10px;
+  margin-top: 8px;
+}
+
+.roguetrader .cybernetic-armour-grid .form-group {
+  margin: 0;
+}
+
+.roguetrader .cybernetic-armour-grid .form-group label {
+  font-size: 0.68rem;
+}
+
+.roguetrader .cybernetic-armour-grid .form-group input {
+  min-height: 24px;
+  padding: 2px 6px;
+  text-align: center;
+  width: 46px;
 }
 
 .roguetrader .cybernetic-short-description,
