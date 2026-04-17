@@ -85,7 +85,7 @@
           {{#each skillColumns as |column|}}
             <div class="skills-column">
               <div class="skills-header">
-                <span></span><span class="skill-name-header"></span><span>Basic</span><span>Trained</span><span>+10</span><span>+20</span><span>Bonus</span>
+                <span></span><span class="skill-name-header"></span><span>BAS</span><span>TRD</span><span>+10</span><span>+20</span><span>Bonus</span>
               </div>
               <div class="skills-list">
                 {{#each column as |skill|}}
@@ -155,19 +155,23 @@
         <section class="navigator-powers-section">
           <h2 class="section-title">Navigator Powers {{navigatorPowerLimit.current}}/{{navigatorPowerLimit.max}}</h2>
           <div class="talents-table-wrap">
-            <table class="talents-table">
-              <thead><tr><th>Name</th><th>Mastery</th><th>Benefit</th></tr></thead>
+            <table class="talents-table navigator-powers-table">
+              <thead><tr><th></th><th></th><th>Name</th><th>Mastery</th><th>Benefit</th></tr></thead>
               <tbody>
                 {{#if navigatorPowers.length}}
                   {{#each navigatorPowers as |power|}}
                     <tr>
+                      <td class="gear-list-icon-cell"><img class="gear-list-icon" src="{{power.img}}" alt="{{power.name}}" /></td>
+                      <td class="equipped-weapon-action-cell">
+                        <button class="weapon-attack-button npc-weapon-attack-icon-button navigator-power-attack-button" type="button" data-item-id="{{power.id}}" title="Use Navigator Power"><i class="fas fa-eye"></i></button>
+                      </td>
                       <td><button class="navigator-power-name-button" type="button" data-item-id="{{power.id}}">{{power.name}}</button></td>
                       <td>{{power.mastery}}</td>
                       <td>{{power.benefit}}</td>
                     </tr>
                   {{/each}}
                 {{else}}
-                  <tr><td class="empty-talents" colspan="3">No navigator powers recorded.</td></tr>
+                  <tr><td class="empty-talents" colspan="5">No navigator powers recorded.</td></tr>
                 {{/if}}
               </tbody>
             </table>

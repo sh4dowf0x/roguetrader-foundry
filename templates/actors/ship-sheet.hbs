@@ -94,26 +94,28 @@
           </section>
         {{/if}}
 
-        <section class="ship-card ship-actions-card">
-          <div class="ship-section-header">
-            <h2>Voidship Actions</h2>
-          </div>
-          <div class="ship-actions-grid">
-            {{#each ship.actions as |action|}}
-              <button
-                type="button"
-                class="ship-action-button {{#if action.isAssigned}}is-assigned{{/if}}"
-                data-action-key="{{action.key}}"
-                data-tooltip="{{action.tooltip}}">
-                <span class="ship-action-label">{{action.label}}</span>
-                <span class="ship-action-meta">{{action.mode}} / {{action.subtype}}</span>
-                {{#if action.isAssigned}}
-                  <span class="ship-action-assignee" title="{{action.assignedName}}">{{action.initials}}</span>
-                {{/if}}
-              </button>
-            {{/each}}
-          </div>
-        </section>
+        {{#if ship.showActions}}
+          <section class="ship-card ship-actions-card">
+            <div class="ship-section-header">
+              <h2>Voidship Actions</h2>
+            </div>
+            <div class="ship-actions-grid">
+              {{#each ship.actions as |action|}}
+                <button
+                  type="button"
+                  class="ship-action-button {{#if action.isAssigned}}is-assigned{{/if}}"
+                  data-action-key="{{action.key}}"
+                  data-tooltip="{{action.tooltip}}">
+                  <span class="ship-action-label">{{action.label}}</span>
+                  <span class="ship-action-meta">{{action.mode}} / {{action.subtype}}</span>
+                  {{#if action.isAssigned}}
+                    <span class="ship-action-assignee" title="{{action.assignedName}}">{{action.initials}}</span>
+                  {{/if}}
+                </button>
+              {{/each}}
+            </div>
+          </section>
+        {{/if}}
 
         <section class="ship-sheet-main">
           <section class="ship-card ship-profile-card ship-profile-resources-card">
@@ -310,6 +312,7 @@
                   <table class="ship-data-table">
                     <thead>
                     <tr>
+                      <th></th>
                       <th>Name</th>
                       <th>Type</th>
                       <th>SP</th>
@@ -321,6 +324,7 @@
                     <tbody>
                       {{#each ship.essentialComponents as |component|}}
                         <tr>
+                          <td class="ship-table-icon-cell"><img class="ship-table-icon" src="{{component.img}}" alt="{{component.name}}" /></td>
                           <td><button type="button" class="ship-item-open ship-list-primary" data-item-id="{{component.id}}">{{component.name}}</button></td>
                         <td>{{component.componentType}}</td>
                         <td>{{component.shipPointCost}}</td>
@@ -346,6 +350,7 @@
                   <table class="ship-data-table">
                     <thead>
                     <tr>
+                      <th></th>
                       <th>Name</th>
                       <th>Type</th>
                       <th>SP</th>
@@ -357,6 +362,7 @@
                     <tbody>
                       {{#each ship.supplementalComponents as |component|}}
                         <tr>
+                          <td class="ship-table-icon-cell"><img class="ship-table-icon" src="{{component.img}}" alt="{{component.name}}" /></td>
                           <td><button type="button" class="ship-item-open ship-list-primary" data-item-id="{{component.id}}">{{component.name}}</button></td>
                         <td>{{component.componentType}}</td>
                         <td>{{component.shipPointCost}}</td>

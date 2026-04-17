@@ -263,6 +263,7 @@ export class RogueTraderCharacterSheet extends ActorSheet {
       .sort((left, right) => left.name.localeCompare(right.name))
       .map((item) => ({
         id: item.id,
+        img: item.img || "icons/svg/eye.svg",
         name: item.name,
         mastery: item.system.mastery || "n/a",
         benefit: item.system.benefit || ""
@@ -570,12 +571,14 @@ export class RogueTraderCharacterSheet extends ActorSheet {
     html.find(".talent-name-button").on("contextmenu", this._onTalentContextRemove.bind(this));
     html.find(".psychic-technique-name-button").on("click", this._onItemOpen.bind(this));
     html.find(".navigator-power-name-button").on("click", this._onItemOpen.bind(this));
+    html.find(".navigator-power-name-button").on("contextmenu", this._onNavigatorPowerContextRemove.bind(this));
     html.find(".inventory-item-name-button").on("click", this._onItemOpen.bind(this));
     html.find(".skill-name-button, .talent-name-button, .psychic-technique-name-button, .navigator-power-name-button, .inventory-item-name-button, .consequence-name-button").on("dragstart", this._onItemDragStart.bind(this));
     html.find(".characteristic-roll-button").on("click", this._onCharacteristicRoll.bind(this));
     html.find(".skill-roll-button").on("click", this._onSkillRoll.bind(this));
     html.find(".psychic-technique-roll-button").on("click", this._onPsychicTechniqueRoll.bind(this));
     html.find(".weapon-attack-button").on("click", this._onWeaponAttack.bind(this));
+    html.find(".navigator-power-attack-button").on("click", this._onNavigatorPowerAttack.bind(this));
     html.find(".weapon-brace-button").on("click", this._onToggleBraced.bind(this));
     html.find(".weapon-clear-jam-button").on("click", this._onClearJammedWeapon.bind(this));
     html.find(".spend-fate-heal-button").on("click", this._onSpendFateToHeal.bind(this));
@@ -2546,6 +2549,29 @@ export class RogueTraderCharacterSheet extends ActorSheet {
     await item.delete();
   }
 
+  async _onNavigatorPowerContextRemove(event) {
+    event.preventDefault();
+
+    const itemId = event.currentTarget.dataset.itemId;
+    const item = this.actor.items.get(itemId);
+    if (!item || item.type !== "navigatorPower") return;
+
+    const confirmed = await Dialog.confirm({
+      title: "Remove Navigator Power",
+      content: `
+        <div class="roguetrader-delete-confirm-dialog">
+          <p>Remove <strong>${foundry.utils.escapeHTML(String(item.name ?? ""))}</strong> from this character?</p>
+        </div>
+      `,
+      yes: () => true,
+      no: () => false,
+      defaultYes: false
+    });
+
+    if (!confirmed) return;
+    await item.delete();
+  }
+
   async _onSkillFieldChange(event) {
     const element = event.currentTarget;
     const itemId = element.dataset.itemId;
@@ -2598,6 +2624,243 @@ export class RogueTraderCharacterSheet extends ActorSheet {
     if (!item) return;
 
     await promptAttackTest(this.actor, item);
+  }
+
+  async _onNavigatorPowerAttack(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const itemId = String(event.currentTarget?.dataset?.itemId ?? "").trim();
+    const item = this.actor.items.get(itemId);
+    if (!item || item.type !== "navigatorPower") {
+      ui.notifications?.warn("Rogue Trader | Could not find that Navigator Power.");
+      return;
+    }
+
+    const normalizedName = String(item.name ?? "").trim().toLowerCase();
+    if (normalizedName === "the lidless stare") {
+      await this._useLidlessStare(item);
+      return;
+    }
+
+    ui.notifications?.info(`Rogue Trader | ${item.name} is not wired for direct attack automation yet.`);
+  }
+
+  _getNavigatorPowerMasteryModifier(item) {
+    const mastery = String(item?.system?.mastery ?? "n/a").trim().toLowerCase();
+    if (mastery === "master20") return 20;
+    if (mastery === "adept10") return 10;
+    return 0;
+  }
+
+  async _useLidlessStare(item) {
+    const sourceToken = this.actor.getActiveTokens?.()[0] ?? null;
+    if (!sourceToken) {
+      ui.notifications?.warn("Rogue Trader | An active token is required to use The Lidless Stare.");
+      return null;
+    }
+
+    const placedTemplate = await this.actor._placeFlameTemplate?.({
+      sourceToken,
+      distance: 15,
+      angle: 90
+    });
+    if (!placedTemplate) return null;
+
+    const direction = Number(placedTemplate.direction ?? placedTemplate.document?.direction ?? 0);
+    const coneTargets = this.actor._getFlameTemplateTargets?.({
+      sourceToken,
+      direction,
+      distance: 15,
+      angle: 90
+    }) ?? [];
+
+    await this.actor._playAutomatedAttackAnimation?.(item, coneTargets);
+
+    const mastery = this._normalizeNavigatorPowerMastery(item?.system?.mastery ?? "n/a");
+    const enhancedMastery = mastery === "adept10" || mastery === "master20";
+    const masterMastery = mastery === "master20";
+    const masteryModifier = this._getNavigatorPowerMasteryModifier(item);
+    const willpowerBonus = Number(this.actor.getCharacteristicBonus?.("willpower") ?? 0) || 0;
+    const damageFormula = `${enhancedMastery ? "2d10" : "1d10"} + ${willpowerBonus}`;
+    const navigatorResult = await this.actor.rollCharacteristic("willpower", {
+      label: `${this.actor.name}: The Lidless Stare`,
+      modifier: masteryModifier,
+      extra: [
+        "Navigator Power: The Lidless Stare",
+        "Template: 90-degree cone, 15 m",
+        ...(masteryModifier ? [`Mastery Bonus: +${masteryModifier}`] : []),
+        `Targets in Cone: ${coneTargets.length}`
+      ]
+    });
+    if (!navigatorResult) return null;
+
+    if (!navigatorResult.success) {
+      const currentFatigue = Math.max(0, Number(this.actor.system?.resources?.fatigue ?? 0) || 0);
+      const newFatigue = currentFatigue + 2;
+      await this.actor.update({
+        "system.resources.fatigue": newFatigue
+      });
+      await this.actor.syncFatigueStates?.({ sourceName: item.name, announced: false });
+
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: The Lidless Stare</h3>
+            <p><strong>Outcome:</strong> Failed (${navigatorResult.degrees} DoF)</p>
+            <p><strong>Backlash:</strong> The Navigator suffers 2 Fatigue.</p>
+            <p><strong>Fatigue:</strong> ${currentFatigue} -> ${newFatigue}</p>
+          </div>
+        `
+      });
+
+      return {
+        navigatorResult,
+        coneTargets,
+        failed: true
+      };
+    }
+
+    const targetSummaries = [];
+    for (const token of coneTargets) {
+      const targetActor = token?.actor;
+      if (!targetActor?.rollCharacteristic) continue;
+
+      const targetResult = await targetActor.rollCharacteristic("willpower", {
+        label: `${targetActor.name}: Resist The Lidless Stare`,
+        modifier: 0,
+        extra: [
+          `Against: ${this.actor.name}`,
+          "Navigator Power: The Lidless Stare"
+        ]
+      });
+
+      const navigatorDos = Math.max(0, Number(navigatorResult.degrees ?? 0));
+      const targetDos = targetResult?.success ? Math.max(0, Number(targetResult.degrees ?? 0)) : 0;
+      const targetBeaten = Boolean(
+        navigatorResult.success
+        && (
+          !targetResult?.success
+          || navigatorDos > targetDos
+        )
+      );
+
+      let damageRoll = null;
+      let applied = null;
+      let stunnedApplied = false;
+      let stunRounds = 0;
+      let stunRoll = null;
+      let insanityRoll = null;
+      let insanityApplied = 0;
+      let toughnessResult = null;
+      let slainApplied = false;
+      if (targetBeaten) {
+        damageRoll = await (new Roll(damageFormula)).evaluate({ async: true });
+        applied = await targetActor.applyDirectDamage?.({
+          damage: Number(damageRoll.total ?? 0),
+          location: "Body",
+          damageType: "E",
+          sourceName: "The Lidless Stare"
+        });
+        if (Number(applied?.appliedDamage ?? 0) > 0) {
+          if (enhancedMastery) {
+            stunRoll = await (new Roll("1d5")).evaluate({ async: true });
+            stunRounds = Math.max(1, Number(stunRoll.total ?? 0) || 1);
+          } else {
+            stunRounds = 1;
+          }
+
+          const intelligence = Number(
+            targetActor.getCharacteristicValue?.("intelligence")
+            ?? targetActor.system?.characteristics?.intelligence?.value
+            ?? 0
+          ) || 0;
+
+          if (masterMastery && intelligence >= 20) {
+            toughnessResult = await targetActor.rollCharacteristic("toughness", {
+              label: `${targetActor.name}: Survive The Lidless Stare`,
+              modifier: -10,
+              extra: [
+                `Against: ${this.actor.name}`,
+                "Navigator Power: The Lidless Stare",
+                "Mastery Effect: Death test at -10"
+              ]
+            });
+
+            if (!toughnessResult?.success) {
+              slainApplied = await targetActor.applyDead?.({ sourceName: "The Lidless Stare" }) ?? false;
+            } else {
+              insanityRoll = await (new Roll("1d10")).evaluate({ async: true });
+            }
+          } else if (enhancedMastery) {
+            insanityRoll = await (new Roll("1d5")).evaluate({ async: true });
+          }
+
+          stunnedApplied = slainApplied
+            ? false
+            : await targetActor.applyStunned?.(stunRounds, { sourceName: "The Lidless Stare" }) ?? false;
+
+          if (Number(insanityRoll?.total ?? 0) > 0) {
+            const currentInsanity = Math.max(0, Number(targetActor.system?.insanity?.points ?? 0) || 0);
+            insanityApplied = Number(insanityRoll.total ?? 0) || 0;
+            await targetActor.update({
+              "system.insanity.points": currentInsanity + insanityApplied
+            });
+          }
+        }
+      }
+
+      targetSummaries.push({
+        name: targetActor.name,
+        targetResult,
+        targetBeaten,
+        damageTotal: Number(damageRoll?.total ?? 0) || 0,
+        appliedDamage: Number(applied?.appliedDamage ?? 0) || 0,
+        stunnedApplied,
+        stunRounds,
+        insanityApplied,
+        toughnessResult,
+        slainApplied
+      });
+    }
+
+    const summaryMarkup = targetSummaries.length
+      ? targetSummaries.map((summary) => `
+          <div class="lidless-stare-target-result">
+            <p><strong>${summary.name}</strong></p>
+            <p>Target Willpower: ${summary.targetResult?.success ? `Success (${summary.targetResult.degrees} DoS)` : `Failed (${summary.targetResult?.degrees ?? 0} DoF)`}</p>
+            <p>Outcome: ${summary.targetBeaten ? "Overwhelmed" : "Resisted"}</p>
+            ${summary.targetBeaten ? `<p>Damage: ${summary.damageTotal} E (${summary.appliedDamage} applied, ignores Armour and Toughness)</p>` : ""}
+            ${summary.stunnedApplied ? `<p>Stunned: ${summary.stunRounds} ${summary.stunRounds === 1 ? "round" : "rounds"}</p>` : ""}
+            ${summary.insanityApplied ? `<p>Insanity: +${summary.insanityApplied}</p>` : ""}
+            ${summary.toughnessResult ? `<p>Toughness -10: ${summary.toughnessResult.success ? `Success (${summary.toughnessResult.degrees} DoS)` : `Failed (${summary.toughnessResult.degrees} DoF)`}</p>` : ""}
+            ${summary.slainApplied ? "<p>Outcome: Slain</p>" : ""}
+          </div>
+        `).join("")
+      : "<p>No targets were inside the cone.</p>";
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      flavor: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: The Lidless Stare</h3>
+          <p><strong>Navigator Test:</strong> Success (${navigatorResult.degrees} DoS)</p>
+          <p><strong>Template:</strong> 90-degree cone, 15 m</p>
+          <p><strong>Targets in Cone:</strong> ${coneTargets.length}</p>
+          <div class="roguetrader-roll-card-details">
+            ${summaryMarkup}
+          </div>
+        </div>
+      `
+    });
+
+    return {
+      navigatorResult,
+      coneTargets,
+      targetSummaries,
+      placedTemplate
+    };
   }
 
   async _onToggleBraced(event) {

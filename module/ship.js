@@ -276,6 +276,7 @@ export class RogueTraderShipSheet extends ActorSheet {
     const activeHull = this._getActiveHullEntry(starshipHulls);
     const roster = this._buildShipRoster();
     const shipActions = this._buildShipActions();
+    const showShipActions = Boolean(game.combat?.started ?? game.combat);
     const shipEffects = this._buildShipEffects({
       speedData,
       maneuverabilityData,
@@ -294,13 +295,14 @@ export class RogueTraderShipSheet extends ActorSheet {
       cargo,
       effects: shipEffects,
       actions: shipActions,
+      showActions: showShipActions,
       roster,
       hasEssentialComponents: essentialComponents.length > 0,
       hasSupplementalComponents: supplementalComponents.length > 0,
       hasShipWeapons: shipWeapons.length > 0,
       hasCargo: cargo.length > 0,
       hasEffects: shipEffects.length > 0,
-      hasActions: shipActions.length > 0,
+      hasActions: showShipActions && shipActions.length > 0,
       torpedoLoadOptions: TORPEDO_LOAD_OPTIONS,
       art: this.actor.img || "icons/svg/ship.svg",
       controlMode: String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc" ? "npc" : "player",
@@ -378,6 +380,7 @@ export class RogueTraderShipSheet extends ActorSheet {
     html.find(".ship-roster-clear").on("click", this._onClearRosterAssignment.bind(this));
     html.find(".ship-profile-roll").on("click", this._onShipProfileRoll.bind(this));
     html.find(".ship-action-button").on("click", this._onShipActionAssign.bind(this));
+    html.find(".ship-action-button").on("contextmenu", this._onShipActionExecute.bind(this));
   }
 
   _buildStarshipHullEntry(item) {
@@ -411,6 +414,7 @@ export class RogueTraderShipSheet extends ActorSheet {
   _buildComponentEntry(item) {
     return {
       id: item.id,
+      img: item.img || "icons/svg/item-bag.svg",
       name: item.name,
       componentType: String(item.system?.componentType ?? item.system?.categoryType ?? "").trim(),
       shipPointCost: Number(item.system?.shipPointCost ?? 0) || 0,
@@ -478,7 +482,22 @@ export class RogueTraderShipSheet extends ActorSheet {
     return null;
   }
 
-  async _rollShipActionSkillTest({ title, skillName, characteristicKey, modifier = 0 } = {}) {
+  _getAssignedShipActionActor(actionKey) {
+    const actorUuid = String(this.actor.system?.actionAssignments?.[actionKey]?.actorUuid ?? "").trim();
+    if (!actorUuid) return null;
+    const assignedActor = fromUuidSync(actorUuid);
+    return isVoidshipCrewActor(assignedActor) ? assignedActor : null;
+  }
+
+  async _rollShipActionSkillTest({
+    title,
+    skillName,
+    characteristicKey,
+    modifier = 0,
+    actionActor = null,
+    modifierLabel = "Action Modifier",
+    extraBreakdown = []
+  } = {}) {
     const isNpcControlled = String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc";
     if (isNpcControlled) {
       const npcCrewRating = Number(this.actor.system?.npcCrewRating ?? 0) || 0;
@@ -489,32 +508,34 @@ export class RogueTraderShipSheet extends ActorSheet {
         modifier,
         breakdown: [
           `NPC Crew Rating: ${npcCrewRating}`,
-          `Action Modifier: ${modifier >= 0 ? `+${modifier}` : modifier}`
+          ...extraBreakdown,
+          `${modifierLabel}: ${modifier >= 0 ? `+${modifier}` : modifier}`
         ]
       });
     }
 
-    const actionActor = this._getCurrentShipActionActor();
-    if (!actionActor) {
+    const resolvedActionActor = actionActor ?? this._getCurrentShipActionActor();
+    if (!resolvedActionActor) {
       ui.notifications?.warn("Rogue Trader | Select your character or a controlled crew token first.");
       return null;
     }
 
     const roleLike = { characteristicKey, skillName };
-    const primaryValue = this._getRosterRolePrimaryValue(actionActor, roleLike);
+    const primaryValue = this._getRosterRolePrimaryValue(resolvedActionActor, roleLike);
     if (primaryValue?.value == null) {
-      ui.notifications?.warn(`Rogue Trader | ${actionActor.name} cannot use ${skillName}.`);
+      ui.notifications?.warn(`Rogue Trader | ${resolvedActionActor.name} cannot use ${skillName}.`);
       return null;
     }
 
     return rollD100Test({
-      actor: actionActor,
+      actor: resolvedActionActor,
       title,
       target: primaryValue.value,
       modifier,
       breakdown: [
         `${skillName}: ${primaryValue.label}`,
-        `Action Modifier: ${modifier >= 0 ? `+${modifier}` : modifier}`
+        ...extraBreakdown,
+        `${modifierLabel}: ${modifier >= 0 ? `+${modifier}` : modifier}`
       ]
     });
   }
@@ -720,7 +741,9 @@ export class RogueTraderShipSheet extends ActorSheet {
     const characteristicTarget = !trained && basic
       ? Math.floor(characteristicValue / 2)
       : characteristicValue;
-    const advanceBonus = (skill.system?.advance10 ? 10 : 0) + (skill.system?.advance20 ? 20 : 0);
+    const advanceBonus = skill.system?.advance20
+      ? 20
+      : (skill.system?.advance10 ? 10 : 0);
     const itemBonus = Number(skill.system?.bonus ?? 0) || 0;
     const itemDrivenModifier = Number(actor.getSkillItemModifier?.(skill.name) ?? 0) || 0;
     const total = characteristicTarget + advanceBonus + itemBonus + itemDrivenModifier;
@@ -1010,6 +1033,36 @@ export class RogueTraderShipSheet extends ActorSheet {
     });
   }
 
+  async _onShipActionExecute(event) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const actionKey = String(event.currentTarget?.dataset?.actionKey ?? "").trim();
+    if (!actionKey) return;
+
+    const assignedActor = this._getAssignedShipActionActor(actionKey);
+    if (!assignedActor) {
+      ui.notifications?.warn("Rogue Trader | Assign a crew member to that action before executing it.");
+      return;
+    }
+
+    let result = null;
+    switch (actionKey) {
+      case "focusedAugury":
+        result = await this._performFocusedAugury(assignedActor);
+        break;
+      default:
+        ui.notifications?.info(`Rogue Trader | ${STARSHIP_ACTION_DEFINITIONS.find((entry) => entry.key === actionKey)?.label ?? "That action"} automation is not built yet.`);
+        return;
+    }
+
+    if (result) {
+      await this.actor.update({
+        [`system.actionAssignments.${actionKey}.actorUuid`]: ""
+      });
+    }
+  }
+
   async _onShipWeaponFire(event) {
     event.preventDefault();
     const itemId = String(event.currentTarget?.dataset?.itemId ?? "");
@@ -1134,6 +1187,141 @@ export class RogueTraderShipSheet extends ActorSheet {
     if (action === "activeAugury") {
       return this._rollActiveAugury();
     }
+  }
+
+  async _performFocusedAugury(assignedActor) {
+    if (this.actor.isSensorsDamaged?.()) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader ship-critical-hit-card">
+            <div class="ship-critical-hit-banner">Focused Augury Failed</div>
+            <h3>${this.actor.name}</h3>
+            <p><strong>Operator:</strong> ${assignedActor.name}</p>
+            <p><strong>Reason:</strong> Sensors Damaged</p>
+            <p>All sensor sweep attempts automatically fail until the damage is repaired.</p>
+          </div>
+        `
+      });
+      return {
+        success: false,
+        failedAutomatically: true,
+        reason: "Sensors Damaged"
+      };
+    }
+
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0]
+      ?? this.actor.getActiveTokens?.()[0]
+      ?? null;
+    if (!sourceToken) {
+      ui.notifications?.warn("Rogue Trader | Place the voidship token on the scene before using Focused Augury.");
+      return null;
+    }
+
+    const targetToken = Array.from(game.user?.targets ?? []).find((token) => token?.actor?.type === "ship" && token.actor.uuid !== this.actor.uuid) ?? null;
+    if (!targetToken) {
+      ui.notifications?.warn("Rogue Trader | Target an enemy ship within 20 VUs to use Focused Augury.");
+      return null;
+    }
+
+    const distanceVu = getDistanceVuBetweenTokens(sourceToken, targetToken);
+    if (distanceVu > 20) {
+      ui.notifications?.warn(`Rogue Trader | ${targetToken.name} is out of Focused Augury range (${distanceVu.toFixed(1)} / 20.0 VU).`);
+      return null;
+    }
+
+    const detectionModifier = Number(this.actor.getEffectiveShipDetection?.() ?? this.actor.system?.detection ?? 0) || 0;
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Focused Augury`,
+      skillName: "Scrutiny",
+      characteristicKey: "perception",
+      modifier: detectionModifier,
+      actionActor: assignedActor,
+      modifierLabel: "Ship Detection"
+    });
+
+    if (!result) return null;
+
+    const targetActor = targetToken.actor;
+    const allShipItems = Array.from(targetActor?.items ?? []);
+    const essentialComponents = allShipItems.filter((item) =>
+      item?.type === "essentialComponent" || item?.type === "shipComponent"
+    );
+    const supplementalComponents = allShipItems.filter((item) => item?.type === "supplementalComponent");
+    const weaponComponents = allShipItems.filter((item) => item?.type === "shipWeapon");
+    const augurArrays = essentialComponents.filter((item) =>
+      String(item.system?.componentType ?? item.system?.categoryType ?? "").trim().toLowerCase() === "augurarrays"
+    );
+    const voidShields = essentialComponents.filter((item) =>
+      String(item.system?.componentType ?? item.system?.categoryType ?? "").trim().toLowerCase() === "voidshields"
+    );
+    const standardEssentials = essentialComponents.filter((item) => !augurArrays.includes(item) && !voidShields.includes(item));
+
+    const revealGroups = [];
+    const pushGroup = (label, items) => {
+      const visibleItems = Array.from(new Map((items ?? []).map((item) => [item.id, item])).values());
+      if (!visibleItems.length) return;
+      revealGroups.push({
+        label,
+        items: visibleItems
+      });
+    };
+
+    if (result.success) {
+      pushGroup("Essential Components", standardEssentials);
+
+      const additionalDegrees = Math.max(0, Number(result.degrees ?? 0) - 1);
+      if (additionalDegrees >= 1) {
+        pushGroup("Weapon Components", weaponComponents);
+      }
+      if (additionalDegrees >= 2) {
+        pushGroup("Augur Arrays & Void Shields", [...augurArrays, ...voidShields]);
+      }
+      if (additionalDegrees >= 3) {
+        pushGroup("Supplemental Components", supplementalComponents);
+      }
+
+      const revealMarkup = revealGroups.length
+        ? revealGroups.map((group) => `
+            <div class="ship-augury-reveal-group">
+              <p><strong>${group.label}:</strong></p>
+              <ul>
+                ${group.items.map((item) => `<li>${item.name}</li>`).join("")}
+              </ul>
+            </div>
+          `).join("")
+        : `<p>No ship components were revealed.</p>`;
+
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Focused Augury</h3>
+            <p><strong>Operator:</strong> ${assignedActor.name}</p>
+            <p><strong>Target:</strong> ${targetActor?.name ?? targetToken.name}</p>
+            <p><strong>Range:</strong> ${distanceVu.toFixed(1)} / 20.0 VU</p>
+            <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+            ${revealMarkup}
+          </div>
+        `
+      });
+    } else {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Focused Augury</h3>
+            <p><strong>Operator:</strong> ${assignedActor.name}</p>
+            <p><strong>Target:</strong> ${targetActor?.name ?? targetToken.name}</p>
+            <p><strong>Range:</strong> ${distanceVu.toFixed(1)} / 20.0 VU</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>No additional component data was revealed.</p>
+          </div>
+        `
+      });
+    }
+
+    return result;
   }
 
   async _rollActiveAugury() {

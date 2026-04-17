@@ -1,5 +1,8 @@
 
 import { listRogueTraderSkills } from "./skill.js";
+import { CAREER_ADVANCEMENT_DEFINITIONS } from "./advancements.js";
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
 
 const TALENT_TYPE_LABELS = {
   talent: "Talent",
@@ -21,6 +24,24 @@ const TALENT_RATING_OPTIONS = {
   9: "9",
   10: "10"
 };
+
+const TALENT_CAREER_OPTIONS = Object.freeze({
+  "": "-",
+  ...Object.values(CAREER_ADVANCEMENT_DEFINITIONS ?? {}).reduce((options, definition) => {
+    if (!definition?.key || !definition?.name) return options;
+    options[definition.key] = definition.name;
+    return options;
+  }, {})
+});
+
+const TALENT_WEAPON_MASTER_OPTIONS = Object.freeze({
+  "": "-",
+  basic: "Basic",
+  melee: "Melee",
+  pistol: "Pistol",
+  thrown: "Thrown",
+  heavy: "Heavy"
+});
 
 const TALENT_GROUPS = {
   basicWeaponTraining: ["Bolt", "Las", "Launcher", "Primitive", "SP", "Universal"],
@@ -301,29 +322,43 @@ export function buildTalentItemData(talentId, overrides = {}) {
   };
 }
 
-export class RogueTraderTalentSheet extends ItemSheet {
+export class RogueTraderTalentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderTalentSheet, { types: ["talent"], makeDefault: true });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "talent"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "talent"],
+    position: {
       width: 560,
-      height: 560,
-      template: "systems/roguetrader/templates/items/talent.hbs",
+      height: 620
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/talent.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.talentTypes = TALENT_TYPE_LABELS;
     context.ratingOptions = TALENT_RATING_OPTIONS;
+    context.careerOptions = TALENT_CAREER_OPTIONS;
+    context.isSpecialAbility = String(this.item.system?.category ?? "").trim() === "specialAbility";
+    context.isArchMilitantSpecialAbility = context.isSpecialAbility && String(this.item.system?.rating ?? "").trim() === "archMilitant";
+    context.weaponMasterOptions = TALENT_WEAPON_MASTER_OPTIONS;
     context.talentGroups = TALENT_GROUPS;
     context.talentRegistry = ROGUE_TRADER_TALENTS;
     return context;

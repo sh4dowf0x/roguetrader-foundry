@@ -2,7 +2,7 @@
   "id": "roguetrader",
   "title": "Rogue Trader",
   "description": "A custom Rogue Trader game system for Foundry Virtual Tabletop.",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "authors": [
     {
       "name": "Codex"
@@ -38,7 +38,7 @@
   "socket": true,
   "url": "https://github.com/sh4dowf0x/roguetrader-foundry",
   "manifest": "https://raw.githubusercontent.com/sh4dowf0x/roguetrader-foundry/main/system.json",
-  "download": "https://raw.githubusercontent.com/sh4dowf0x/roguetrader-foundry/main/roguetrader-foundry-0.0.3.zip",
+  "download": "https://raw.githubusercontent.com/sh4dowf0x/roguetrader-foundry/main/roguetrader-foundry-0.0.4.zip",
   "license": "https://github.com/sh4dowf0x/roguetrader-foundry/blob/main/LICENSE",
   "readme": "https://github.com/sh4dowf0x/roguetrader-foundry#readme",
   "bugs": "https://github.com/sh4dowf0x/roguetrader-foundry/issues",
@@ -49,7 +49,7 @@
   },
   "primaryTokenAttribute": "",
   "secondaryTokenAttribute": "",
-  "background": "",
+  "background": "systems/roguetrader/assets/system/roguetrader-system-banner.webp",
   "initiative": "",
   "templates": {
     "actor": "template.json"

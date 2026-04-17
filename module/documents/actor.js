@@ -875,6 +875,23 @@ function actorHasTalentNamed(actor, name) {
   );
 }
 
+function actorHasArchMilitantWeaponMaster(actor, category) {
+  const normalizedCategory = normalizeSimpleName(category);
+  if (!normalizedCategory) return false;
+
+  return (actor?.items ?? []).some((item) => {
+    if (item?.type !== "talent") return false;
+    const normalizedCategoryKey = normalizeSimpleName(item.system?.category ?? "");
+    if (normalizedCategoryKey !== "specialability") return false;
+
+    const normalizedCareer = normalizeSimpleName(item.system?.rating ?? "");
+    const isArchMilitant = normalizedCareer === "archmilitant" || normalizedCareer === "arch militant";
+    if (!isArchMilitant) return false;
+
+    return normalizeSimpleName(item.system?.weaponMasterClass ?? "") === normalizedCategory;
+  });
+}
+
 function actorHasExoticWeaponTraining(actor, weapon) {
   const weaponName = normalizeSimpleName(weapon?.name ?? "");
   if (!weaponName) return false;
@@ -2834,7 +2851,8 @@ export class RogueTraderActor extends Actor {
     }
 
     const label = category.charAt(0).toUpperCase() + category.slice(1);
-    const hasWeaponMaster = actorHasTalentNamed(this, `Weapon Master (${label})`);
+    const hasWeaponMaster = actorHasTalentNamed(this, `Weapon Master (${label})`)
+      || actorHasArchMilitantWeaponMaster(this, category);
     return {
       category,
       label,
@@ -4782,7 +4800,9 @@ export class RogueTraderActor extends Actor {
     const characteristicTarget = !trained && basic
       ? Math.floor(characteristicValue / 2)
       : characteristicValue;
-    const advanceBonus = (skill.system.advance10 ? 10 : 0) + (skill.system.advance20 ? 20 : 0);
+    const advanceBonus = skill.system.advance20
+      ? 20
+      : (skill.system.advance10 ? 10 : 0);
     const itemBonus = Number(skill.system.bonus ?? 0);
     const itemDrivenModifier = this.getSkillItemModifier(skill.name);
     const totalModifier = Number(modifier ?? 0) + advanceBonus + itemBonus + itemDrivenModifier;

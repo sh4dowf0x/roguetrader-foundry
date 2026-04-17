@@ -302,7 +302,9 @@ export class RogueTraderNPCSheet extends ActorSheet {
 
   _buildSkillEntry(item) {
     const characteristicKey = item.system?.characteristic ?? "intelligence";
-    const advanceBonus = (item.system?.advance10 ? 10 : 0) + (item.system?.advance20 ? 20 : 0);
+    const advanceBonus = item.system?.advance20
+      ? 20
+      : (item.system?.advance10 ? 10 : 0);
     const itemBonus = Number(item.system?.bonus ?? 0);
     const itemDrivenModifier = this.actor.getSkillItemModifier?.(item.name) ?? 0;
     const totalModifier = advanceBonus + itemBonus + itemDrivenModifier;

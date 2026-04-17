@@ -1,4 +1,7 @@
-export class RogueTraderNavigatorPowerSheet extends ItemSheet {
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+export class RogueTraderNavigatorPowerSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderNavigatorPowerSheet, {
       types: ["navigatorPower"],
@@ -6,20 +9,30 @@ export class RogueTraderNavigatorPowerSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "navigator-power"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "navigator-power"],
+    position: {
       width: 560,
-      height: 560,
-      template: "systems/roguetrader/templates/items/navigator-power.hbs",
+      height: 560
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/navigator-power.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.masteryOptions = {
@@ -28,7 +41,6 @@ export class RogueTraderNavigatorPowerSheet extends ItemSheet {
       adept10: "Adept +10",
       master20: "Master +20"
     };
-
     return context;
   }
 }

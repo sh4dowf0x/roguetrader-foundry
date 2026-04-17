@@ -1,58 +1,93 @@
-<form class="{{cssClass}} talent-sheet" autocomplete="off">
-  <header class="sheet-header">
-    <div class="header-fields">
-      <h1 class="item-name">
+<div class="talent-sheet item-sheet-layout">
+  <header class="item-sheet-header">
+    <img
+      class="item-sheet-icon"
+      src="{{item.img}}"
+      data-action="editImage"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+
+    <div class="item-sheet-header-fields">
+      <div class="form-group full-width">
+        <label for="{{rootId}}-name">Name</label>
         <input
+          id="{{rootId}}-name"
           name="name"
           type="text"
           value="{{item.name}}"
           placeholder="Talent or Trait Name"
         />
-      </h1>
+      </div>
+      <p class="item-sheet-subtitle">Talent, Trait, or Special Ability</p>
     </div>
   </header>
 
-  <section class="sheet-body">
-    <div class="form-group">
-      <label for="system.category">Type</label>
-      <select name="system.category">
-        {{selectOptions talentTypes selected=system.category}}
-      </select>
-    </div>
+  <section class="item-sheet-body talent-sheet-body">
+    <section class="item-sheet-grid item-sheet-grid-two talent-sheet-grid">
+      <div class="form-group">
+        <label for="{{rootId}}-category">Type</label>
+        <select id="{{rootId}}-category" name="system.category">
+          {{selectOptions talentTypes selected=system.category}}
+        </select>
+      </div>
 
-    <div class="form-group">
-      <label for="system.rating">Rating</label>
-      <select name="system.rating">
-        {{selectOptions ratingOptions selected=system.rating}}
-      </select>
-    </div>
+      {{#if isSpecialAbility}}
+        <div class="form-group">
+          <label for="{{rootId}}-rating">Career</label>
+          <select id="{{rootId}}-rating" name="system.rating">
+            {{selectOptions careerOptions selected=system.rating}}
+          </select>
+        </div>
+      {{else}}
+        <div class="form-group">
+          <label for="{{rootId}}-rating">Rating</label>
+          <select id="{{rootId}}-rating" name="system.rating">
+            {{selectOptions ratingOptions selected=system.rating}}
+          </select>
+        </div>
+      {{/if}}
+    </section>
 
-    <div class="form-group">
-      <label for="system.prerequisites">Prerequisites</label>
+    {{#if isArchMilitantSpecialAbility}}
+      <section class="form-group">
+        <label for="{{rootId}}-weapon-master-class">Weapon Class</label>
+        <select id="{{rootId}}-weapon-master-class" name="system.weaponMasterClass">
+          {{selectOptions weaponMasterOptions selected=system.weaponMasterClass}}
+        </select>
+      </section>
+    {{/if}}
+
+    <section class="form-group">
+      <label for="{{rootId}}-prerequisites">Prerequisites</label>
       <input
+        id="{{rootId}}-prerequisites"
         name="system.prerequisites"
         type="text"
         value="{{system.prerequisites}}"
         placeholder="Characteristic, rank, other talents"
       />
-    </div>
+    </section>
 
-    <div class="form-group stacked">
-      <label for="system.benefit">Benefit</label>
+    <section class="form-group stacked">
+      <label for="{{rootId}}-benefit">Benefit</label>
       <textarea
+        id="{{rootId}}-benefit"
         name="system.benefit"
         rows="3"
         placeholder="Short summary of the effect"
       >{{system.benefit}}</textarea>
-    </div>
+    </section>
 
-    <div class="form-group stacked">
-      <label for="system.description">Description</label>
+    <section class="form-group stacked">
+      <label for="{{rootId}}-description">Description</label>
       <textarea
+        id="{{rootId}}-description"
         name="system.description"
-        rows="10"
+        rows="12"
         placeholder="Full rules text and descriptive details"
       >{{system.description}}</textarea>
-    </div>
+    </section>
   </section>
-</form>
+</div>
