@@ -1,3 +1,8 @@
+import { SKILL_REFERENCE_DATA } from "./skill-reference-data.js";
+
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
 const CHARACTERISTIC_LABELS = {
   weaponSkill: "Weapon Skill",
   ballisticSkill: "Ballistic Skill",
@@ -46,7 +51,7 @@ const SKILL_GROUPS = {
   ],
   navigation: ["Surface", "Stellar", "Warp"],
   performer: ["Dancer", "Musician", "Singer", "Storyteller"],
-  pilot: ["Personal", "Flyers", "Spacecraft"],
+  pilot: ["Personal", "Flyers", "Space Craft"],
   scholasticLore: [
     "Archaic",
     "Astromancy",
@@ -137,6 +142,9 @@ const BASE_SKILL_DEFINITIONS = [
 ];
 
 function slugifySkillPart(value) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (normalized === "space craft") return "spacecraft";
+
   return String(value ?? "")
     .trim()
     .toLowerCase()
@@ -160,6 +168,45 @@ function expandGroupedSkill(definition) {
   });
 }
 
+function normalizeReferenceText(value) {
+  return String(value ?? "")
+    .replace(/ÃƒÂ¢Ã¢€šÂ¬Ã¢€žÂ¢/g, "\u2019")
+    .replace(/ÃƒÂ¢Ã¢€šÂ¬Ã¢‚¬œ/g, "\u2013")
+    .replace(/ÃƒÂ¢Ã¢€šÂ¬Ã¢‚¬/g, "\u2014")
+    .replace(/ÃƒÂ¢Ã¢€šÂ¬Ã‚Â¦/g, "\u2026")
+    .replace(/ÃƒÂ¢Ã¢€šÂ¬Ã…“/g, "\u201c")
+    .replace(/ÃƒÂ¢Ã¢€šÂ¬Ã‚Â/g, "\u201d")
+    .replace(/Ã¢â‚¬â„¢/g, "\u2019")
+    .replace(/Ã¢â‚¬â€œ/g, "\u2013")
+    .replace(/Ã¢â‚¬â€/g, "\u2014")
+    .replace(/Ã¢â‚¬Â¦/g, "\u2026")
+    .replace(/Ã¢â‚¬Å“/g, "\u201c")
+    .replace(/Ã¢â‚¬Â/g, "\u201d")
+    .replace(/Explorer imbibes.78/g, "Explorer imbibes.")
+    .replace(/does not79/g, "does not")
+    .replace(/litanies80/g, "litanies")
+    .replace(/1 minute.87/g, "1 minute.")
+    .trim();
+}
+
+function buildSkillReferenceDescription(definition) {
+  const reference = SKILL_REFERENCE_DATA[definition.baseId ?? definition.id];
+  if (!reference) return definition.description ?? "";
+
+  const characteristicLabel = CHARACTERISTIC_LABELS[definition.characteristic] ?? reference.characteristic ?? "";
+  const sections = [definition.name, characteristicLabel];
+
+  const baseDescription = normalizeReferenceText(reference.description);
+  if (baseDescription) sections.push(baseDescription);
+
+  if (definition.groupName && reference.groupDescriptions) {
+    const groupDescription = normalizeReferenceText(reference.groupDescriptions[slugifySkillPart(definition.groupName)]);
+    if (groupDescription) sections.push(groupDescription);
+  }
+
+  return sections.filter(Boolean).join("\n\n");
+}
+
 function buildSkillRegistry() {
   const expanded = [];
   for (const definition of BASE_SKILL_DEFINITIONS) {
@@ -171,7 +218,7 @@ function buildSkillRegistry() {
     registry[definition.id] = Object.freeze({
       ...definition,
       fullName: definition.fullName ?? definition.name,
-      description: definition.description ?? ""
+      description: buildSkillReferenceDescription(definition)
     });
     return registry;
   }, {});
@@ -207,7 +254,7 @@ export function buildSkillItemData(skillId, overrides = {}) {
   };
 }
 
-export class RogueTraderSkillSheet extends ItemSheet {
+export class RogueTraderSkillSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderSkillSheet, {
       types: ["skill"],
@@ -215,20 +262,30 @@ export class RogueTraderSkillSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "skill"],
-      width: 520,
-      height: 480,
-      template: "systems/roguetrader/templates/items/skill.hbs",
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "skill"],
+    position: {
+      width: 540,
+      height: 560
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/skill.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.characteristics = CHARACTERISTIC_LABELS;

@@ -1,87 +1,107 @@
-<form class="{{cssClass}} skill-sheet" autocomplete="off">
-  <header class="sheet-header">
-    <div class="header-fields">
-      <h1 class="item-name">
+<div class="skill-sheet item-sheet-layout">
+  <header class="item-sheet-header">
+    <img
+      class="item-sheet-icon"
+      src="{{item.img}}"
+      data-action="editImage"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
+
+    <div class="item-sheet-header-fields">
+      <div class="form-group full-width">
+        <label for="{{rootId}}-name">Name</label>
         <input
+          id="{{rootId}}-name"
           name="name"
           type="text"
           value="{{item.name}}"
           placeholder="Skill Name"
         />
-      </h1>
+      </div>
+      <p class="item-sheet-subtitle">Learned Skill</p>
     </div>
   </header>
 
-  <section class="sheet-body">
-    <div class="form-group">
-      <label for="system.characteristic">Characteristic</label>
-      <select name="system.characteristic">
-        {{selectOptions characteristics selected=system.characteristic}}
-      </select>
-    </div>
+  <section class="item-sheet-body skill-sheet-body">
+    <section class="item-sheet-grid item-sheet-grid-two skill-sheet-grid">
+      <div class="form-group">
+        <label for="{{rootId}}-characteristic">Characteristic</label>
+        <select id="{{rootId}}-characteristic" name="system.characteristic">
+          {{selectOptions characteristics selected=system.characteristic}}
+        </select>
+      </div>
 
-    <div class="form-group">
-      <label for="system.specialization">Specialization</label>
+      <div class="form-group">
+        <label for="{{rootId}}-bonus">Bonus</label>
+        <input
+          id="{{rootId}}-bonus"
+          name="system.bonus"
+          type="number"
+          value="{{system.bonus}}"
+          step="1"
+        />
+      </div>
+    </section>
+
+    <section class="form-group">
+      <label for="{{rootId}}-specialization">Specialization</label>
       <input
+        id="{{rootId}}-specialization"
         name="system.specialization"
         type="text"
         value="{{system.specialization}}"
         placeholder="Xenos"
       />
-    </div>
+    </section>
 
-    <div class="form-group stacked">
-      <label>
-        <input
-          name="system.basic"
-          type="checkbox"
-          {{checked system.basic}}
-        />
-        Basic
-      </label>
-      <label>
-        <input
-          name="system.trained"
-          type="checkbox"
-          {{checked system.trained}}
-        />
-        Trained
-      </label>
-      <label>
-        <input
-          name="system.advance10"
-          type="checkbox"
-          {{checked system.advance10}}
-        />
-        +10
-      </label>
-      <label>
-        <input
-          name="system.advance20"
-          type="checkbox"
-          {{checked system.advance20}}
-        />
-        +20
-      </label>
-    </div>
+    <section class="form-group stacked">
+      <label>Training</label>
+      <div class="skill-sheet-checkbox-grid">
+        <label class="skill-sheet-checkbox">
+          <input
+            name="system.basic"
+            type="checkbox"
+            {{checked system.basic}}
+          />
+          <span>Basic</span>
+        </label>
+        <label class="skill-sheet-checkbox">
+          <input
+            name="system.trained"
+            type="checkbox"
+            {{checked system.trained}}
+          />
+          <span>Trained</span>
+        </label>
+        <label class="skill-sheet-checkbox">
+          <input
+            name="system.advance10"
+            type="checkbox"
+            {{checked system.advance10}}
+          />
+          <span>+10</span>
+        </label>
+        <label class="skill-sheet-checkbox">
+          <input
+            name="system.advance20"
+            type="checkbox"
+            {{checked system.advance20}}
+          />
+          <span>+20</span>
+        </label>
+      </div>
+    </section>
 
-    <div class="form-group">
-      <label for="system.bonus">Bonus</label>
-      <input
-        name="system.bonus"
-        type="number"
-        value="{{system.bonus}}"
-        step="1"
-      />
-    </div>
-
-    <div class="form-group stacked">
-      <label for="system.description">Description</label>
+    <section class="form-group stacked">
+      <label for="{{rootId}}-description">Description</label>
       <textarea
+        id="{{rootId}}-description"
         name="system.description"
-        rows="10"
+        rows="12"
         placeholder="Describe what this skill covers, limitations, and special use cases."
       >{{system.description}}</textarea>
-    </div>
+    </section>
   </section>
-</form>
+</div>

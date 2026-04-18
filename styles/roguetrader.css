@@ -1484,6 +1484,52 @@
   min-height: 0;
 }
 
+.roguetrader .skill-sheet .skill-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.roguetrader .skill-sheet .skill-sheet-grid {
+  align-items: end;
+}
+
+.roguetrader .skill-sheet .form-group.stacked {
+  gap: 6px;
+}
+
+.roguetrader .skill-sheet-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, max-content));
+  gap: 10px 16px;
+  align-items: center;
+}
+
+.roguetrader .skill-sheet-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 248, 235, 0.06);
+}
+
+.roguetrader .skill-sheet-checkbox input {
+  margin: 0;
+}
+
+.roguetrader .skill-sheet-checkbox span {
+  color: var(--rt-text);
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
+.roguetrader .skill-sheet textarea {
+  min-height: 0;
+}
+
 .roguetrader .weapon-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
