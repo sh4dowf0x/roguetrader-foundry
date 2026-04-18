@@ -2,6 +2,9 @@ import { RogueTraderShipConstructionApplication } from "./ship-construction.js";
 import { rollStarshipWeaponAttack } from "./starship-combat.js";
 import { rollD100Test } from "./rolls.js";
 
+const { ActorSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
 const SHIP_WEAPON_LOCATION_LABELS = {
   dorsal: "Dorsal",
   prow: "Prow",
@@ -209,7 +212,9 @@ function getActorInitials(actor) {
   return parts.slice(0, 2).map((part) => part.charAt(0).toUpperCase()).join("");
 }
 
-export class RogueTraderShipSheet extends ActorSheet {
+export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
+  #activeTab = "page-one";
+
   static register() {
     Actors.registerSheet("roguetrader", RogueTraderShipSheet, {
       types: ["ship"],
@@ -217,21 +222,41 @@ export class RogueTraderShipSheet extends ActorSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "actor", "ship"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "actor", "ship"],
+    position: {
       width: 1280,
-      height: 940,
-      template: "systems/roguetrader/templates/actors/ship-sheet.hbs",
-      tabs: [{ navSelector: ".sheet-tabs", contentSelector: ".sheet-body", initial: "page-one" }],
+      height: 940
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
+    }
+  });
+
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/actors/ship-sheet.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
+    this.#activeTab ||= "page-one";
+
+    context.activeTab = this.#activeTab;
+    context.tabs = {
+      pageOne: this.#activeTab === "page-one",
+      pageTwo: this.#activeTab === "page-two"
+    };
+    return this._prepareLegacyContext(context);
   }
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  _prepareLegacyContext(context) {
     const items = Array.from(this.actor.items ?? []);
     const speedData = getShipProfileStatData(this.actor.system?.speed);
     const maneuverabilityData = getShipProfileStatData(this.actor.system?.maneuverability);
@@ -239,6 +264,7 @@ export class RogueTraderShipSheet extends ActorSheet {
     const effectiveSpeed = this.actor.getEffectiveShipSpeed?.() ?? (Number(this.actor.system?.speed ?? 0) || 0);
     const effectiveManeuverability = this.actor.getEffectiveShipManeuverability?.() ?? (Number(this.actor.system?.maneuverability ?? 0) || 0);
     const effectiveDetection = this.actor.getEffectiveShipDetection?.() ?? (Number(this.actor.system?.detection ?? 0) || 0);
+    const effectiveShields = this.actor.getEffectiveShipShields?.() ?? (Number(this.actor.system?.shields ?? 0) || 0);
     const starshipHulls = items
       .filter((item) => item.type === "starshipHull")
       .sort((left, right) => left.name.localeCompare(right.name))
@@ -341,6 +367,7 @@ export class RogueTraderShipSheet extends ActorSheet {
       effectiveSpeed,
       effectiveManeuverability,
       effectiveDetection,
+      effectiveShields,
       powerUsed,
       spaceUsed,
       weaponLocationUsage,
@@ -365,22 +392,122 @@ export class RogueTraderShipSheet extends ActorSheet {
     return context;
   }
 
-  activateListeners(html) {
-    super.activateListeners(html);
+  async _onRender(context, options) {
+    await super._onRender(context, options);
 
-    html.find(".ship-item-open").attr("draggable", true);
-    html.find(".ship-item-open").on("click", this._onItemOpen.bind(this));
-    html.find(".ship-item-open").on("dragstart", this._onItemDragStart.bind(this));
-    html.find(".ship-roster-slot[draggable='true']").on("dragstart", this._onRosterActorDragStart.bind(this));
-    html.find(".ship-item-delete").on("click", this._onDeleteItem.bind(this));
-    html.find(".ship-weapon-fire").on("click", this._onShipWeaponFire.bind(this));
-    html.find(".ship-weapon-load").on("click", this._onShipWeaponLoad.bind(this));
-    html.find(".ship-item-create").on("click", this._onCreateItem.bind(this));
-    html.find(".ship-construct-button").on("click", this._onConstructVoidship.bind(this));
-    html.find(".ship-roster-clear").on("click", this._onClearRosterAssignment.bind(this));
-    html.find(".ship-profile-roll").on("click", this._onShipProfileRoll.bind(this));
-    html.find(".ship-action-button").on("click", this._onShipActionAssign.bind(this));
-    html.find(".ship-action-button").on("contextmenu", this._onShipActionExecute.bind(this));
+    const root = this.#getRootElement();
+    if (!root) return;
+
+    this.#configureScrollLayout(root);
+    this.#applyActiveTab(root);
+    this.#bindShipListeners(root);
+  }
+
+  #getRootElement() {
+    if (this.element instanceof HTMLElement) return this.element;
+    return this.element?.[0] ?? null;
+  }
+
+  #configureScrollLayout(root) {
+    const windowContent = root.matches(".window-content")
+      ? root
+      : root.querySelector(".window-content");
+    const shipSheet = root.matches(".ship-sheet")
+      ? root
+      : root.querySelector(".ship-sheet");
+    const sheetBody = shipSheet?.querySelector(".sheet-body");
+    const shipFrame = shipSheet?.querySelector(".ship-sheet-frame");
+
+    if (windowContent) {
+      windowContent.style.display = "flex";
+      windowContent.style.flexDirection = "column";
+      windowContent.style.minHeight = "0";
+      windowContent.style.height = "100%";
+      windowContent.style.overflowY = "auto";
+      windowContent.style.overflowX = "hidden";
+      windowContent.style.padding = "0";
+    }
+
+    if (shipSheet) {
+      shipSheet.style.display = "flex";
+      shipSheet.style.flexDirection = "column";
+      shipSheet.style.minHeight = "0";
+      shipSheet.style.height = "auto";
+      shipSheet.style.overflow = "visible";
+    }
+
+    if (sheetBody) {
+      sheetBody.style.flex = "1 1 auto";
+      sheetBody.style.minHeight = "auto";
+      sheetBody.style.overflow = "visible";
+    }
+
+    if (shipFrame) {
+      shipFrame.style.minHeight = "auto";
+    }
+  }
+
+  #applyActiveTab(root) {
+    const activeTab = this.#activeTab || "page-one";
+    for (const tabButton of root.querySelectorAll(".sheet-tabs [data-tab]")) {
+      const tab = String(tabButton.dataset?.tab ?? "");
+      tabButton.classList.toggle("active", tab === activeTab);
+    }
+    for (const tabPanel of root.querySelectorAll(".sheet-body .tab[data-tab]")) {
+      const tab = String(tabPanel.dataset?.tab ?? "");
+      tabPanel.classList.toggle("active", tab === activeTab);
+      tabPanel.hidden = tab !== activeTab;
+    }
+  }
+
+  #bindShipListeners(root) {
+    for (const button of root.querySelectorAll(".sheet-tabs [data-tab]")) {
+      button.addEventListener("click", this._onTabChange.bind(this));
+    }
+
+    for (const button of root.querySelectorAll(".ship-item-open")) {
+      button.setAttribute("draggable", "true");
+      button.addEventListener("click", this._onItemOpen.bind(this));
+      button.addEventListener("dragstart", this._onItemDragStart.bind(this));
+    }
+    for (const slot of root.querySelectorAll(".ship-roster-slot[draggable='true']")) {
+      slot.addEventListener("dragstart", this._onRosterActorDragStart.bind(this));
+    }
+    for (const element of root.querySelectorAll(".ship-item-delete")) {
+      element.addEventListener("click", this._onDeleteItem.bind(this));
+    }
+    for (const element of root.querySelectorAll(".ship-weapon-fire")) {
+      element.addEventListener("click", this._onShipWeaponFire.bind(this));
+    }
+    for (const element of root.querySelectorAll(".ship-weapon-load")) {
+      element.addEventListener("click", this._onShipWeaponLoad.bind(this));
+    }
+    for (const element of root.querySelectorAll(".ship-item-create")) {
+      element.addEventListener("click", this._onCreateItem.bind(this));
+    }
+    for (const element of root.querySelectorAll(".ship-construct-button")) {
+      element.addEventListener("click", this._onConstructVoidship.bind(this));
+    }
+    for (const element of root.querySelectorAll(".ship-roster-clear")) {
+      element.addEventListener("click", this._onClearRosterAssignment.bind(this));
+    }
+    for (const element of root.querySelectorAll(".ship-profile-roll")) {
+      element.addEventListener("click", this._onShipProfileRoll.bind(this));
+    }
+    for (const element of root.querySelectorAll(".ship-action-button")) {
+      element.addEventListener("click", this._onShipActionAssign.bind(this));
+      element.addEventListener("contextmenu", this._onShipActionExecute.bind(this));
+    }
+  }
+
+  _onTabChange(event) {
+    event.preventDefault();
+    const nextTab = String(event.currentTarget?.dataset?.tab ?? "").trim();
+    if (!nextTab || nextTab === this.#activeTab) return;
+    this.#activeTab = nextTab;
+    const root = this.#getRootElement();
+    if (!root) return;
+    this.#applyActiveTab(root);
   }
 
   _buildStarshipHullEntry(item) {
@@ -824,6 +951,8 @@ export class RogueTraderShipSheet extends ActorSheet {
       "system.shipPoints.value": Number(system.shipPoints ?? 0) || 0,
       "system.resources.hullIntegrity.max": Number(system.hullIntegrity ?? 0) || 0,
       "system.resources.hullIntegrity.value": Number(system.hullIntegrity ?? 0) || 0,
+      "system.resources.morale.max": 100,
+      "system.resources.morale.value": 100,
       "system.weaponCapacity.dorsal": Number(system.weaponCapacity?.dorsal ?? 0) || 0,
       "system.weaponCapacity.prow": Number(system.weaponCapacity?.prow ?? 0) || 0,
       "system.weaponCapacity.keel": Number(system.weaponCapacity?.keel ?? 0) || 0,
@@ -861,7 +990,7 @@ export class RogueTraderShipSheet extends ActorSheet {
     const item = this.actor.items.get(itemId);
     if (!item) return;
 
-    event.originalEvent?.dataTransfer?.setData("text/plain", JSON.stringify({
+    event.dataTransfer?.setData("text/plain", JSON.stringify({
       type: "Item",
       uuid: item.uuid
     }));
@@ -874,7 +1003,7 @@ export class RogueTraderShipSheet extends ActorSheet {
     const actor = fromUuidSync(actorUuid);
     if (!isVoidshipCrewActor(actor)) return;
 
-    event.originalEvent?.dataTransfer?.setData("text/plain", JSON.stringify({
+    event.dataTransfer?.setData("text/plain", JSON.stringify({
       type: "Actor",
       uuid: actor.uuid
     }));

@@ -1,11 +1,11 @@
-<form class="roguetrader ship-sheet" autocomplete="off">
+<div class="roguetrader ship-sheet">
   <nav class="sheet-tabs tabs" data-group="primary">
-    <a class="item" data-tab="page-one">Voidship</a>
-    <a class="item" data-tab="page-two">Hull & Records</a>
+    <button type="button" class="item {{#if tabs.pageOne}}active{{/if}}" data-tab="page-one">Voidship</button>
+    <button type="button" class="item {{#if tabs.pageTwo}}active{{/if}}" data-tab="page-two">Hull &amp; Records</button>
   </nav>
 
   <section class="sheet-body">
-    <div class="tab" data-group="primary" data-tab="page-one">
+    <div class="tab {{#if tabs.pageOne}}active{{/if}}" data-group="primary" data-tab="page-one" {{#unless tabs.pageOne}}hidden{{/unless}}>
       <div class="ship-sheet-frame">
         <header class="ship-sheet-header">
           <div class="ship-sheet-title-block">
@@ -37,7 +37,7 @@
             </div>
           </div>
           <div class="ship-sheet-art">
-            <img src="{{ship.art}}" data-edit="img" title="{{actor.name}}" />
+            <img src="{{ship.art}}" data-action="editImage" data-edit="img" title="{{actor.name}}" />
           </div>
         </header>
 
@@ -169,7 +169,7 @@
                 </div>
                 <div class="ship-profile-field">
                   <label>Shields</label>
-                  <input name="system.shields" type="number" value="{{system.shields}}" step="1" />
+                  <input type="number" value="{{ship.effectiveShields}}" step="1" readonly />
                 </div>
                 <div class="ship-profile-field">
                   <label>Armour</label>
@@ -244,6 +244,7 @@
                     <thead>
                       <tr>
                         <th></th>
+                        <th></th>
                         <th>Name</th>
                         <th>Type</th>
                         <th>Mount</th>
@@ -254,30 +255,19 @@
                         <th>SP</th>
                         <th>Power</th>
                         <th>Space</th>
-                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {{#each ship.shipWeapons as |weapon|}}
                         <tr>
                           <td class="ship-table-icon-cell"><img class="ship-table-icon" src="{{weapon.img}}" alt="{{weapon.name}}" /></td>
-                          <td><button type="button" class="ship-item-open ship-list-primary" data-item-id="{{weapon.id}}">{{weapon.name}}</button></td>
-                          <td>{{weapon.weaponClassLabel}}</td>
-                          <td>{{weapon.locationLabel}}</td>
-                          <td>{{weapon.strength}}</td>
-                          <td>{{weapon.damage}}</td>
-                          <td>{{weapon.critRating}}</td>
-                          <td>{{weapon.range}}</td>
-                          <td>{{weapon.shipPointCost}}</td>
-                          <td>{{weapon.power}}</td>
-                          <td>{{weapon.space}}</td>
-                          <td>
+                          <td class="ship-weapon-action-cell">
                             {{#if weapon.isTorpedoTube}}
                               {{#if weapon.torpedoLoading}}
                                 <div class="ship-weapon-load-status">{{weapon.torpedoLoadingModeLabel}}</div>
                               {{else}}
                                 {{#if weapon.torpedoLoaded}}
-                                  <button type="button" class="ship-weapon-fire" data-item-id="{{weapon.id}}" aria-label="Fire {{weapon.name}}"><i class="fas fa-crosshairs"></i></button>
+                                  <button type="button" class="ship-weapon-fire ship-weapon-fire-large" data-item-id="{{weapon.id}}" aria-label="Fire {{weapon.name}}"><i class="fas fa-crosshairs"></i></button>
                                 {{else}}
                                   <div class="ship-weapon-load-controls">
                                     <select class="ship-weapon-load-mode" data-item-id="{{weapon.id}}">
@@ -290,9 +280,19 @@
                                 {{/if}}
                               {{/if}}
                             {{else}}
-                                <button type="button" class="ship-weapon-fire" data-item-id="{{weapon.id}}" aria-label="Fire {{weapon.name}}"><i class="fas fa-crosshairs"></i></button>
+                              <button type="button" class="ship-weapon-fire ship-weapon-fire-large" data-item-id="{{weapon.id}}" aria-label="Fire {{weapon.name}}"><i class="fas fa-crosshairs"></i></button>
                             {{/if}}
                           </td>
+                          <td><button type="button" class="ship-item-open ship-list-primary" data-item-id="{{weapon.id}}">{{weapon.name}}</button></td>
+                          <td>{{weapon.weaponClassLabel}}</td>
+                          <td>{{weapon.locationLabel}}</td>
+                          <td>{{weapon.strength}}</td>
+                          <td>{{weapon.damage}}</td>
+                          <td>{{weapon.critRating}}</td>
+                          <td>{{weapon.range}}</td>
+                          <td>{{weapon.shipPointCost}}</td>
+                          <td>{{weapon.power}}</td>
+                          <td>{{weapon.space}}</td>
                         </tr>
                       {{/each}}
                     </tbody>
@@ -414,7 +414,7 @@
       </div>
     </div>
 
-    <div class="tab" data-group="primary" data-tab="page-two">
+    <div class="tab {{#if tabs.pageTwo}}active{{/if}}" data-group="primary" data-tab="page-two" {{#unless tabs.pageTwo}}hidden{{/unless}}>
       <div class="ship-sheet-frame">
         <section class="ship-sheet-main">
           <div class="ship-sheet-left">
@@ -481,4 +481,4 @@
       </div>
     </div>
   </section>
-</form>
+</div>

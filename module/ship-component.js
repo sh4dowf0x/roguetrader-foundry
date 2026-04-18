@@ -1,4 +1,7 @@
-export class RogueTraderShipComponentSheet extends ItemSheet {
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+export class RogueTraderShipComponentSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderShipComponentSheet, {
       types: ["shipComponent", "essentialComponent", "supplementalComponent"],
@@ -6,24 +9,36 @@ export class RogueTraderShipComponentSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "ship-component"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "ship-component"],
+    position: {
       width: 760,
-      height: 700,
-      template: "systems/roguetrader/templates/items/ship-component.hbs",
+      height: 700
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/ship-component.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.componentTypeLabel = this._getComponentTypeLabel(this.item.type);
     context.usesSupplementalCategories = this.item.type === "supplementalComponent";
+    const componentType = String(this.item.system?.componentType ?? this.item.system?.categoryType ?? "").trim();
+    context.isVoidShieldComponent = !context.usesSupplementalCategories && componentType === "voidShields";
     context.componentCategoryOptions = context.usesSupplementalCategories
       ? {
           cargoPassengerHolds: "Cargo / Passenger Holds",

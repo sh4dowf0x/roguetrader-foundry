@@ -2754,6 +2754,27 @@ export class RogueTraderActor extends Actor {
     return Number(detectionData ?? 0) || 0;
   }
 
+  getShipBaseShields() {
+    if (this.type !== "ship") return Math.max(0, Number(this.system?.shields ?? 0) || 0);
+    return Math.max(0, Number(this.system?.shields ?? 0) || 0);
+  }
+
+  getShipVoidShieldBonus() {
+    if (this.type !== "ship") return 0;
+
+    return Array.from(this.items ?? []).reduce((total, item) => {
+      if (item?.type !== "essentialComponent" && item?.type !== "shipComponent") return total;
+      const componentType = String(item.system?.componentType ?? item.system?.categoryType ?? "").trim().toLowerCase();
+      if (componentType !== "voidshields") return total;
+      return total + Math.max(0, Number(item.system?.shields ?? 0) || 0);
+    }, 0);
+  }
+
+  getEffectiveShipShields() {
+    if (this.type !== "ship") return this.getShipBaseShields();
+    return Math.max(0, this.getShipBaseShields() + this.getShipVoidShieldBonus());
+  }
+
   getEffectiveShipSpeed() {
     const baseSpeed = this.getShipBaseSpeed();
     if (this.type !== "ship") return baseSpeed;

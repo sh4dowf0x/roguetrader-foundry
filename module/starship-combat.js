@@ -1199,7 +1199,7 @@ async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackR
   const currentTurn = getCurrentCombatTurnKey();
   const volleyStrength = getEffectiveShipWeaponStrength(shipActor, weapon);
   const rawHits = Math.min(volleyStrength || 0, 1 + Math.max(0, Number(attackResult?.degrees ?? 0) || 0));
-  const targetShields = Math.max(0, Number(targetShipActor.system?.shields ?? 0) || 0);
+  const targetShields = Math.max(0, Number(targetShipActor.getEffectiveShipShields?.() ?? targetShipActor.system?.shields ?? 0) || 0);
   const shieldsShorted = isShieldShortedForAttacker(targetShipActor, shipActor);
   const absorbedHits = shieldsShorted ? 0 : Math.min(rawHits, targetShields);
   const remainingHits = Math.max(0, rawHits - absorbedHits);
@@ -1295,7 +1295,7 @@ async function resolveLanceAttack(shipActor, weapon, targetToken, attackResult) 
   if (!targetShipActor || targetShipActor.type !== "ship") return null;
 
   const rawHits = Math.max(0, 1 + Math.floor((Math.max(0, Number(attackResult?.degrees ?? 0) || 0)) / 3));
-  const targetShields = Math.max(0, Number(targetShipActor.system?.shields ?? 0) || 0);
+  const targetShields = Math.max(0, Number(targetShipActor.getEffectiveShipShields?.() ?? targetShipActor.system?.shields ?? 0) || 0);
   const shieldsShorted = isShieldShortedForAttacker(targetShipActor, shipActor);
   const absorbedHits = shieldsShorted ? 0 : Math.min(rawHits, targetShields);
   const remainingHits = Math.max(0, rawHits - absorbedHits);

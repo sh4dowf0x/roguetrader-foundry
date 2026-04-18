@@ -1,31 +1,34 @@
-<form class="roguetrader ship-weapon-sheet" autocomplete="off">
-  <header class="sheet-header item-header">
-    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
-    <div class="header-fields">
-      <h1 class="item-name"><input name="name" type="text" value="{{item.name}}" /></h1>
-      <p class="item-subtitle">Ship Weapon</p>
+<div class="ship-weapon-sheet item-sheet-layout">
+  <header class="item-sheet-header">
+    <img class="item-sheet-icon" src="{{item.img}}" data-action="editImage" data-edit="img" title="{{item.name}}" alt="{{item.name}}" />
+    <div class="item-sheet-header-fields">
+      <div class="form-group full-width">
+        <label for="{{rootId}}-name">Name</label>
+        <input id="{{rootId}}-name" name="name" type="text" value="{{item.name}}" />
+      </div>
+      <p class="item-sheet-subtitle">Ship Weapon</p>
     </div>
   </header>
 
-  <section class="item-body-grid">
+  <section class="item-sheet-body item-body-grid">
     <div class="ship-weapon-top-row item-body-grid-span">
       <div class="form-group ship-weapon-type-field">
-        <label>Type</label>
-        <select name="system.weaponClass">
+        <label for="{{rootId}}-weapon-class">Type</label>
+        <select id="{{rootId}}-weapon-class" name="system.weaponClass">
           {{selectOptions weaponClassOptions selected=system.weaponClass}}
         </select>
       </div>
 
       {{#if isTorpedoWeapon}}
         <div class="form-group ship-weapon-type-field">
-          <label>Torpedo Type</label>
-          <select name="system.torpedoType">
+          <label for="{{rootId}}-torpedo-type">Torpedo Type</label>
+          <select id="{{rootId}}-torpedo-type" name="system.torpedoType">
             {{selectOptions torpedoTypeOptions selected=system.torpedoType}}
           </select>
         </div>
         <div class="form-group ship-weapon-type-field">
-          <label>Guidance</label>
-          <select name="system.torpedoGuidance">
+          <label for="{{rootId}}-torpedo-guidance">Guidance</label>
+          <select id="{{rootId}}-torpedo-guidance" name="system.torpedoGuidance">
             {{selectOptions torpedoGuidanceOptions selected=system.torpedoGuidance}}
           </select>
         </div>
@@ -33,18 +36,18 @@
 
       <div class="ship-weapon-stat-row">
         <div class="form-group ship-weapon-mini-field">
-          <label>Power</label>
-          <input name="system.power" type="number" value="{{system.power}}" step="1" />
+          <label for="{{rootId}}-power">Power</label>
+          <input id="{{rootId}}-power" name="system.power" type="number" value="{{system.power}}" step="1" />
         </div>
 
         <div class="form-group ship-weapon-mini-field">
-          <label>Space</label>
-          <input name="system.space" type="number" value="{{system.space}}" step="1" />
+          <label for="{{rootId}}-space">Space</label>
+          <input id="{{rootId}}-space" name="system.space" type="number" value="{{system.space}}" step="1" />
         </div>
 
         <div class="form-group ship-weapon-mini-field">
-          <label>SP Cost</label>
-          <input name="system.shipPointCost" type="number" value="{{system.shipPointCost}}" step="1" />
+          <label for="{{rootId}}-sp-cost">SP Cost</label>
+          <input id="{{rootId}}-sp-cost" name="system.shipPointCost" type="number" value="{{system.shipPointCost}}" step="1" />
         </div>
       </div>
     </div>
@@ -52,29 +55,29 @@
     <div class="ship-weapon-stat-row item-body-grid-span">
       {{#if isTorpedoWeapon}}
         <div class="form-group ship-weapon-mini-field">
-          <label>Speed</label>
-          <input name="system.torpedoSpeed" type="number" value="{{system.torpedoSpeed}}" step="1" readonly />
+          <label for="{{rootId}}-torpedo-speed">Speed</label>
+          <input id="{{rootId}}-torpedo-speed" name="system.torpedoSpeed" type="number" value="{{system.torpedoSpeed}}" step="1" readonly />
         </div>
       {{/if}}
 
       <div class="form-group ship-weapon-mini-field">
-        <label>Strength</label>
-        <input name="system.strength" type="text" value="{{system.strength}}" />
+        <label for="{{rootId}}-strength">Strength</label>
+        <input id="{{rootId}}-strength" name="system.strength" type="text" value="{{system.strength}}" />
       </div>
 
       <div class="form-group ship-weapon-wide-field">
-        <label>Damage</label>
-        <input name="system.damage" type="text" value="{{system.damage}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
+        <label for="{{rootId}}-damage">Damage</label>
+        <input id="{{rootId}}-damage" name="system.damage" type="text" value="{{system.damage}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
       </div>
 
       <div class="form-group ship-weapon-mini-field">
-        <label>Crit Rating</label>
-        <input name="system.critRating" type="text" value="{{system.critRating}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
+        <label for="{{rootId}}-crit-rating">Crit Rating</label>
+        <input id="{{rootId}}-crit-rating" name="system.critRating" type="text" value="{{system.critRating}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
       </div>
 
       <div class="form-group ship-weapon-wide-field">
-        <label>Range</label>
-        <input name="system.range" type="text" value="{{system.range}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
+        <label for="{{rootId}}-range">Range</label>
+        <input id="{{rootId}}-range" name="system.range" type="text" value="{{system.range}}" {{#if isTorpedoWeapon}}readonly{{/if}} />
       </div>
     </div>
 
@@ -82,8 +85,8 @@
       <label>Allowed Hulls</label>
       <div class="ship-component-hull-flags">
         {{#each hullAvailabilityOptions as |option|}}
-          <label class="ship-component-hull-flag">
-            <input type="checkbox" name="system.allowedHulls.{{option.key}}" {{checked (lookup ../system.allowedHulls option.key)}} />
+          <label class="ship-component-hull-flag" for="{{../rootId}}-hull-{{option.key}}">
+            <input id="{{../rootId}}-hull-{{option.key}}" type="checkbox" name="system.allowedHulls.{{option.key}}" {{checked (lookup ../system.allowedHulls option.key)}} />
             <span>{{option.label}}</span>
           </label>
         {{/each}}
@@ -94,8 +97,8 @@
       <label>Mount Locations</label>
       <div class="ship-component-hull-flags">
         {{#each mountLocationOptions as |option|}}
-          <label class="ship-component-hull-flag">
-            <input type="checkbox" name="system.allowedLocations.{{option.key}}" {{checked (lookup ../system.allowedLocations option.key)}} />
+          <label class="ship-component-hull-flag" for="{{../rootId}}-mount-{{option.key}}">
+            <input id="{{../rootId}}-mount-{{option.key}}" type="checkbox" name="system.allowedLocations.{{option.key}}" {{checked (lookup ../system.allowedLocations option.key)}} />
             <span>{{option.label}}</span>
           </label>
         {{/each}}
@@ -103,13 +106,13 @@
     </div>
 
     <div class="form-group item-body-grid-span">
-      <label>Short Description</label>
-      <input name="system.shortDescription" type="text" value="{{system.shortDescription}}" />
+      <label for="{{rootId}}-short-description">Short Description</label>
+      <input id="{{rootId}}-short-description" name="system.shortDescription" type="text" value="{{system.shortDescription}}" />
     </div>
 
     <div class="form-group item-body-grid-span">
-      <label>Description</label>
-      <textarea name="system.description">{{system.description}}</textarea>
+      <label for="{{rootId}}-description">Description</label>
+      <textarea id="{{rootId}}-description" name="system.description">{{system.description}}</textarea>
     </div>
   </section>
-</form>
+</div>

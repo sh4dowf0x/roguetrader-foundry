@@ -1,3 +1,6 @@
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
 const ARMOR_LOCATIONS = [
   { key: "arms", label: "Arms" },
   { key: "body", label: "Body" },
@@ -10,12 +13,14 @@ const ARMOR_SPECIALS = [
   { key: "autoSenses", label: "Auto-senses" },
   { key: "preysense", label: "Preysense" },
   { key: "powerArmour", label: "Power Armour" },
+  { key: "rebreather", label: "Rebreather" },
+  { key: "sealed", label: "Sealed" },
   { key: "hulking", label: "Hulking" },
   { key: "flak", label: "Flak" },
   { key: "primitive", label: "Primitive" }
 ];
 
-export class RogueTraderArmorSheet extends ItemSheet {
+export class RogueTraderArmorSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderArmorSheet, {
       types: ["armor"],
@@ -23,20 +28,30 @@ export class RogueTraderArmorSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "armor"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "armor"],
+    position: {
       width: 780,
-      height: 820,
-      template: "systems/roguetrader/templates/items/armor.hbs",
+      height: 820
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/armor.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     const locations = this.item.system.locations ?? {};
     const ap = this.item.system.ap ?? {};
     const special = this.item.system.special ?? {};

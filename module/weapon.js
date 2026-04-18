@@ -1,3 +1,6 @@
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
 const WEAPON_QUALITIES = [
   { key: "accurate", label: "Accurate" },
   { key: "balanced", label: "Balanced" },
@@ -32,7 +35,7 @@ const WEAPON_QUALITIES = [
   { key: "warpWeapon", label: "Warp Weapon" }
 ];
 
-export class RogueTraderWeaponSheet extends ItemSheet {
+export class RogueTraderWeaponSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderWeaponSheet, {
       types: ["weapon"],
@@ -40,20 +43,30 @@ export class RogueTraderWeaponSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "weapon"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "weapon"],
+    position: {
       width: 820,
-      height: 840,
-      template: "systems/roguetrader/templates/items/weapon.hbs",
+      height: 840
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/weapon.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     const weaponClass = this.item.system.class ?? "basic";
     const weaponType = this.item.system.weaponType ?? "las";
     const special = this.item.system.special ?? {};

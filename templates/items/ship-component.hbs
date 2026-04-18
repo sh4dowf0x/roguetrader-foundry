@@ -1,16 +1,19 @@
-<form class="roguetrader ship-component-sheet" autocomplete="off">
-  <header class="sheet-header item-header">
-    <img class="profile-img" src="{{item.img}}" data-edit="img" title="{{item.name}}" />
-    <div class="header-fields">
-      <h1 class="item-name"><input name="name" type="text" value="{{item.name}}" /></h1>
-      <p class="item-subtitle">{{componentTypeLabel}}</p>
+<div class="ship-component-sheet item-sheet-layout">
+  <header class="item-sheet-header">
+    <img class="item-sheet-icon" src="{{item.img}}" data-action="editImage" data-edit="img" title="{{item.name}}" alt="{{item.name}}" />
+    <div class="item-sheet-header-fields">
+      <div class="form-group full-width">
+        <label for="{{rootId}}-name">Name</label>
+        <input id="{{rootId}}-name" name="name" type="text" value="{{item.name}}" />
+      </div>
+      <p class="item-sheet-subtitle">{{componentTypeLabel}}</p>
     </div>
   </header>
 
-  <section class="item-body-grid">
+  <section class="item-sheet-body item-body-grid">
     <div class="form-group">
-      <label>Category</label>
-      <select name="system.componentType">
+      <label for="{{rootId}}-component-type">Category</label>
+      <select id="{{rootId}}-component-type" name="system.componentType">
         <option value=""></option>
         {{selectOptions componentCategoryOptions selected=system.componentType}}
       </select>
@@ -20,24 +23,30 @@
       <label>Component Stats</label>
       <div class="ship-component-stat-row">
         <div class="form-group ship-component-mini-field">
-          <label>SP Cost</label>
-          <input name="system.shipPointCost" type="number" value="{{system.shipPointCost}}" step="1" />
+          <label for="{{rootId}}-sp-cost">SP Cost</label>
+          <input id="{{rootId}}-sp-cost" name="system.shipPointCost" type="number" value="{{system.shipPointCost}}" step="1" />
         </div>
         <div class="form-group ship-component-mini-field">
-          <label>Power</label>
-          <input name="system.power" type="number" value="{{system.power}}" step="1" />
+          <label for="{{rootId}}-power">Power</label>
+          <input id="{{rootId}}-power" name="system.power" type="number" value="{{system.power}}" step="1" />
         </div>
         <div class="form-group ship-component-mini-field">
-          <label>Space</label>
-          <input name="system.space" type="number" value="{{system.space}}" step="1" />
+          <label for="{{rootId}}-space">Space</label>
+          <input id="{{rootId}}-space" name="system.space" type="number" value="{{system.space}}" step="1" />
         </div>
         <div class="form-group ship-component-mini-field">
-          <label>Generation</label>
-          <input name="system.generation" type="number" value="{{system.generation}}" step="1" />
+          <label for="{{rootId}}-generation">Generation</label>
+          <input id="{{rootId}}-generation" name="system.generation" type="number" value="{{system.generation}}" step="1" />
         </div>
+        {{#if isVoidShieldComponent}}
+          <div class="form-group ship-component-mini-field">
+            <label for="{{rootId}}-shields">Shields</label>
+            <input id="{{rootId}}-shields" name="system.shields" type="number" value="{{system.shields}}" min="0" step="1" />
+          </div>
+        {{/if}}
         <div class="form-group ship-component-origin-field">
-          <label>Origin</label>
-          <input name="system.origin" type="text" value="{{system.origin}}" />
+          <label for="{{rootId}}-origin">Origin</label>
+          <input id="{{rootId}}-origin" name="system.origin" type="text" value="{{system.origin}}" />
         </div>
       </div>
     </div>
@@ -46,8 +55,8 @@
       <label>Allowed Hull Classes</label>
       <div class="ship-component-hull-flags">
         {{#each hullAvailabilityOptions as |option|}}
-          <label class="ship-component-hull-flag">
-            <input type="checkbox" name="system.allowedHulls.{{option.key}}" {{#if (lookup ../system.allowedHulls option.key)}}checked{{/if}} />
+          <label class="ship-component-hull-flag" for="{{../rootId}}-hull-{{option.key}}">
+            <input id="{{../rootId}}-hull-{{option.key}}" type="checkbox" name="system.allowedHulls.{{option.key}}" {{#if (lookup ../system.allowedHulls option.key)}}checked{{/if}} />
             <span>{{option.label}}</span>
           </label>
         {{/each}}
@@ -55,13 +64,13 @@
     </div>
 
     <div class="form-group item-body-grid-span">
-      <label>Short Description</label>
-      <input name="system.shortDescription" type="text" value="{{system.shortDescription}}" />
+      <label for="{{rootId}}-short-description">Short Description</label>
+      <input id="{{rootId}}-short-description" name="system.shortDescription" type="text" value="{{system.shortDescription}}" />
     </div>
 
     <div class="form-group item-body-grid-span">
-      <label>Description</label>
-      <textarea name="system.description">{{system.description}}</textarea>
+      <label for="{{rootId}}-description">Description</label>
+      <textarea id="{{rootId}}-description" name="system.description">{{system.description}}</textarea>
     </div>
   </section>
-</form>
+</div>

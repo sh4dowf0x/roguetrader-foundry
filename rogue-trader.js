@@ -1003,7 +1003,7 @@ Hooks.once("init", () => {
   game.roguetrader = {
     config: {
       actorTypes: ["character", "npc", "ship", "torpedo"],
-      itemTypes: ["skill", "weapon", "armor", "gear", "consumable", "tool", "cybernetic", "talent", "psychicTechnique", "navigatorPower", "psychicPower", "shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon", "starshipHull", "mutation", "malignancy", "mentalDisorder", "criticalInjury"],
+      itemTypes: ["skill", "weapon", "armor", "gear", "consumable", "tool", "cybernetic", "talent", "psychicTechnique", "navigatorPower", "essentialComponent", "supplementalComponent", "shipWeapon", "starshipHull", "mutation", "malignancy", "mentalDisorder", "criticalInjury"],
       statusEffects: ROGUETRADER_STATUS_EFFECTS
     },
     skills: {

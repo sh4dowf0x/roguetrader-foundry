@@ -1,3 +1,6 @@
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
 const TORPEDO_TYPE_PROFILES = {
   plasma: {
     label: "Plasma",
@@ -42,7 +45,7 @@ const TORPEDO_GUIDANCE_OPTIONS = {
   shortBurn: "Short-Burn"
 };
 
-export class RogueTraderShipWeaponSheet extends ItemSheet {
+export class RogueTraderShipWeaponSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderShipWeaponSheet, {
       types: ["shipWeapon"],
@@ -50,20 +53,30 @@ export class RogueTraderShipWeaponSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "ship-weapon"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "ship-weapon"],
+    position: {
       width: 820,
-      height: 760,
-      template: "systems/roguetrader/templates/items/ship-weapon.hbs",
+      height: 760
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/ship-weapon.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.isTorpedoWeapon = String(this.item.system?.weaponClass ?? "").trim().toLowerCase() === "torpedo";

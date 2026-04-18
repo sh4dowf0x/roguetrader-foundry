@@ -1,4 +1,7 @@
-export class RogueTraderToolSheet extends ItemSheet {
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+export class RogueTraderToolSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderToolSheet, {
       types: ["tool"],
@@ -6,20 +9,30 @@ export class RogueTraderToolSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "tool"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "tool"],
+    position: {
       width: 720,
-      height: 680,
-      template: "systems/roguetrader/templates/items/tool.hbs",
+      height: 680
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/tool.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.availabilityOptions = {

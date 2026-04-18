@@ -1,3 +1,6 @@
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
 const CONSEQUENCE_TYPE_LABELS = {
   mutation: "Mutation",
   malignancy: "Malignancy",
@@ -70,7 +73,7 @@ export async function resolveTraitModifierFormula(formula) {
   };
 }
 
-export class RogueTraderConsequenceSheet extends ItemSheet {
+export class RogueTraderConsequenceSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderConsequenceSheet, {
       types: ["mutation", "malignancy", "mentalDisorder", "criticalInjury"],
@@ -78,20 +81,30 @@ export class RogueTraderConsequenceSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "consequence"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "consequence"],
+    position: {
       width: 700,
-      height: 620,
-      template: "systems/roguetrader/templates/items/consequence.hbs",
+      height: 640
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/consequence.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.typeLabel = CONSEQUENCE_TYPE_LABELS[this.item.type] ?? "Condition";

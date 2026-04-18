@@ -1,8 +1,9 @@
-<form class="{{cssClass}} weapon-sheet item-sheet-layout" autocomplete="off">
+<div class="weapon-sheet item-sheet-layout">
   <header class="item-sheet-header">
     <img
       class="item-sheet-icon"
       src="{{item.img}}"
+      data-action="editImage"
       data-edit="img"
       title="{{item.name}}"
       alt="{{item.name}}"
@@ -10,152 +11,159 @@
 
     <div class="item-sheet-header-fields">
       <div class="form-group full-width">
-        <label for="name">Name</label>
-        <input name="name" type="text" value="{{item.name}}" placeholder="Weapon Name" />
+        <label for="{{rootId}}-name">Name</label>
+        <input
+          id="{{rootId}}-name"
+          name="name"
+          type="text"
+          value="{{item.name}}"
+          placeholder="Weapon Name"
+        />
       </div>
     </div>
   </header>
 
-  <section class="item-sheet-grid weapon-grid">
-    <div class="form-group">
-      <label for="system.class">Class</label>
-      <select name="system.class">
-        {{selectOptions weaponClassOptions selected=system.class}}
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="system.weaponType">Type</label>
-      <select name="system.weaponType">
-        {{selectOptions weaponTypeOptions selected=system.weaponType}}
-      </select>
-    </div>
-
-    {{#if showRange}}
+  <section class="item-sheet-body weapon-sheet-body">
+    <section class="item-sheet-grid weapon-grid">
       <div class="form-group">
-        <label for="system.range">Range</label>
-        <div class="inline-unit-field">
-          <input name="system.range" type="number" value="{{system.range}}" min="0" max="999" step="1" />
-          <span>m</span>
-        </div>
-      </div>
-    {{/if}}
-
-    {{#if showRof}}
-      <div class="form-group">
-        <label for="system.rof">RoF</label>
-        <input name="system.rof" type="text" value="{{system.rof}}" placeholder="S/3/6" />
-      </div>
-    {{/if}}
-
-    {{#if showMaximalMode}}
-      <div class="form-group">
-        <label class="quality-checkbox">
-          <input
-            name="system.maximalMode"
-            type="checkbox"
-            {{checked system.maximalMode}}
-          />
-          <span>Maximal Mode</span>
-        </label>
-      </div>
-    {{/if}}
-
-    <div class="form-group">
-      <label for="system.damage">Dam</label>
-      <input name="system.damage" type="text" value="{{system.damage}}" placeholder="1d10+4 E" />
-    </div>
-
-    <div class="form-group">
-      <label for="system.penetration">Pen</label>
-      <input name="system.penetration" type="number" value="{{system.penetration}}" min="0" max="13" step="1" />
-    </div>
-
-    {{#if showClipAndReload}}
-      <div class="form-group">
-        <label for="system.clip">Clip</label>
-        <input name="system.clip" type="number" value="{{system.clip}}" min="0" step="1" />
-      </div>
-
-      <div class="form-group">
-        <label for="system.currentClip">Current Clip</label>
-        <input name="system.currentClip" type="number" value="{{system.currentClip}}" min="0" step="1" />
-      </div>
-
-      <div class="form-group">
-        <label for="system.reload">Rld</label>
-        <select name="system.reload">
-          {{selectOptions reloadOptions selected=system.reload}}
+        <label for="{{rootId}}-class">Class</label>
+        <select id="{{rootId}}-class" name="system.class">
+          {{selectOptions weaponClassOptions selected=system.class}}
         </select>
       </div>
-    {{/if}}
 
-    <div class="form-group">
-      <label for="system.weight">Weight</label>
-      <div class="inline-unit-field">
-        <input name="system.weight" type="number" value="{{system.weight}}" min="0" step="0.1" />
-        <span>kg</span>
+      <div class="form-group">
+        <label for="{{rootId}}-weapon-type">Type</label>
+        <select id="{{rootId}}-weapon-type" name="system.weaponType">
+          {{selectOptions weaponTypeOptions selected=system.weaponType}}
+        </select>
       </div>
-    </div>
 
-    <div class="form-group">
-      <label for="system.availability">Availability</label>
-      <select name="system.availability">
-        {{selectOptions availabilityOptions selected=system.availability}}
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label for="system.craftsmanship">Craftsmanship</label>
-      <select name="system.craftsmanship">
-        {{selectOptions craftsmanshipOptions selected=system.craftsmanship}}
-      </select>
-    </div>
-  </section>
-
-  <section class="weapon-specials-section">
-    <h2 class="section-title">Special</h2>
-
-    <div class="weapon-specials-grid">
-      {{#each weaponQualities as |quality|}}
-        <label class="quality-checkbox">
-          <input
-            name="system.special.{{quality.key}}"
-            type="checkbox"
-            {{checked quality.checked}}
-          />
-          <span>{{quality.label}}</span>
-        </label>
-      {{/each}}
-
-      {{#if system.special.blast}}
-        <div class="form-group blast-value-field">
-          <label for="system.special.blastValue">Blast Size</label>
-          <input name="system.special.blastValue" type="number" value="{{system.special.blastValue}}" min="0" step="1" />
+      {{#if showRange}}
+        <div class="form-group">
+          <label for="{{rootId}}-range">Range</label>
+          <div class="inline-unit-field">
+            <input id="{{rootId}}-range" name="system.range" type="number" value="{{system.range}}" min="0" max="999" step="1" />
+            <span>m</span>
+          </div>
         </div>
       {{/if}}
 
-      {{#if system.special.felling}}
-        <div class="form-group blast-value-field">
-          <label for="system.special.fellingValue">Felling Rating</label>
-          <input name="system.special.fellingValue" type="number" value="{{system.special.fellingValue}}" min="0" step="1" />
+      {{#if showRof}}
+        <div class="form-group">
+          <label for="{{rootId}}-rof">RoF</label>
+          <input id="{{rootId}}-rof" name="system.rof" type="text" value="{{system.rof}}" placeholder="S/3/6" />
         </div>
       {{/if}}
 
-      {{#if system.special.haywire}}
-        <div class="form-group blast-value-field">
-          <label for="system.special.haywireValue">Haywire Rating</label>
-          <input name="system.special.haywireValue" type="number" value="{{system.special.haywireValue}}" min="0" step="1" />
+      {{#if showMaximalMode}}
+        <div class="form-group">
+          <label class="quality-checkbox" for="{{rootId}}-maximal-mode">
+            <input
+              id="{{rootId}}-maximal-mode"
+              name="system.maximalMode"
+              type="checkbox"
+              {{checked system.maximalMode}}
+            />
+            <span>Maximal Mode</span>
+          </label>
         </div>
       {{/if}}
-    </div>
+
+      <div class="form-group">
+        <label for="{{rootId}}-damage">Dam</label>
+        <input id="{{rootId}}-damage" name="system.damage" type="text" value="{{system.damage}}" placeholder="1d10+4 E" />
+      </div>
+
+      <div class="form-group">
+        <label for="{{rootId}}-penetration">Pen</label>
+        <input id="{{rootId}}-penetration" name="system.penetration" type="number" value="{{system.penetration}}" min="0" max="13" step="1" />
+      </div>
+
+      {{#if showClipAndReload}}
+        <div class="form-group">
+          <label for="{{rootId}}-clip">Clip</label>
+          <input id="{{rootId}}-clip" name="system.clip" type="number" value="{{system.clip}}" min="0" step="1" />
+        </div>
+
+        <div class="form-group">
+          <label for="{{rootId}}-current-clip">Current Clip</label>
+          <input id="{{rootId}}-current-clip" name="system.currentClip" type="number" value="{{system.currentClip}}" min="0" step="1" />
+        </div>
+
+        <div class="form-group">
+          <label for="{{rootId}}-reload">Rld</label>
+          <select id="{{rootId}}-reload" name="system.reload">
+            {{selectOptions reloadOptions selected=system.reload}}
+          </select>
+        </div>
+      {{/if}}
+
+      <div class="form-group">
+        <label for="{{rootId}}-weight">Weight</label>
+        <div class="inline-unit-field">
+          <input id="{{rootId}}-weight" name="system.weight" type="number" value="{{system.weight}}" min="0" step="0.1" />
+          <span>kg</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="{{rootId}}-availability">Availability</label>
+        <select id="{{rootId}}-availability" name="system.availability">
+          {{selectOptions availabilityOptions selected=system.availability}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="{{rootId}}-craftsmanship">Craftsmanship</label>
+        <select id="{{rootId}}-craftsmanship" name="system.craftsmanship">
+          {{selectOptions craftsmanshipOptions selected=system.craftsmanship}}
+        </select>
+      </div>
+    </section>
+
+    <section class="weapon-specials-section">
+      <h2 class="section-title">Special</h2>
+
+      <div class="weapon-specials-grid">
+        {{#each weaponQualities as |quality|}}
+          <label class="quality-checkbox" for="{{../rootId}}-quality-{{quality.key}}">
+            <input
+              id="{{../rootId}}-quality-{{quality.key}}"
+              name="system.special.{{quality.key}}"
+              type="checkbox"
+              {{checked quality.checked}}
+            />
+            <span>{{quality.label}}</span>
+          </label>
+        {{/each}}
+
+        {{#if system.special.blast}}
+          <div class="form-group blast-value-field">
+            <label for="{{rootId}}-blast-value">Blast Size</label>
+            <input id="{{rootId}}-blast-value" name="system.special.blastValue" type="number" value="{{system.special.blastValue}}" min="0" step="1" />
+          </div>
+        {{/if}}
+
+        {{#if system.special.felling}}
+          <div class="form-group blast-value-field">
+            <label for="{{rootId}}-felling-value">Felling Rating</label>
+            <input id="{{rootId}}-felling-value" name="system.special.fellingValue" type="number" value="{{system.special.fellingValue}}" min="0" step="1" />
+          </div>
+        {{/if}}
+
+        {{#if system.special.haywire}}
+          <div class="form-group blast-value-field">
+            <label for="{{rootId}}-haywire-value">Haywire Rating</label>
+            <input id="{{rootId}}-haywire-value" name="system.special.haywireValue" type="number" value="{{system.special.haywireValue}}" min="0" step="1" />
+          </div>
+        {{/if}}
+      </div>
+    </section>
+
+    <section class="form-group stacked weapon-description">
+      <label for="{{rootId}}-description">Description</label>
+      <textarea id="{{rootId}}-description" name="system.description" rows="10" placeholder="Long description for the weapon">{{system.description}}</textarea>
+    </section>
   </section>
-
-  <section class="form-group stacked weapon-description">
-    <label for="system.description">Description</label>
-    <textarea name="system.description" rows="10" placeholder="Long description for the weapon">{{system.description}}</textarea>
-  </section>
-</form>
-
-
-
+</div>

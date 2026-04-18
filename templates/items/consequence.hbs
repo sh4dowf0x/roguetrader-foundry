@@ -1,31 +1,47 @@
-<form class="{{cssClass}} item-sheet-layout consequence-sheet" autocomplete="off">
+<div class="consequence-sheet item-sheet-layout">
   <header class="item-sheet-header">
-    <img class="item-sheet-icon" src="{{item.img}}" data-edit="img" title="{{item.name}}" alt="{{item.name}}" />
+    <img
+      class="item-sheet-icon"
+      src="{{item.img}}"
+      data-action="editImage"
+      data-edit="img"
+      title="{{item.name}}"
+      alt="{{item.name}}"
+    />
 
     <div class="item-sheet-header-fields">
-      <h1 class="item-sheet-name">
-        <input name="name" type="text" value="{{item.name}}" placeholder="{{typeLabel}} Name" />
-      </h1>
+      <div class="form-group full-width">
+        <label for="{{rootId}}-name">Name</label>
+        <input
+          id="{{rootId}}-name"
+          name="name"
+          type="text"
+          value="{{item.name}}"
+          placeholder="{{typeLabel}} Name"
+        />
+      </div>
 
-      <div class="item-sheet-subtitle">{{typeLabel}}</div>
+      <p class="item-sheet-subtitle">{{typeLabel}}</p>
     </div>
   </header>
 
-  <section class="item-sheet-body">
-    <div class="form-group">
-      <label>Summary</label>
+  <section class="item-sheet-body consequence-sheet-body">
+    <section class="form-group stacked">
+      <label for="{{rootId}}-summary">Summary</label>
       <input
+        id="{{rootId}}-summary"
         name="system.summary"
         type="text"
         value="{{system.summary}}"
         placeholder="Short mechanical summary"
       />
-    </div>
+    </section>
 
-    <div class="item-sheet-grid item-sheet-grid-two">
+    <section class="item-sheet-grid item-sheet-grid-two consequence-sheet-grid">
       <div class="form-group">
-        <label>Source Table</label>
+        <label for="{{rootId}}-source-table">Source Table</label>
         <input
+          id="{{rootId}}-source-table"
           name="system.sourceTable"
           type="text"
           value="{{system.sourceTable}}"
@@ -34,68 +50,75 @@
       </div>
 
       <div class="form-group">
-        <label>Roll Range</label>
+        <label for="{{rootId}}-roll-range">Roll Range</label>
         <input
+          id="{{rootId}}-roll-range"
           name="system.rollRange"
           type="text"
           value="{{system.rollRange}}"
           placeholder="01-05"
         />
       </div>
-    </div>
 
-    {{#if showSeverity}}
-      <div class="form-group">
-        <label>Severity</label>
-        <input
-          name="system.severity"
-          type="text"
-          value="{{system.severity}}"
-          placeholder="Minor, Severe, Acute"
-        />
-      </div>
-    {{/if}}
+      {{#if showSeverity}}
+        <div class="form-group">
+          <label for="{{rootId}}-severity">Severity</label>
+          <input
+            id="{{rootId}}-severity"
+            name="system.severity"
+            type="text"
+            value="{{system.severity}}"
+            placeholder="Minor, Severe, Acute"
+          />
+        </div>
+      {{/if}}
+    </section>
 
     {{#if hasTraitModifiers}}
-      <div class="form-group">
-        <label>Trait Modifier</label>
-        <input
-          name="system.modifierFormula"
-          type="text"
-          value="{{system.modifierFormula}}"
-          placeholder="Perception -1d10, Charm -20"
-        />
-      </div>
+      <section class="item-sheet-grid item-sheet-grid-two consequence-sheet-grid">
+        <div class="form-group">
+          <label for="{{rootId}}-modifier-formula">Trait Modifier</label>
+          <input
+            id="{{rootId}}-modifier-formula"
+            name="system.modifierFormula"
+            type="text"
+            value="{{system.modifierFormula}}"
+            placeholder="Perception -1d10, Charm -20"
+          />
+        </div>
 
-      <div class="form-group">
-        <label>Resolved Trait Modifier</label>
-        <input
-          name="system.resolvedModifiers"
-          type="text"
-          value="{{system.resolvedModifiers}}"
-          placeholder="Perception -6, Charm -20"
-        />
-      </div>
+        <div class="form-group">
+          <label for="{{rootId}}-resolved-modifiers">Resolved Trait Modifier</label>
+          <input
+            id="{{rootId}}-resolved-modifiers"
+            name="system.resolvedModifiers"
+            type="text"
+            value="{{system.resolvedModifiers}}"
+            placeholder="Perception -6, Charm -20"
+          />
+        </div>
+      </section>
     {{/if}}
 
-    <div class="form-group">
-      <label>Notes</label>
+    <section class="form-group stacked">
+      <label for="{{rootId}}-notes">Notes</label>
       <input
+        id="{{rootId}}-notes"
         name="system.notes"
         type="text"
         value="{{system.notes}}"
         placeholder="Tags, duration, escalation, or GM notes"
       />
-    </div>
+    </section>
 
-    <div class="form-group stacked">
-      <label>Description</label>
+    <section class="form-group stacked">
+      <label for="{{rootId}}-description">Description</label>
       <textarea
+        id="{{rootId}}-description"
         name="system.description"
         rows="14"
         placeholder="Full rules text"
       >{{system.description}}</textarea>
-    </div>
+    </section>
   </section>
-</form>
-
+</div>

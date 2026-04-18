@@ -1,4 +1,7 @@
-export class RogueTraderPsychicTechniqueSheet extends ItemSheet {
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+export class RogueTraderPsychicTechniqueSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderPsychicTechniqueSheet, {
       types: ["psychicTechnique"],
@@ -6,20 +9,30 @@ export class RogueTraderPsychicTechniqueSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "psychic-technique"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "psychic-technique"],
+    position: {
       width: 600,
-      height: 620,
-      template: "systems/roguetrader/templates/items/psychic-technique.hbs",
+      height: 640
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/psychic-technique.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.valueOptions = {

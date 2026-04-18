@@ -1,4 +1,7 @@
-export class RogueTraderStarshipHullSheet extends ItemSheet {
+const { ItemSheetV2 } = foundry.applications.sheets;
+const { HandlebarsApplicationMixin } = foundry.applications.api;
+
+export class RogueTraderStarshipHullSheet extends HandlebarsApplicationMixin(ItemSheetV2) {
   static register() {
     Items.registerSheet("roguetrader", RogueTraderStarshipHullSheet, {
       types: ["starshipHull"],
@@ -6,20 +9,30 @@ export class RogueTraderStarshipHullSheet extends ItemSheet {
     });
   }
 
-  static get defaultOptions() {
-    return foundry.utils.mergeObject(super.defaultOptions, {
-      classes: ["roguetrader", "sheet", "item", "starship-hull"],
+  static DEFAULT_OPTIONS = foundry.utils.mergeObject(super.DEFAULT_OPTIONS, {
+    classes: ["roguetrader", "sheet", "item", "starship-hull"],
+    position: {
       width: 780,
-      height: 820,
-      template: "systems/roguetrader/templates/items/starship-hull.hbs",
+      height: 820
+    },
+    window: {
+      resizable: true
+    },
+    form: {
       submitOnChange: true,
-      submitOnClose: true,
       closeOnSubmit: false
-    });
-  }
+    }
+  });
 
-  getData(options = {}) {
-    const context = super.getData(options);
+  static PARTS = {
+    sheet: {
+      template: "systems/roguetrader/templates/items/starship-hull.hbs",
+      root: true
+    }
+  };
+
+  async _prepareContext(options) {
+    const context = await super._prepareContext(options);
     context.item = this.item;
     context.system = this.item.system;
     context.classOptions = {
@@ -51,35 +64,5 @@ export class RogueTraderStarshipHullSheet extends ItemSheet {
       poor: "Poor"
     };
     return context;
-  }
-
-  activateListeners(html) {
-    super.activateListeners(html);
-    const textareas = html.find(".starship-hull-autosize");
-    textareas.each((_, element) => {
-      this._autosizeTextarea(element);
-    });
-    textareas.on("input", (event) => {
-      this._autosizeTextarea(event.currentTarget);
-    });
-    textareas.on("change", (event) => {
-      this._autosizeTextarea(event.currentTarget);
-    });
-    requestAnimationFrame(() => {
-      textareas.each((_, element) => {
-        this._autosizeTextarea(element);
-      });
-    });
-    window.setTimeout(() => {
-      textareas.each((_, element) => {
-        this._autosizeTextarea(element);
-      });
-    }, 80);
-  }
-
-  _autosizeTextarea(element) {
-    if (!(element instanceof HTMLTextAreaElement)) return;
-    element.style.height = "auto";
-    element.style.height = `${Math.max(element.scrollHeight + 12, 96)}px`;
   }
 }

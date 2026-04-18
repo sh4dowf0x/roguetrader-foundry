@@ -592,8 +592,6 @@
       "talent",
       "psychicTechnique",
       "navigatorPower",
-      "psychicPower",
-      "shipComponent",
       "essentialComponent",
       "supplementalComponent",
       "shipWeapon",
@@ -790,6 +788,7 @@
         "allShips": false
       },
       "shipPointCost": 0,
+      "shields": 0,
       "power": 0,
       "generation": 0,
       "space": 0,
@@ -813,6 +812,7 @@
         "allShips": false
       },
       "shipPointCost": 0,
+      "shields": 0,
       "power": 0,
       "generation": 0,
       "space": 0,
@@ -836,6 +836,7 @@
         "allShips": false
       },
       "shipPointCost": 0,
+      "shields": 0,
       "power": 0,
       "generation": 0,
       "space": 0,
