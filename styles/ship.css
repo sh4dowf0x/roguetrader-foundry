@@ -41,7 +41,7 @@
 
 .roguetrader .ship-sheet-header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-template-columns: minmax(0, 1fr) 520px;
   gap: 16px;
   align-items: stretch;
 }
@@ -54,11 +54,11 @@
 }
 
 .roguetrader .ship-sheet-title-block {
-  padding: 18px 20px;
+  padding: 10px 20px 18px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .roguetrader .ship-sheet-name {
@@ -73,9 +73,23 @@
 }
 
 .roguetrader .ship-sheet-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.roguetrader .ship-sheet-meta-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px 16px;
+  align-items: end;
+}
+
+.roguetrader .ship-sheet-meta-row-primary {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 92px;
+}
+
+.roguetrader .ship-sheet-meta-row-secondary {
+  grid-template-columns: minmax(180px, 240px) minmax(160px, 220px);
 }
 
 .roguetrader .ship-title-actions {
@@ -91,6 +105,28 @@
   gap: 6px;
 }
 
+.roguetrader .ship-meta-display-field {
+  align-items: center;
+  border: 1px solid rgba(233, 223, 199, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 248, 235, 0.04);
+  color: var(--rt-text);
+  display: flex;
+  font-size: 0.82rem;
+  line-height: 1.1;
+  min-height: 28px;
+  padding: 5px 8px;
+}
+
+.roguetrader .ship-stat-line-ship-points input {
+  max-width: 72px;
+  text-align: center;
+}
+
+.roguetrader .ship-stat-line-control select {
+  max-width: 220px;
+}
+
 .roguetrader .ship-stat-line label,
 .roguetrader .ship-resource-block label,
 .roguetrader .ship-card h2,
@@ -103,8 +139,16 @@
 .roguetrader .ship-sheet-art {
   border: 1px solid rgba(233, 223, 199, 0.18);
   border-radius: 12px;
+  box-sizing: border-box;
+  width: 520px;
+  min-width: 520px;
+  max-width: 520px;
+  height: 320px;
+  min-height: 320px;
+  max-height: 320px;
+  justify-self: end;
+  align-self: start;
   overflow: hidden;
-  min-height: 260px;
   background:
     linear-gradient(180deg, rgba(18, 14, 12, 0.88), rgba(40, 31, 24, 0.84));
 }
@@ -123,32 +167,123 @@
 }
 
 .roguetrader .ship-roster-card {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
 .roguetrader .ship-actions-card {
-  margin-top: 16px;
+  margin-top: 0;
 }
 
-.roguetrader .ship-actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 6px;
+.roguetrader .ship-actions-groups {
+  column-width: 320px;
+  column-gap: 10px;
+}
+
+.roguetrader .ship-action-group {
+  border: 1px solid rgba(233, 223, 199, 0.12);
+  border-left-width: 5px;
+  border-radius: 12px;
+  background: rgba(255, 248, 235, 0.04);
+  overflow: hidden;
+  min-width: 0;
+  break-inside: avoid;
+  display: inline-block;
+  margin: 0 0 10px;
+  vertical-align: top;
+  width: 100%;
+  max-width: none;
+}
+
+.roguetrader .ship-action-group.is-move {
+  border-left-color: #4f8f7c;
+}
+
+.roguetrader .ship-action-group.is-attack {
+  border-left-color: #9d5c50;
+}
+
+.roguetrader .ship-action-group.is-social {
+  border-left-color: #b1824d;
+}
+
+.roguetrader .ship-action-group.is-technological {
+  border-left-color: #587da1;
+}
+
+.roguetrader .ship-action-group.is-navigator {
+  border-left-color: #6f66a8;
+}
+
+.roguetrader .ship-action-group.is-astropathic {
+  border-left-color: #8d5fa6;
+}
+
+.roguetrader .ship-action-group.is-other {
+  border-left-color: #6e736f;
+}
+
+.roguetrader .ship-action-group-header {
+  padding: 8px 12px 6px;
+}
+
+.roguetrader .ship-action-group-header h3 {
+  color: var(--rt-accent);
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.roguetrader .ship-action-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 6px 6px;
 }
 
 .roguetrader .ship-action-button {
   align-items: flex-start;
   background: rgba(255, 248, 235, 0.04);
-  border: 1px solid rgba(233, 223, 199, 0.16);
+  border: 1px solid rgba(233, 223, 199, 0.12);
   border-radius: 10px;
   color: var(--rt-text);
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-height: 56px;
-  padding: 6px 8px;
+  min-height: 50px;
+  padding: 7px 10px;
   position: relative;
   text-align: left;
+  width: 100%;
+}
+
+.roguetrader .ship-action-button.is-move {
+  background: linear-gradient(90deg, rgba(79, 143, 124, 0.18), rgba(255, 248, 235, 0.04) 18%);
+}
+
+.roguetrader .ship-action-button.is-attack {
+  background: linear-gradient(90deg, rgba(157, 92, 80, 0.18), rgba(255, 248, 235, 0.04) 18%);
+}
+
+.roguetrader .ship-action-button.is-social {
+  background: linear-gradient(90deg, rgba(177, 130, 77, 0.18), rgba(255, 248, 235, 0.04) 18%);
+}
+
+.roguetrader .ship-action-button.is-technological {
+  background: linear-gradient(90deg, rgba(88, 125, 161, 0.18), rgba(255, 248, 235, 0.04) 18%);
+}
+
+.roguetrader .ship-action-button.is-navigator {
+  background: linear-gradient(90deg, rgba(111, 102, 168, 0.18), rgba(255, 248, 235, 0.04) 18%);
+}
+
+.roguetrader .ship-action-button.is-astropathic {
+  background: linear-gradient(90deg, rgba(141, 95, 166, 0.18), rgba(255, 248, 235, 0.04) 18%);
+}
+
+.roguetrader .ship-action-button.is-other {
+  background: linear-gradient(90deg, rgba(110, 115, 111, 0.18), rgba(255, 248, 235, 0.04) 18%);
 }
 
 .roguetrader .ship-action-button:hover,
@@ -706,6 +841,10 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.roguetrader .ship-profile-grid-five {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .roguetrader .ship-profile-column {
   display: flex;
   flex-direction: column;
@@ -719,6 +858,11 @@
   align-items: center;
 }
 
+.roguetrader .ship-profile-field-stack {
+  align-items: start;
+  grid-template-columns: 1fr;
+}
+
 .roguetrader .ship-profile-field-wide {
   grid-column: 1 / -1;
 }
@@ -728,6 +872,55 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+
+.roguetrader .ship-profile-rating-group-quad {
+  width: 100%;
+}
+
+.roguetrader .ship-armor-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  line-height: 1;
+}
+
+.roguetrader .ship-armor-heading {
+  color: rgba(233, 223, 199, 0.88);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.roguetrader .ship-armor-label {
+  color: rgba(233, 223, 199, 0.72);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.roguetrader .ship-armor-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.roguetrader .ship-armor-row {
+  align-items: center;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 70px;
+}
+
+.roguetrader .ship-profile-armor-column input {
+  text-align: center;
+}
+
+.roguetrader .ship-armor-display {
+  letter-spacing: 0.01em;
 }
 
 .roguetrader .ship-profile-rating-pair {
@@ -791,6 +984,59 @@
 .roguetrader .ship-profile-roll:focus-visible {
   color: #f3d889;
   text-decoration: underline;
+}
+
+.roguetrader .ship-astropathic-powers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 10px;
+}
+
+.roguetrader .ship-astropathic-power-toggle {
+  align-items: center;
+  background: rgba(255, 248, 235, 0.05);
+  border: 1px solid rgba(233, 223, 199, 0.12);
+  border-radius: 10px;
+  display: flex;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 10px;
+}
+
+.roguetrader .ship-astropathic-power-toggle input {
+  margin: 0;
+}
+
+.roguetrader .ship-astropathic-power-toggle span {
+  color: var(--rt-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.roguetrader .ship-modifier-table th:nth-child(1),
+.roguetrader .ship-modifier-table td:nth-child(1) {
+  width: 52%;
+}
+
+.roguetrader .ship-modifier-table th:nth-child(2),
+.roguetrader .ship-modifier-table th:nth-child(3),
+.roguetrader .ship-modifier-table th:nth-child(4),
+.roguetrader .ship-modifier-table td:nth-child(2),
+.roguetrader .ship-modifier-table td:nth-child(3),
+.roguetrader .ship-modifier-table td:nth-child(4) {
+  width: 16%;
+}
+
+.roguetrader .ship-modifier-table td {
+  vertical-align: middle;
+}
+
+.roguetrader .ship-modifier-input {
+  min-height: 26px;
+  padding: 3px 6px;
+  text-align: center;
+  width: 100%;
 }
 
 .roguetrader .ship-condition-note {
@@ -944,15 +1190,15 @@
 }
 
 .roguetrader .ship-table-icon-cell {
-  width: 54px;
+  width: 48px;
   text-align: center;
 }
 
 .roguetrader .ship-weapon-action-cell {
-  width: 54px;
-  min-width: 54px;
-  padding-left: 4px;
-  padding-right: 4px;
+  width: 48px;
+  min-width: 48px;
+  padding-left: 0;
+  padding-right: 0;
   text-align: center;
 }
 
@@ -1029,6 +1275,104 @@
 
 .roguetrader .ship-wide-table-card {
   width: 100%;
+}
+
+.roguetrader .ship-table-card {
+  padding: 6px 0 0;
+  overflow: hidden;
+}
+
+.roguetrader .ship-table-title {
+  color: var(--rt-accent);
+  font-size: 1.25rem;
+  font-variant: small-caps;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.02;
+  margin: 0;
+  padding: 0 14px 4px;
+}
+
+.roguetrader .ship-table-card .ship-table-wrap,
+.roguetrader .ship-table-card .ship-data-table {
+  margin: 0;
+  padding: 0;
+}
+
+.roguetrader .ship-table-card .ship-data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.roguetrader .ship-component-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 94px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(233, 223, 199, 0.16);
+  background: rgba(255, 248, 232, 0.06);
+  color: var(--rt-text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.roguetrader .ship-component-status-badge.is-intact {
+  background: rgba(90, 136, 93, 0.18);
+  border-color: rgba(118, 180, 123, 0.34);
+}
+
+.roguetrader .ship-component-status-badge.is-unpowered {
+  background: rgba(127, 118, 85, 0.18);
+  border-color: rgba(184, 168, 119, 0.34);
+}
+
+.roguetrader .ship-component-status-badge.is-damaged {
+  background: rgba(155, 102, 68, 0.2);
+  border-color: rgba(203, 133, 90, 0.34);
+}
+
+.roguetrader .ship-component-status-badge.is-destroyed {
+  background: rgba(119, 56, 56, 0.24);
+  border-color: rgba(189, 92, 92, 0.34);
+}
+
+.roguetrader .ship-component-summary {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.35;
+}
+
+@keyframes rtShipComponentFireGlow {
+  0% {
+    background:
+      linear-gradient(90deg, rgba(166, 72, 38, 0.12), rgba(255, 148, 79, 0.04) 24%, rgba(255, 248, 232, 0.02) 58%);
+    box-shadow: inset 3px 0 0 rgba(214, 104, 58, 0.38);
+  }
+  50% {
+    background:
+      linear-gradient(90deg, rgba(196, 88, 42, 0.18), rgba(255, 173, 92, 0.08) 28%, rgba(255, 248, 232, 0.03) 60%);
+    box-shadow: inset 4px 0 0 rgba(235, 129, 66, 0.52);
+  }
+  100% {
+    background:
+      linear-gradient(90deg, rgba(166, 72, 38, 0.12), rgba(255, 148, 79, 0.04) 24%, rgba(255, 248, 232, 0.02) 58%);
+    box-shadow: inset 3px 0 0 rgba(214, 104, 58, 0.38);
+  }
+}
+
+.roguetrader .ship-data-table tbody tr.ship-component-row-on-fire td {
+  animation: rtShipComponentFireGlow 2.2s ease-in-out infinite;
+}
+
+.roguetrader .ship-data-table tbody tr.ship-component-row-on-fire:hover td {
+  animation-duration: 1.6s;
 }
 
 .roguetrader .ship-list-row,
@@ -1293,19 +1637,22 @@
     grid-template-columns: 1fr;
   }
 
-  .roguetrader .ship-profile-grid-four {
+  .roguetrader .ship-profile-grid-four,
+  .roguetrader .ship-profile-grid-five {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 760px) {
-  .roguetrader .ship-profile-grid-four {
+  .roguetrader .ship-profile-grid-four,
+  .roguetrader .ship-profile-grid-five {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 560px) {
-  .roguetrader .ship-profile-grid-four {
+  .roguetrader .ship-profile-grid-four,
+  .roguetrader .ship-profile-grid-five {
     grid-template-columns: 1fr;
   }
 

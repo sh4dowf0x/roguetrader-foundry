@@ -81,6 +81,27 @@
       </div>
     </div>
 
+    <div class="form-group">
+      <label for="{{rootId}}-status">Status</label>
+      <select id="{{rootId}}-status" name="system.status">
+        {{selectOptions componentStatusOptions selected=system.status}}
+      </select>
+    </div>
+
+    <div class="form-group item-body-grid-span">
+      <label>Hazards</label>
+      <div class="ship-component-hull-flags">
+        <label class="ship-component-hull-flag" for="{{rootId}}-depressurized">
+          <input id="{{rootId}}-depressurized" type="checkbox" name="system.depressurized" {{#if system.depressurized}}checked{{/if}} />
+          <span>Depressurized</span>
+        </label>
+        <label class="ship-component-hull-flag" for="{{rootId}}-on-fire">
+          <input id="{{rootId}}-on-fire" type="checkbox" name="system.onFire" {{#if system.onFire}}checked{{/if}} />
+          <span>On Fire</span>
+        </label>
+      </div>
+    </div>
+
     <div class="form-group item-body-grid-span">
       <label>Allowed Hulls</label>
       <div class="ship-component-hull-flags">

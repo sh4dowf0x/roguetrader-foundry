@@ -464,7 +464,12 @@
       },
       "turretRating": 0,
       "shields": 0,
-      "armor": 0,
+      "armor": {
+        "prow": 0,
+        "port": 0,
+        "starboard": 0,
+        "aft": 0
+      },
       "space": {
         "value": 0,
         "used": 0
@@ -481,7 +486,7 @@
         "value": 0,
         "spent": 0
       },
-      "controlMode": "player",
+      "controlMode": "npc",
       "npcCrewRating": 30,
         "resources": {
           "hullIntegrity": {
@@ -519,6 +524,36 @@
             "rollTotal": 0,
             "speedHalved": false,
             "speedReducedToOne": false
+          },
+          "silentRunning": {
+            "active": false,
+            "source": "",
+            "appliedAt": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
+          },
+          "jammedCommunications": {
+            "active": false,
+            "source": ""
+          },
+          "warpInterference": {
+            "active": false,
+            "penalty": 10,
+            "source": "",
+            "sourceShipName": "",
+            "remainingRounds": 0
+          },
+          "evasiveManeuvers": {
+            "active": false,
+            "penalty": 0,
+            "source": "",
+            "appliedAt": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
           }
         },
         "weaponCapacity": {
@@ -552,6 +587,84 @@
           }
         },
         "actionAssignments": {},
+        "pendingLockOnTarget": {
+          "active": false,
+          "weaponId": "",
+          "weaponName": "",
+          "targetActorUuid": "",
+          "targetName": "",
+          "bonus": 0,
+          "source": "",
+          "operatorName": "",
+          "appliedAt": {
+            "combatId": "",
+            "round": 0,
+            "turn": 0
+          }
+        },
+        "pendingTacticalPositioning": {
+          "active": false,
+          "mode": "",
+          "bonusDegrees": 0,
+          "source": "",
+          "operatorName": "",
+          "appliedAt": {
+            "combatId": "",
+            "round": 0,
+            "turn": 0
+          }
+        },
+        "shipActionUsage": {
+          "combatId": "",
+          "round": 0,
+          "turn": 0,
+          "moveUsed": false,
+          "shootingUsed": false
+        },
+        "fireWeaponsState": {
+          "combatId": "",
+          "round": 0,
+          "turn": 0,
+          "active": false,
+          "firedWeaponIds": []
+        },
+        "modifiers": {
+          "extraSpeed": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraManeuverability": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraDetection": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraTurrets": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraShields": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraArmor": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraArmorProw": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraArmorPort": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraArmorStarboard": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraArmorAft": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraHullIntegrity": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraCrewPercent": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraMoralePercent": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraPower": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraSpace": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "repairBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "commandBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "pilotingBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "navigationBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "crewRatingBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraAccuracy": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "extraEvasion": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "travelTimeModifier": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "warpEncounterModifier": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "addedMoraleLoss": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "addedCrewLoss": { "manual": 0, "automatic": 0, "temporary": 0 }
+        },
+        "astropathicPowers": {
+          "compel": false,
+          "delude": false,
+          "divination": false,
+          "telekinesis": false,
+          "terrify": false,
+          "inspire": false,
+          "mindLink": false
+        },
         "pastHistory": "",
         "traits": ""
       },
@@ -793,6 +906,16 @@
       "generation": 0,
       "space": 0,
       "origin": "",
+      "status": "intact",
+      "depressurized": false,
+      "onFire": false,
+      "emergencyRepair": {
+        "active": false,
+        "remainingTurns": 0,
+        "source": "",
+        "operatorName": ""
+      },
+      "shipModifiers": "",
       "shortDescription": ""
     },
     "essentialComponent": {
@@ -817,6 +940,16 @@
       "generation": 0,
       "space": 0,
       "origin": "",
+      "status": "intact",
+      "depressurized": false,
+      "onFire": false,
+      "emergencyRepair": {
+        "active": false,
+        "remainingTurns": 0,
+        "source": "",
+        "operatorName": ""
+      },
+      "shipModifiers": "",
       "shortDescription": ""
     },
     "supplementalComponent": {
@@ -841,6 +974,16 @@
       "generation": 0,
       "space": 0,
       "origin": "",
+      "status": "intact",
+      "depressurized": false,
+      "onFire": false,
+      "emergencyRepair": {
+        "active": false,
+        "remainingTurns": 0,
+        "source": "",
+        "operatorName": ""
+      },
+      "shipModifiers": "",
       "shortDescription": ""
     },
     "shipWeapon": {
@@ -850,6 +993,15 @@
       "shipPointCost": 0,
       "power": 0,
       "space": 0,
+      "status": "intact",
+      "depressurized": false,
+      "onFire": false,
+      "emergencyRepair": {
+        "active": false,
+        "remainingTurns": 0,
+        "source": "",
+        "operatorName": ""
+      },
       "weaponClass": "macrobattery",
       "torpedoType": "",
       "torpedoGuidance": "standard",

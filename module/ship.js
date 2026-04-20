@@ -1,5 +1,5 @@
 import { RogueTraderShipConstructionApplication } from "./ship-construction.js";
-import { rollStarshipWeaponAttack } from "./starship-combat.js";
+import { getShipFacingDegrees, rollStarshipWeaponAttack } from "./starship-combat.js";
 import { rollD100Test } from "./rolls.js";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
@@ -26,6 +26,108 @@ const SHIP_CONTROL_MODE_OPTIONS = [
   { value: "player", label: "Player Ship" },
   { value: "npc", label: "NPC Ship" }
 ];
+const SHIP_ACTION_GROUP_DEFINITIONS = [
+  {
+    key: "move-manoeuvre",
+    label: "Move / Manoeuvre",
+    mode: "Move",
+    subtype: "Manoeuvre",
+    accentClass: "is-move"
+  },
+  {
+    key: "shooting-attack",
+    label: "Shooting / Attack",
+    mode: "Shooting",
+    subtype: "Attack",
+    accentClass: "is-attack"
+  },
+  {
+    key: "extended-social",
+    label: "Extended / Social",
+    mode: "Extended",
+    subtype: "Social",
+    accentClass: "is-social"
+  },
+  {
+    key: "extended-technological",
+    label: "Extended / Technological",
+    mode: "Extended",
+    subtype: "Technological",
+    accentClass: "is-technological"
+  },
+  {
+    key: "extended-other",
+    label: "Extended / Other",
+    mode: "Extended",
+    subtype: null,
+    accentClass: "is-other"
+  },
+  {
+    key: "extended-navigator",
+    label: "Extended / Navigator",
+    mode: "Extended",
+    subtype: "Navigator",
+    accentClass: "is-navigator"
+  },
+  {
+    key: "extended-astropathic",
+    label: "Extended / Astropathic",
+    mode: "Extended",
+    subtype: "Astropathic",
+    accentClass: "is-astropathic"
+  }
+];
+const ASTROPATHIC_POWER_OPTIONS = [
+  { key: "compel", label: "Compel" },
+  { key: "delude", label: "Delude" },
+  { key: "divination", label: "Divination" },
+  { key: "telekinesis", label: "Telekinesis" },
+  { key: "terrify", label: "Terrify" },
+  { key: "inspire", label: "Inspire" },
+  { key: "mindLink", label: "Mind Link" }
+];
+const ASTROPATHIC_ACTION_POWER_REQUIREMENTS = {
+  controlWeakMind: ["compel"],
+  darkLabyrinth: ["delude"],
+  diviningTheWay: ["divination"],
+  flashFire: ["telekinesis"],
+  illOmens: ["terrify"],
+  inspiringPresence: ["inspire"],
+  maskOfTheVoid: ["delude"],
+  psychicDeflection: ["telekinesis"],
+  quellFlames: ["telekinesis"],
+  takingTheShot: ["divination"],
+  tiesThatBind: ["mindLink"],
+  unnaturalResolve: ["inspire"]
+};
+const SHIP_MODIFIER_DEFINITIONS = [
+  { key: "extraSpeed", label: "Extra SPD", shortLabel: "SPD" },
+  { key: "extraManeuverability", label: "Extra MAN", shortLabel: "MAN" },
+  { key: "extraDetection", label: "Extra DET", shortLabel: "DET" },
+  { key: "extraTurrets", label: "Extra Turrets", shortLabel: "Turrets" },
+  { key: "extraShields", label: "Extra Shields", shortLabel: "Shields" },
+  { key: "extraArmor", label: "Extra Armour (All)", shortLabel: "Armour" },
+  { key: "extraArmorProw", label: "Extra Armour (Prow)", shortLabel: "Prow Arm" },
+  { key: "extraArmorPort", label: "Extra Armour (Port)", shortLabel: "Port Arm" },
+  { key: "extraArmorStarboard", label: "Extra Armour (Starboard)", shortLabel: "Stbd Arm" },
+  { key: "extraArmorAft", label: "Extra Armour (Aft)", shortLabel: "Aft Arm" },
+  { key: "extraHullIntegrity", label: "Extra HI", shortLabel: "HI" },
+  { key: "extraCrewPercent", label: "Extra Crew%", shortLabel: "Crew%" },
+  { key: "extraMoralePercent", label: "Extra Morale%", shortLabel: "Morale%" },
+  { key: "extraPower", label: "Extra Power", shortLabel: "Power" },
+  { key: "extraSpace", label: "Extra Space", shortLabel: "Space" },
+  { key: "repairBonus", label: "Repair Bonus", shortLabel: "Repair" },
+  { key: "commandBonus", label: "Command Bonus", shortLabel: "Command" },
+  { key: "pilotingBonus", label: "Piloting Bonus", shortLabel: "Pilot" },
+  { key: "navigationBonus", label: "Navigation Bonus", shortLabel: "Navigate" },
+  { key: "crewRatingBonus", label: "Crew Rating Bonus", shortLabel: "Crew Rating" },
+  { key: "extraAccuracy", label: "Extra Accuracy", shortLabel: "Accuracy" },
+  { key: "extraEvasion", label: "Evasion", shortLabel: "Evasion" },
+  { key: "travelTimeModifier", label: "Travel Time Modifier", shortLabel: "Travel" },
+  { key: "warpEncounterModifier", label: "Warp Encounter Mod", shortLabel: "Warp" },
+  { key: "addedMoraleLoss", label: "Added Morale Loss", shortLabel: "Morale Loss" },
+  { key: "addedCrewLoss", label: "Added Crew Loss", shortLabel: "Crew Loss" }
+];
 
 const NPC_CREW_RATING_OPTIONS = [
   { value: 20, label: "Incompetent (20)" },
@@ -43,6 +145,7 @@ const ACTIVE_AUGURY_SEQUENCE_FILE = "jb2a.template_circle.radar.loop.800px.001.s
 const ACTIVE_AUGURY_RADIUS_METERS = 20;
 const ACTIVE_AUGURY_PING_FILE = "jb2a.template_circle.radar.loop.ping.001.300px.triangle.greenpurple";
 const ACTIVE_AUGURY_PING_DURATION_MS = 30000;
+const NINETY_DEGREE_TURN_HULL_CLASSES = new Set(["transport", "frigate", "raider"]);
 
 const CARGO_ITEM_TYPES = new Set(["gear", "consumable", "tool", "cybernetic", "armor", "weapon"]);
 const SHIP_ROSTER_ROLES = [
@@ -64,20 +167,20 @@ const STARSHIP_ACTION_DEFINITIONS = [
   { key: "evasiveManeuvers", label: "Evasive Manoeuvres", mode: "Move", subtype: "Manoeuvre", summary: "-10 Pilot (Spacecraft) + Manoeuvrability; attacks against the craft suffer penalties; the ship also takes a Ballistic Skill penalty." },
   { key: "activeAugury", label: "Active Augury", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; learn information about celestial bodies, phenomena, and ships within 20 VUs; detects Silent Running." },
   { key: "aidMachineSpirit", label: "Aid the Machine Spirit", mode: "Extended", subtype: "Technological", summary: "Grant +5 Manoeuvrability or Detection, plus +5 per 2 DoS." },
-  { key: "disinformation", label: "Disinformation", mode: "Extended", subtype: "Social", summary: "-10 Deceive or Blather; inflict 1d5 Morale damage, plus 1d5 per DoS." },
+  { key: "disinformation", label: "Disinformation", mode: "Extended", subtype: "Social", summary: "-10 Deceive or Blather; restore 1d5 Morale, plus an additional 1d5 per DoS, to your own ship." },
   { key: "emergencyRepairs", label: "Emergency Repairs", mode: "Extended", subtype: "Technological", summary: "-10 Tech-Use; repair an Unpowered, Damaged, or Depressurised Component; time taken 1d5-DoS Turns." },
   { key: "flankSpeed", label: "Flank Speed", mode: "Extended", subtype: "Manoeuvre", summary: "Tech-Use; +1 VU Speed plus +1 VU per DoS; 2 DoF causes Engine Crippled." },
   { key: "focusedAugury", label: "Focused Augury", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; identify enemy components within 20 VUs, with more revealed at higher DoS." },
   { key: "hailEnemy", label: "Hail the Enemy", mode: "Extended", subtype: "Social", summary: "Open communications with ships within range; can be performed by characters who have participated in Manoeuvre or Shooting." },
-  { key: "hitAndRun", label: "Hit & Run", mode: "Extended", subtype: "Attack", summary: "Pilot (Spacecraft), -10 per Turret Rating, 5 VU range; if successful, make a Command test to inflict critical effects and Hull Integrity damage." },
+  { key: "hitAndRun", label: "Hit & Run", mode: "Shooting", subtype: "Attack", summary: "Pilot (Spacecraft), -10 per Turret Rating, 5 VU range; if successful, make a Command test to inflict critical effects and Hull Integrity damage." },
   { key: "holdFast", label: "Hold Fast!", mode: "Extended", subtype: "Social", summary: "Air of Authority required; Willpower; on success reduce Morale damage by 1, plus DoS, minimum 1, during the current turn." },
   { key: "jamCommunications", label: "Jam Communications", mode: "Extended", subtype: "Technological", summary: "-10 Tech-Use; if successful, target ship cannot use Social actions; range 10 VU + DoS." },
   { key: "lockOnTarget", label: "Lock on Target", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; +5 Ballistic Skill for one weapon component, plus +5 per 2 DoS." },
   { key: "prepareRepelBoarders", label: "Prepare to Repel Boarders!", mode: "Extended", subtype: "Social", summary: "Command; if successful +10 Command, plus +5 per DoS, against Boarding Actions as long as maintained." },
   { key: "putBacksIntoIt", label: "Put your Backs into it!", mode: "Extended", subtype: "Social", summary: "Intimidate or Charm; boost one weapon, Emergency Repairs, or Firefighting; +1 additional action per 3 DoS." },
-  { key: "triage", label: "Triage", mode: "Extended", subtype: "Medical", summary: "-10 Medicae; reduce Crew Population damage by 1, plus DoS, minimum 1, during the current turn." },
+  { key: "triage", label: "Triage", mode: "Extended", subtype: "Technological", summary: "-10 Medicae; reduce Crew Population damage by 1, plus DoS, minimum 1, during the current turn." },
   { key: "silentRunning", label: "Silent Running", mode: "Extended", subtype: "Manoeuvre", summary: "Undetectable except with Augury; Manoeuvre Tests -10; +10 Pilot (Spacecraft) + Manoeuvrability to do a Standard Move." },
-  { key: "firefighting", label: "Firefighting", mode: "Extended", subtype: "Internal", summary: "-10 Command; if successful, remove Fire; may choose to vent into the void." },
+  { key: "firefighting", label: "Firefighting", mode: "Extended", subtype: "Technological", summary: "-10 Command; if successful, remove Fire; may choose to vent into the void." },
   { key: "fireWeapons", label: "Fire Weapons", mode: "Shooting", subtype: "Attack", summary: "Ballistic Skill; resolve weapon component attacks in the chosen firing order." },
   { key: "ramming", label: "Ramming", mode: "Shooting", subtype: "Attack", summary: "End move within 1 VU; -20 Pilot (Spacecraft) + Manoeuvrability; both ships take damage." },
   { key: "boarding", label: "Boarding", mode: "Shooting", subtype: "Attack", summary: "End move within 1 VU; Pilot (Spacecraft) + Manoeuvrability to entangle and board; opposed Command resolves damage." },
@@ -108,6 +211,10 @@ function isVoidshipCrewActor(actor) {
 
 function normalizeSkillName(value) {
   return String(value ?? "").trim().toLowerCase();
+}
+
+function normalizeShipHullClass(value) {
+  return String(value ?? "").trim().toLowerCase().replace(/[\s-]+/g, "");
 }
 
 function getShipTokenCenter(tokenLike) {
@@ -155,18 +262,23 @@ function getShipProfileStatData(statData) {
   };
 }
 
-function getShipProfileDisplayData(statData, effectiveValue) {
+function getShipProfileDisplayData(statData, effectiveValue, modifierTotals = {}) {
   const normalized = getShipProfileStatData(statData);
+  const permanentModifier = Number(modifierTotals?.permanent ?? 0) || 0;
+  const temporaryModifier = Number(modifierTotals?.temporary ?? 0) || 0;
+  const displayPermanent = normalized.permanent + permanentModifier;
+  const displayTemporary = normalized.temporary + temporaryModifier;
   const effective = Number(effectiveValue ?? 0) || 0;
   let stateClass = "";
-  if (effective > normalized.permanent) {
+  if (effective > displayPermanent) {
     stateClass = "is-buffed";
-  } else if (effective < normalized.permanent) {
+  } else if (effective < displayPermanent) {
     stateClass = "is-debuffed";
   }
 
   return {
-    ...normalized,
+    permanent: displayPermanent,
+    temporary: displayTemporary,
     effective,
     stateClass
   };
@@ -214,6 +326,7 @@ function getActorInitials(actor) {
 
 export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
   #activeTab = "page-one";
+  #standardMoveAssist = null;
 
   static register() {
     Actors.registerSheet("roguetrader", RogueTraderShipSheet, {
@@ -257,14 +370,52 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
   }
 
   _prepareLegacyContext(context) {
+    context.system ??= this.actor.system ?? {};
+    const rawArmor = this.actor.system?.armor ?? context.system?.armor;
+    const sharedArmor = Number(rawArmor?.value ?? rawArmor ?? 0) || 0;
+    context.system.armor = {
+      prow: Number(rawArmor?.prow ?? sharedArmor) || 0,
+      port: Number(rawArmor?.port ?? sharedArmor) || 0,
+      starboard: Number(rawArmor?.starboard ?? sharedArmor) || 0,
+      aft: Number(rawArmor?.aft ?? sharedArmor) || 0
+    };
+
     const items = Array.from(this.actor.items ?? []);
     const speedData = getShipProfileStatData(this.actor.system?.speed);
     const maneuverabilityData = getShipProfileStatData(this.actor.system?.maneuverability);
     const detectionData = getShipProfileStatData(this.actor.system?.detection);
+    const speedModifierTotals = {
+      permanent: Number(this.actor.getShipModifierPermanentTotal?.("extraSpeed") ?? 0) || 0,
+      temporary: Number(this.actor.getShipModifierTemporaryTotal?.("extraSpeed") ?? 0) || 0
+    };
+    const maneuverabilityModifierTotals = {
+      permanent: Number(this.actor.getShipModifierPermanentTotal?.("extraManeuverability") ?? 0) || 0,
+      temporary: Number(this.actor.getShipModifierTemporaryTotal?.("extraManeuverability") ?? 0) || 0
+    };
+    const detectionModifierTotals = {
+      permanent: Number(this.actor.getShipModifierPermanentTotal?.("extraDetection") ?? 0) || 0,
+      temporary: Number(this.actor.getShipModifierTemporaryTotal?.("extraDetection") ?? 0) || 0
+    };
     const effectiveSpeed = this.actor.getEffectiveShipSpeed?.() ?? (Number(this.actor.system?.speed ?? 0) || 0);
     const effectiveManeuverability = this.actor.getEffectiveShipManeuverability?.() ?? (Number(this.actor.system?.maneuverability ?? 0) || 0);
     const effectiveDetection = this.actor.getEffectiveShipDetection?.() ?? (Number(this.actor.system?.detection ?? 0) || 0);
     const effectiveShields = this.actor.getEffectiveShipShields?.() ?? (Number(this.actor.system?.shields ?? 0) || 0);
+    const effectiveTurretRating = this.actor.getEffectiveShipTurretRating?.() ?? (Number(this.actor.system?.turretRating ?? 0) || 0);
+    const effectiveArmorProfile = this.actor.getEffectiveShipArmorProfile?.() ?? {
+      prow: Number(this.actor.system?.armor?.prow ?? this.actor.system?.armor ?? 0) || 0,
+      port: Number(this.actor.system?.armor?.port ?? this.actor.system?.armor ?? 0) || 0,
+      starboard: Number(this.actor.system?.armor?.starboard ?? this.actor.system?.armor ?? 0) || 0,
+      aft: Number(this.actor.system?.armor?.aft ?? this.actor.system?.armor ?? 0) || 0
+    };
+    const portStarArmorDisplay = effectiveArmorProfile.port === effectiveArmorProfile.starboard
+      ? String(effectiveArmorProfile.port)
+      : `${effectiveArmorProfile.port} / ${effectiveArmorProfile.starboard}`;
+    const effectiveHullIntegrity = this.actor.getEffectiveShipHullIntegrityValue?.() ?? (Number(this.actor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+    const effectiveHullIntegrityMax = this.actor.getEffectiveShipHullIntegrityMax?.() ?? (Number(this.actor.system?.resources?.hullIntegrity?.max ?? 0) || 0);
+    const effectiveCrewValue = this.actor.getEffectiveShipCrewPopulationValue?.() ?? (Number(this.actor.system?.crew?.value ?? 0) || 0);
+    const effectiveCrewMax = this.actor.getEffectiveShipCrewPopulationMax?.() ?? (Number(this.actor.system?.crew?.max ?? 0) || 0);
+    const effectiveMoraleValue = this.actor.getEffectiveShipMoraleValue?.() ?? (Number(this.actor.system?.resources?.morale?.value ?? 0) || 0);
+    const effectiveMoraleMax = this.actor.getEffectiveShipMoraleMax?.() ?? (Number(this.actor.system?.resources?.morale?.max ?? 0) || 0);
     const starshipHulls = items
       .filter((item) => item.type === "starshipHull")
       .sort((left, right) => left.name.localeCompare(right.name))
@@ -281,6 +432,8 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       .filter((item) => item.type === "shipWeapon")
       .sort((left, right) => left.name.localeCompare(right.name))
       .map((item) => this._buildShipWeaponEntry(item));
+    const supplementalSystems = [...supplementalComponents, ...shipWeapons]
+      .sort((left, right) => left.name.localeCompare(right.name));
     const cargo = items
       .filter((item) => CARGO_ITEM_TYPES.has(item.type))
       .sort((left, right) => left.name.localeCompare(right.name))
@@ -302,7 +455,12 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     const activeHull = this._getActiveHullEntry(starshipHulls);
     const roster = this._buildShipRoster();
     const shipActions = this._buildShipActions();
-    const showShipActions = Boolean(game.combat?.started ?? game.combat);
+    const shipActionGroups = this._buildShipActionGroups(shipActions);
+    const shipActionColumns = this._buildShipActionColumns(shipActionGroups);
+    const hasAssignedAstropath = Boolean(roster.find((entry) => entry.key === "astropath")?.assignedActor);
+    const astropathicPowerState = this.actor.system?.astropathicPowers ?? {};
+    const shipModifierState = this.actor.system?.modifiers ?? {};
+    const showShipActions = Boolean(game.combat);
     const shipEffects = this._buildShipEffects({
       speedData,
       maneuverabilityData,
@@ -316,37 +474,58 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       activeHull,
       hasStarshipHulls: starshipHulls.length > 0,
       essentialComponents,
-      supplementalComponents,
+      supplementalComponents: supplementalSystems,
       shipWeapons,
       cargo,
       effects: shipEffects,
       actions: shipActions,
+      actionGroups: shipActionGroups,
+      actionColumns: shipActionColumns,
       showActions: showShipActions,
+      hasAssignedAstropath,
+      astropathicPowerOptions: ASTROPATHIC_POWER_OPTIONS.map((option) => ({
+        ...option,
+        checked: Boolean(astropathicPowerState?.[option.key])
+      })),
+      modifiers: SHIP_MODIFIER_DEFINITIONS.map((definition) => {
+        const modifierState = shipModifierState?.[definition.key] ?? {};
+        const manual = Number(modifierState?.manual ?? 0) || 0;
+        const automatic = Number(this.actor.getShipAutomaticModifierTotal?.(definition.key) ?? modifierState?.automatic ?? 0) || 0;
+        const temporary = Number(modifierState?.temporary ?? 0) || 0;
+        return {
+          ...definition,
+          manual,
+          automatic,
+          temporary,
+          permanentTotal: manual + automatic,
+          total: manual + automatic + temporary
+        };
+      }),
       roster,
       hasEssentialComponents: essentialComponents.length > 0,
-      hasSupplementalComponents: supplementalComponents.length > 0,
+      hasSupplementalComponents: supplementalSystems.length > 0,
       hasShipWeapons: shipWeapons.length > 0,
       hasCargo: cargo.length > 0,
       hasEffects: shipEffects.length > 0,
       hasActions: showShipActions && shipActions.length > 0,
       torpedoLoadOptions: TORPEDO_LOAD_OPTIONS,
       art: this.actor.img || "icons/svg/ship.svg",
-      controlMode: String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc" ? "npc" : "player",
+      controlMode: String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc" ? "npc" : "player",
       controlModeOptions: SHIP_CONTROL_MODE_OPTIONS.map((option) => ({
         ...option,
-        selected: option.value === (String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc" ? "npc" : "player")
+        selected: option.value === (String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc" ? "npc" : "player")
       })),
-      npcCrewRating: Number(this.actor.system?.npcCrewRating ?? 30) || 30,
+      npcCrewRating: Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 30) || 30,
       npcCrewRatingOptions: NPC_CREW_RATING_OPTIONS.map((option) => ({
         ...option,
         selected: option.value === (Number(this.actor.system?.npcCrewRating ?? 30) || 30)
       })),
-      isNpcControlled: String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc",
+      isNpcControlled: String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc",
       isCrippled: Boolean(this.actor.isCrippled?.()),
       profileStats: {
-        speed: getShipProfileDisplayData(speedData, effectiveSpeed),
-        maneuverability: getShipProfileDisplayData(maneuverabilityData, effectiveManeuverability),
-        detection: getShipProfileDisplayData(detectionData, effectiveDetection)
+        speed: getShipProfileDisplayData(speedData, effectiveSpeed, speedModifierTotals),
+        maneuverability: getShipProfileDisplayData(maneuverabilityData, effectiveManeuverability, maneuverabilityModifierTotals),
+        detection: getShipProfileDisplayData(detectionData, effectiveDetection, detectionModifierTotals)
       },
       resourceStats: {
         hullIntegrity: getShipCurrentPermanentDisplayData(
@@ -368,6 +547,17 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       effectiveManeuverability,
       effectiveDetection,
       effectiveShields,
+      effectiveTurretRating,
+      effectiveArmorProfile,
+      portStarArmorDisplay,
+      effectiveHullIntegrity,
+      effectiveHullIntegrityMax,
+      effectiveCrewValue,
+      effectiveCrewMax,
+      effectiveMoraleValue,
+      effectiveMoraleMax,
+      effectivePower: this.actor.getEffectiveShipPower?.() ?? totalPower,
+      effectiveSpace: this.actor.getEffectiveShipSpace?.() ?? totalSpace,
       powerUsed,
       spaceUsed,
       weaponLocationUsage,
@@ -491,9 +681,6 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     for (const element of root.querySelectorAll(".ship-roster-clear")) {
       element.addEventListener("click", this._onClearRosterAssignment.bind(this));
     }
-    for (const element of root.querySelectorAll(".ship-profile-roll")) {
-      element.addEventListener("click", this._onShipProfileRoll.bind(this));
-    }
     for (const element of root.querySelectorAll(".ship-action-button")) {
       element.addEventListener("click", this._onShipActionAssign.bind(this));
       element.addEventListener("contextmenu", this._onShipActionExecute.bind(this));
@@ -539,23 +726,78 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
   }
 
   _buildComponentEntry(item) {
+    const rawComponentType = String(item.system?.componentType ?? item.system?.categoryType ?? "").trim();
+    const displayComponentType = {
+      augmentsEnhancements: "Enhancements",
+      additionalFacilities: "Facilities",
+      cargoPassengerHolds: "Holds"
+    }[rawComponentType] ?? rawComponentType;
+    const statusKey = String(item.system?.status ?? "intact").trim().toLowerCase();
+    const normalizedStatusKey = ["intact", "unpowered", "damaged", "destroyed"].includes(statusKey)
+      ? statusKey
+      : "intact";
+    const statusLabel = {
+      intact: "Intact",
+      unpowered: "Unpowered",
+      damaged: "Damaged",
+      destroyed: "Destroyed"
+    }[normalizedStatusKey] ?? "Intact";
+    const isDepressurized = Boolean(item.system?.depressurized);
+    const isOnFire = Boolean(item.system?.onFire);
+    const repairRemainingTurns = Math.max(0, Number(item.system?.emergencyRepair?.remainingTurns ?? 0) || 0);
+    const isRepairing = Boolean(item.system?.emergencyRepair?.active) && repairRemainingTurns > 0;
+    const hazardLabels = [
+      ...(isRepairing ? [`Repairing (${repairRemainingTurns})`] : []),
+      ...(isDepressurized ? ["Depressurized"] : []),
+      ...(isOnFire ? ["On Fire"] : [])
+    ];
+
     return {
       id: item.id,
       img: item.img || "icons/svg/item-bag.svg",
       name: item.name,
-      componentType: String(item.system?.componentType ?? item.system?.categoryType ?? "").trim(),
+      componentType: displayComponentType,
       shipPointCost: Number(item.system?.shipPointCost ?? 0) || 0,
       power: Number(item.system?.power ?? 0) || 0,
       space: Number(item.system?.space ?? 0) || 0,
       generation: Number(item.system?.generation ?? 0) || 0,
       origin: String(item.system?.origin ?? "").trim(),
-      shortDescription: String(item.system?.shortDescription ?? "").trim()
+      shortDescription: String(item.system?.shortDescription ?? "").trim(),
+      status: normalizedStatusKey,
+      statusLabel,
+      statusClass: `is-${normalizedStatusKey}`,
+      isDepressurized,
+      isOnFire,
+      isRepairing,
+      repairRemainingTurns,
+      hasHazards: hazardLabels.length > 0,
+      hazardLabels,
+      hazardSummary: hazardLabels.join(", ")
     };
   }
 
   _buildShipWeaponEntry(item) {
     const locationKey = String(item.system?.location ?? "dorsal").trim().toLowerCase();
     const weaponClass = String(item.system?.weaponClass ?? "macrobattery").trim().toLowerCase();
+    const statusKey = String(item.system?.status ?? "intact").trim().toLowerCase();
+    const normalizedStatusKey = ["intact", "unpowered", "damaged", "destroyed"].includes(statusKey)
+      ? statusKey
+      : "intact";
+    const statusLabel = {
+      intact: "Intact",
+      unpowered: "Unpowered",
+      damaged: "Damaged",
+      destroyed: "Destroyed"
+    }[normalizedStatusKey] ?? "Intact";
+    const isDepressurized = Boolean(item.system?.depressurized);
+    const isOnFire = Boolean(item.system?.onFire);
+    const repairRemainingTurns = Math.max(0, Number(item.system?.emergencyRepair?.remainingTurns ?? 0) || 0);
+    const isRepairing = Boolean(item.system?.emergencyRepair?.active) && repairRemainingTurns > 0;
+    const hazardLabels = [
+      ...(isRepairing ? [`Repairing (${repairRemainingTurns})`] : []),
+      ...(isDepressurized ? ["Depressurized"] : []),
+      ...(isOnFire ? ["On Fire"] : [])
+    ];
     const strengthData = this.actor.getEffectiveShipWeaponStrength?.(item) ?? {
       effectiveValue: 0,
       label: String(item.system?.strength ?? "").trim()
@@ -590,7 +832,18 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       range: String(item.system?.range ?? "").trim(),
       location: locationKey,
       locationLabel: SHIP_WEAPON_LOCATION_LABELS[locationKey] ?? "Unknown",
+      componentType: SHIP_WEAPON_CLASS_LABELS[weaponClass] ?? "Weapon",
       shortDescription: String(item.system?.shortDescription ?? "").trim(),
+      status: normalizedStatusKey,
+      statusLabel,
+      statusClass: `is-${normalizedStatusKey}`,
+      isDepressurized,
+      isOnFire,
+      isRepairing,
+      repairRemainingTurns,
+      hasHazards: hazardLabels.length > 0,
+      hazardLabels,
+      hazardSummary: hazardLabels.join(", "),
       isTorpedoTube,
       torpedoLoaded,
       torpedoLoading,
@@ -625,18 +878,36 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     modifierLabel = "Action Modifier",
     extraBreakdown = []
   } = {}) {
-    const isNpcControlled = String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc";
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const normalizedSkillName = String(skillName ?? "").trim().toLowerCase();
+    const commandBonus = normalizedSkillName === "command"
+      ? (Number(this.actor.getShipModifierTotal?.("commandBonus") ?? 0) || 0)
+      : 0;
+    const pilotingBonus = normalizedSkillName === "pilot (spacecraft)"
+      ? (Number(this.actor.getShipModifierTotal?.("pilotingBonus") ?? 0) || 0)
+      : 0;
+    const navigationBonus = normalizedSkillName === "psyniscience"
+      ? (Number(this.actor.getShipModifierTotal?.("navigationBonus") ?? 0) || 0)
+      : 0;
+    const totalModifier = modifier + commandBonus + pilotingBonus + navigationBonus;
+    const modifierBreakdown = [
+      ...(Array.isArray(extraBreakdown) ? extraBreakdown : []),
+      ...(commandBonus ? [`Command Bonus: ${commandBonus >= 0 ? `+${commandBonus}` : commandBonus}`] : []),
+      ...(pilotingBonus ? [`Piloting Bonus: ${pilotingBonus >= 0 ? `+${pilotingBonus}` : pilotingBonus}`] : []),
+      ...(navigationBonus ? [`Navigation Bonus: ${navigationBonus >= 0 ? `+${navigationBonus}` : navigationBonus}`] : []),
+      `${modifierLabel}: ${totalModifier >= 0 ? `+${totalModifier}` : totalModifier}`
+    ];
+
     if (isNpcControlled) {
-      const npcCrewRating = Number(this.actor.system?.npcCrewRating ?? 0) || 0;
+      const npcCrewRating = Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0;
       return rollD100Test({
         actor: null,
         title,
         target: npcCrewRating,
-        modifier,
+        modifier: totalModifier,
         breakdown: [
           `NPC Crew Rating: ${npcCrewRating}`,
-          ...extraBreakdown,
-          `${modifierLabel}: ${modifier >= 0 ? `+${modifier}` : modifier}`
+          ...modifierBreakdown
         ]
       });
     }
@@ -658,11 +929,10 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       actor: resolvedActionActor,
       title,
       target: primaryValue.value,
-      modifier,
+      modifier: totalModifier,
       breakdown: [
         `${skillName}: ${primaryValue.label}`,
-        ...extraBreakdown,
-        `${modifierLabel}: ${modifier >= 0 ? `+${modifier}` : modifier}`
+        ...modifierBreakdown
       ]
     });
   }
@@ -678,23 +948,99 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
 
   _buildShipActions() {
     const actionAssignments = this.actor.system?.actionAssignments ?? {};
+    const astropathicPowerState = this.actor.system?.astropathicPowers ?? {};
+    const hasAssignedAstropath = Boolean(this.actor.system?.roster?.astropath?.actorUuid);
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
 
-    return STARSHIP_ACTION_DEFINITIONS.map((action) => {
-      const actorUuid = String(actionAssignments?.[action.key]?.actorUuid ?? "").trim();
+    return STARSHIP_ACTION_DEFINITIONS.filter((action) => this._isShipActionAvailable(action, {
+      astropathicPowerState,
+      hasAssignedAstropath
+    })).map((action) => {
+      const assignmentState = actionAssignments?.[action.key] ?? {};
+      const actorUuid = String(assignmentState?.actorUuid ?? "").trim();
+      const order = Math.max(0, Number(assignmentState?.order ?? 0) || 0);
       const assignedActor = actorUuid ? fromUuidSync(actorUuid) : null;
-      const initials = assignedActor ? getActorInitials(assignedActor) : "";
+      const initials = isNpcControlled
+        ? (order > 0 ? String(order) : "")
+        : (assignedActor ? getActorInitials(assignedActor) : "");
       const tooltip = `${action.label}\n${action.mode} • ${action.subtype}\n${action.summary}`;
 
       return {
         ...action,
         actorUuid,
+        order,
         assignedActor,
-        assignedName: assignedActor?.name ?? "",
+        assignedName: isNpcControlled ? (order > 0 ? `Action ${order}` : "") : (assignedActor?.name ?? ""),
         initials,
-        isAssigned: Boolean(assignedActor),
+        isAssigned: isNpcControlled ? order > 0 : Boolean(assignedActor),
         tooltip
       };
     });
+  }
+
+  _isShipActionAvailable(action, { astropathicPowerState = {}, hasAssignedAstropath = false } = {}) {
+    if (this.actor.isJammedCommunications?.() && String(action?.mode ?? "") === "Extended" && String(action?.subtype ?? "") === "Social") return false;
+    if (String(action?.mode ?? "") !== "Extended" || String(action?.subtype ?? "") !== "Astropathic") return true;
+    if (!hasAssignedAstropath) return false;
+
+    const requiredPowers = ASTROPATHIC_ACTION_POWER_REQUIREMENTS[action.key] ?? [];
+    if (!requiredPowers.length) return true;
+    return requiredPowers.every((powerKey) => Boolean(astropathicPowerState?.[powerKey]));
+  }
+
+  _buildShipActionGroups(actions = []) {
+    const groupedKeys = new Set();
+    const groups = [];
+
+    for (const definition of SHIP_ACTION_GROUP_DEFINITIONS) {
+      const groupedActions = actions.filter((action) => {
+        if (String(action.mode ?? "") !== definition.mode) return false;
+        if (definition.key === "extended-other") {
+          return !["Social", "Technological", "Navigator", "Astropathic"].includes(String(action.subtype ?? ""));
+        }
+        if (definition.subtype == null) return true;
+        return String(action.subtype ?? "") === definition.subtype;
+      });
+
+      if (!groupedActions.length) continue;
+      for (const action of groupedActions) groupedKeys.add(action.key);
+
+      groups.push({
+        key: definition.key,
+        label: definition.label,
+        accentClass: definition.accentClass,
+        actions: groupedActions
+      });
+    }
+
+    const remainingActions = actions.filter((action) => !groupedKeys.has(action.key));
+    if (remainingActions.length) {
+      groups.push({
+        key: "other-actions",
+        label: "Other Actions",
+        accentClass: "is-other",
+        actions: remainingActions
+      });
+    }
+
+    return groups;
+  }
+
+  _buildShipActionColumns(groups = []) {
+    const columnCount = Math.max(1, Math.min(5, groups.length || 1));
+    const columns = Array.from({ length: columnCount }, (_, index) => ({
+      key: `column-${index + 1}`,
+      groups: [],
+      weight: 0
+    }));
+
+    for (const group of groups) {
+      const nextColumn = columns.reduce((best, column) => (column.weight < best.weight ? column : best), columns[0]);
+      nextColumn.groups.push(group);
+      nextColumn.weight += Math.max(1, Array.isArray(group.actions) ? group.actions.length : 0);
+    }
+
+    return columns.filter((column) => column.groups.length > 0);
   }
 
   _buildShipEffects({ speedData, maneuverabilityData, detectionData } = {}) {
@@ -752,6 +1098,37 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
           ? "SPD reduced to 1."
           : "SPD halved."
       );
+    }
+    if (actor.isSilentRunning?.()) {
+      pushEffect("Silent Running", "Manoeuvre", "SPD halved. All Manoeuvre action tests suffer -10 while the ship remains in stealth mode.");
+    }
+    if (actor.isJammedCommunications?.()) {
+      pushEffect("Jammed Communications", "Technological", "The ship cannot use Extended / Social actions until the end of its turn.");
+    }
+    if (actor.isWarpInterferenceActive?.()) {
+      const penalty = Math.abs(Number(actor.system?.conditions?.warpInterference?.penalty ?? 10) || 10);
+      const roundsRemaining = Math.max(0, Number(actor.system?.conditions?.warpInterference?.remainingRounds ?? 0) || 0);
+      pushEffect("Warp Interference", "Navigator", `Detection suffers -${penalty} for ${roundsRemaining} more Strategic Round${roundsRemaining === 1 ? "" : "s"}.`);
+    }
+    if (Boolean(actor.system?.pendingLockOnTarget?.active)) {
+      const pendingLock = actor.system?.pendingLockOnTarget ?? {};
+      const weaponLabel = String(pendingLock.weaponName ?? "").trim() || "Selected Weapon";
+      const targetLabel = String(pendingLock.targetName ?? "").trim() || "Selected Target";
+      const bonus = Math.max(0, Number(pendingLock.bonus ?? 0) || 0);
+      pushEffect("Lock on Target", "Technological", `${weaponLabel} gains +${bonus} Ballistic Skill against ${targetLabel} on its next attack this turn.`);
+    }
+    if (Boolean(actor.system?.pendingTacticalPositioning?.active)) {
+      const pendingTacticalPositioning = actor.system?.pendingTacticalPositioning ?? {};
+      const mode = String(pendingTacticalPositioning.mode ?? "").trim();
+      const bonusDegrees = Math.max(0, Number(pendingTacticalPositioning.bonusDegrees ?? 0) || 0);
+      const modeLabel = mode === "evasiveManeuvers"
+        ? "next successful Evasive Manoeuvres test"
+        : "next successful ship weapon Ballistic Skill test";
+      pushEffect("Tactical Positioning", "Navigator", `${modeLabel} gains +${bonusDegrees} DoS this Strategic Turn.`);
+    }
+    if (Boolean(actor.system?.conditions?.evasiveManeuvers?.active)) {
+      const penalty = Math.abs(Number(actor.system?.conditions?.evasiveManeuvers?.penalty ?? 0) || 0);
+      pushEffect("Evasive Manoeuvres", "Manoeuvre", `Incoming and outgoing ship shooting tests suffer -${penalty} until the start of the ship's next turn.`);
     }
 
     const currentCrew = Math.max(0, Number(actor.system?.crew?.value ?? 0) || 0);
@@ -946,7 +1323,10 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       "system.detection.temporary": 0,
       "system.turretRating": Number(system.turretRating ?? 0) || 0,
       "system.shields": Number(system.shields ?? 0) || 0,
-      "system.armor": Number(system.armor ?? 0) || 0,
+      "system.armor.prow": Number(system.armor ?? 0) || 0,
+      "system.armor.port": Number(system.armor ?? 0) || 0,
+      "system.armor.starboard": Number(system.armor ?? 0) || 0,
+      "system.armor.aft": Number(system.armor ?? 0) || 0,
       "system.space.value": Number(system.space ?? 0) || 0,
       "system.shipPoints.value": Number(system.shipPoints ?? 0) || 0,
       "system.resources.hullIntegrity.max": Number(system.hullIntegrity ?? 0) || 0,
@@ -1049,6 +1429,15 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       itemData.system = {
         power: 0,
         space: 0,
+        status: "intact",
+        depressurized: false,
+        onFire: false,
+        emergencyRepair: {
+          active: false,
+          remainingTurns: 0,
+          source: "",
+          operatorName: ""
+        },
         weaponClass: "macrobattery",
         torpedoType: "",
         torpedoGuidance: "standard",
@@ -1086,6 +1475,15 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         power: 0,
         space: 0,
         origin: "",
+        status: "intact",
+        depressurized: false,
+        onFire: false,
+        emergencyRepair: {
+          active: false,
+          remainingTurns: 0,
+          source: "",
+          operatorName: ""
+        },
         shortDescription: ""
       };
     } else if (itemType === "starshipHull") {
@@ -1099,7 +1497,12 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         maneuverability: { permanent: 0, temporary: 0 },
         detection: { permanent: 0, temporary: 0 },
         hullIntegrity: 0,
-        armor: 0,
+        armor: {
+          prow: 0,
+          port: 0,
+          starboard: 0,
+          aft: 0
+        },
         turretRating: 0,
         shields: 0,
         space: 0,
@@ -1136,10 +1539,72 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     });
   }
 
+  _getShipActionBand(actionKey) {
+    const actionDefinition = STARSHIP_ACTION_DEFINITIONS.find((entry) => entry.key === String(actionKey ?? "").trim());
+    if (!actionDefinition) return null;
+
+    if (String(actionDefinition.mode ?? "").trim() === "Move" && String(actionDefinition.subtype ?? "").trim() === "Manoeuvre") {
+      return "move";
+    }
+    if (String(actionDefinition.mode ?? "").trim() === "Shooting" && String(actionDefinition.subtype ?? "").trim() === "Attack") {
+      return "shooting";
+    }
+    return null;
+  }
+
   async _onShipActionAssign(event) {
     event.preventDefault();
     const actionKey = String(event.currentTarget?.dataset?.actionKey ?? "").trim();
     if (!actionKey) return;
+    const actionBand = this._getShipActionBand(actionKey);
+
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    if (isNpcControlled) {
+      const actionAssignments = foundry.utils.deepClone(this.actor.system?.actionAssignments ?? {});
+      const existingOrder = Math.max(0, Number(actionAssignments?.[actionKey]?.order ?? 0) || 0);
+
+      if (existingOrder > 0) {
+        actionAssignments[actionKey] ??= {};
+        actionAssignments[actionKey].order = 0;
+        actionAssignments[actionKey].actorUuid = "";
+
+        const orderedEntries = Object.entries(actionAssignments)
+          .map(([key, assignment]) => ({
+            key,
+            order: Math.max(0, Number(assignment?.order ?? 0) || 0)
+          }))
+          .filter((entry) => entry.order > 0)
+          .sort((left, right) => left.order - right.order);
+
+        orderedEntries.forEach((entry, index) => {
+          actionAssignments[entry.key] ??= {};
+          actionAssignments[entry.key].order = index + 1;
+          actionAssignments[entry.key].actorUuid = "";
+        });
+      } else {
+        if (actionBand) {
+          for (const [key, assignment] of Object.entries(actionAssignments)) {
+            if (key === actionKey) continue;
+            if (this._getShipActionBand(key) !== actionBand) continue;
+            if (Math.max(0, Number(assignment?.order ?? 0) || 0) <= 0) continue;
+            actionAssignments[key] ??= {};
+            actionAssignments[key].order = 0;
+            actionAssignments[key].actorUuid = "";
+          }
+        }
+
+        const nextOrder = Object.values(actionAssignments).reduce((maxOrder, assignment) =>
+          Math.max(maxOrder, Math.max(0, Number(assignment?.order ?? 0) || 0)), 0) + 1;
+        actionAssignments[actionKey] ??= {};
+        actionAssignments[actionKey].order = nextOrder;
+        actionAssignments[actionKey].actorUuid = "";
+      }
+
+      await this.actor.update({
+        "system.actionAssignments": actionAssignments
+      });
+      return;
+    }
 
     const currentActor = this._getCurrentShipActionActor();
     const existingActorUuid = String(this.actor.system?.actionAssignments?.[actionKey]?.actorUuid ?? "").trim();
@@ -1157,9 +1622,21 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
 
     const nextActorUuid = existingActorUuid === currentActor.uuid ? "" : currentActor.uuid;
-    await this.actor.update({
+    const updateData = {
       [`system.actionAssignments.${actionKey}.actorUuid`]: nextActorUuid
-    });
+    };
+
+    if (nextActorUuid && actionBand) {
+      const actionAssignments = this.actor.system?.actionAssignments ?? {};
+      for (const key of Object.keys(actionAssignments)) {
+        if (key === actionKey) continue;
+        if (this._getShipActionBand(key) !== actionBand) continue;
+        if (!String(actionAssignments?.[key]?.actorUuid ?? "").trim()) continue;
+        updateData[`system.actionAssignments.${key}.actorUuid`] = "";
+      }
+    }
+
+    await this.actor.update(updateData);
   }
 
   async _onShipActionExecute(event) {
@@ -1168,28 +1645,1788 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
 
     const actionKey = String(event.currentTarget?.dataset?.actionKey ?? "").trim();
     if (!actionKey) return;
+    const actionDefinition = STARSHIP_ACTION_DEFINITIONS.find((entry) => entry.key === actionKey) ?? null;
+    const consumesBand = actionDefinition
+      ? (
+          String(actionDefinition.mode ?? "").trim() === "Move" && String(actionDefinition.subtype ?? "").trim() === "Manoeuvre"
+            ? "move"
+            : String(actionDefinition.mode ?? "").trim() === "Shooting" && String(actionDefinition.subtype ?? "").trim() === "Attack"
+              ? "shooting"
+              : null
+        )
+      : null;
 
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
     const assignedActor = this._getAssignedShipActionActor(actionKey);
-    if (!assignedActor) {
+    if (!assignedActor && !isNpcControlled && actionKey !== "activeAugury") {
       ui.notifications?.warn("Rogue Trader | Assign a crew member to that action before executing it.");
+      return;
+    }
+
+    const silentRunningAssignment = this.actor.system?.actionAssignments?.silentRunning ?? {};
+    const silentRunningQueued = this.actor.isSilentRunning?.() !== true && (
+      Math.max(0, Number(silentRunningAssignment?.order ?? 0) || 0) > 0
+      || Boolean(String(silentRunningAssignment?.actorUuid ?? "").trim())
+    );
+    if (actionKey !== "silentRunning" && silentRunningQueued) {
+      ui.notifications?.warn("Rogue Trader | Silent Running must be executed before any other selected ship actions this turn.");
+      return;
+    }
+
+    if (consumesBand && game.combat && !this.actor.canUseShipActionBand?.(consumesBand, game.combat)) {
+      ui.notifications?.warn(`Rogue Trader | ${consumesBand === "move" ? "One Move / Manoeuvre action" : "One Shooting / Attack action"} has already been used this Strategic Turn.`);
       return;
     }
 
     let result = null;
     switch (actionKey) {
+      case "activeAugury":
+        if (!assignedActor && !isNpcControlled) {
+          ui.notifications?.warn("Rogue Trader | Assign a crew member to Active Augury before executing it.");
+          return;
+        }
+        result = await this._rollActiveAugury(assignedActor ?? null);
+        break;
+      case "standardMove":
+        result = await this._performStandardMoveAssist();
+        break;
+      case "adjustSpeed":
+        result = await this._performAdjustSpeedAssist(assignedActor ?? null);
+        break;
+      case "adjustBearing":
+        result = await this._performAdjustBearingAssist(assignedActor ?? null);
+        break;
+      case "adjustSpeedBearing":
+        result = await this._performAdjustSpeedBearingAssist(assignedActor ?? null);
+        break;
+      case "comeAbout":
+        result = await this._performComeAboutAssist(assignedActor ?? null);
+        break;
+      case "evasiveManeuvers":
+        result = await this._performEvasiveManeuversAssist(assignedActor ?? null);
+        break;
+      case "silentRunning":
+        result = await this._performSilentRunningAction();
+        break;
+      case "aidMachineSpirit":
+        result = await this._performAidMachineSpiritAction(assignedActor ?? null);
+        break;
+      case "flankSpeed":
+        result = await this._performFlankSpeedAction(assignedActor ?? null);
+        break;
+      case "jamCommunications":
+        result = await this._performJamCommunicationsAction(assignedActor ?? null);
+        break;
+      case "disinformation":
+        result = await this._performDisinformationAction(assignedActor ?? null);
+        break;
+      case "firefighting":
+        result = await this._performFirefightingAction(assignedActor ?? null);
+        break;
+      case "fireWeapons":
+        result = await this._performFireWeaponsAction(assignedActor ?? null);
+        break;
+      case "emergencyRepairs":
+        result = await this._performEmergencyRepairsAction(assignedActor ?? null);
+        break;
       case "focusedAugury":
         result = await this._performFocusedAugury(assignedActor);
+        break;
+      case "lockOnTarget":
+        result = await this._performLockOnTargetAction(assignedActor ?? null);
+        break;
+      case "scanningTheAether":
+        result = await this._performScanningTheAetherAction(assignedActor ?? null);
+        break;
+      case "warpInterference":
+        result = await this._performWarpInterferenceAction(assignedActor ?? null);
+        break;
+      case "tacticalPositioning":
+        result = await this._performTacticalPositioningAction(assignedActor ?? null);
         break;
       default:
         ui.notifications?.info(`Rogue Trader | ${STARSHIP_ACTION_DEFINITIONS.find((entry) => entry.key === actionKey)?.label ?? "That action"} automation is not built yet.`);
         return;
     }
 
+    if (result !== null && consumesBand && game.combat) {
+      await this.actor.markShipActionBandUsed?.(consumesBand, game.combat);
+    }
+
     if (result) {
-      await this.actor.update({
-        [`system.actionAssignments.${actionKey}.actorUuid`]: ""
+      await this._clearShipActionAssignment(actionKey);
+    }
+  }
+
+  async _clearShipActionAssignment(actionKey) {
+    const key = String(actionKey ?? "").trim();
+    if (!key) return;
+
+    const actionAssignments = foundry.utils.deepClone(this.actor.system?.actionAssignments ?? {});
+    if (!actionAssignments[key]) return;
+
+    actionAssignments[key].actorUuid = "";
+    actionAssignments[key].order = 0;
+
+    const orderedEntries = Object.entries(actionAssignments)
+      .map(([entryKey, assignment]) => ({
+        key: entryKey,
+        order: Math.max(0, Number(assignment?.order ?? 0) || 0)
+      }))
+      .filter((entry) => entry.order > 0)
+      .sort((left, right) => left.order - right.order);
+
+    orderedEntries.forEach((entry, index) => {
+      actionAssignments[entry.key] ??= {};
+      actionAssignments[entry.key].order = index + 1;
+      actionAssignments[entry.key].actorUuid = "";
+    });
+
+    await this.actor.update({
+      "system.actionAssignments": actionAssignments
+    });
+  }
+
+  async _performStandardMoveAssist() {
+    const speed = Math.max(0, Number(this.actor.getEffectiveShipSpeed?.() ?? this.actor.system?.speed ?? 0) || 0);
+    return this._performGuidedStandardMove({
+      actionLabel: "Standard Move",
+      speed,
+      choiceIntro: "Select whether the ship will move at half or full speed. This lightweight assist previews the straight-line move only; end-of-move turning is not automated yet."
+    });
+  }
+
+  _getShipManoeuvreTestModifier(baseModifier = 0) {
+    const effectiveManoeuvrability = Number(this.actor.getEffectiveShipManeuverability?.() ?? this.actor.system?.maneuverability ?? 0) || 0;
+    const silentRunningPenalty = this.actor.isSilentRunning?.() ? -10 : 0;
+    return effectiveManoeuvrability + (Number(baseModifier ?? 0) || 0) + silentRunningPenalty;
+  }
+
+  async _performAdjustSpeedAssist(actionActor = null) {
+    const baseSpeed = Math.max(0, Number(this.actor.getEffectiveShipSpeed?.() ?? this.actor.system?.speed ?? 0) || 0);
+    const moveChoice = await this._promptStandardMoveChoice(baseSpeed, {
+      title: `${this.actor.name}: Adjust Speed`,
+      intro: "Choose whether the ship will attempt a half or full move. The pilot test will then determine which adjusted-speed endpoints are legal for that move."
+    });
+    if (!moveChoice) return null;
+
+    const maneuverabilityModifier = this._getShipManoeuvreTestModifier();
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Adjust Speed`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: maneuverabilityModifier,
+      actionActor,
+      modifierLabel: "Ship Manoeuvrability"
+    });
+
+    if (!result?.success) {
+      return this._performGuidedStandardMove({
+        actionLabel: "Adjust Speed",
+        speed: baseSpeed,
+        endpointOptions: [{
+          distance: moveChoice.mode === "half" ? Math.floor(baseSpeed / 2) : baseSpeed,
+          label: `${moveChoice.label} (Normal Speed)`
+        }],
+        choiceIntro: `Adjust Speed failed, so the ship must complete its chosen ${moveChoice.label.toLowerCase()} move at normal speed.`,
+        adjustedFromSpeed: baseSpeed,
+        speedDelta: 0
       });
     }
+
+    const maxAdjustment = Math.max(1, 1 + (Number(result.degrees ?? 0) || 0));
+    const adjustedSpeedOptions = [];
+    for (let delta = -maxAdjustment; delta <= maxAdjustment; delta += 1) {
+      if (delta === 0) continue;
+      const adjustedSpeed = Math.min(baseSpeed * 2, Math.max(0, baseSpeed + delta));
+      const distance = moveChoice.mode === "half" ? Math.floor(adjustedSpeed / 2) : adjustedSpeed;
+      adjustedSpeedOptions.push({
+        delta,
+        adjustedSpeed,
+        distance,
+        label: `${delta > 0 ? "+" : ""}${delta} SPD -> ${moveChoice.label} (${distance} VU)`
+      });
+    }
+
+    const endpointOptions = adjustedSpeedOptions
+      .reduce((options, entry) => {
+        if (!options.some((option) => option.distance === entry.distance)) {
+          options.push({
+            distance: entry.distance,
+            label: entry.label
+          });
+        }
+        return options;
+      }, [])
+      .sort((left, right) => left.distance - right.distance);
+
+    if (!endpointOptions.length) {
+      ui.notifications?.warn("Rogue Trader | Adjust Speed produced no legal movement endpoints for that move choice.");
+      return null;
+    }
+
+    return this._performGuidedStandardMove({
+      actionLabel: "Adjust Speed",
+      speed: Math.max(...endpointOptions.map((option) => option.distance)),
+      endpointOptions,
+      choiceIntro: `Adjust Speed succeeded with ${result.degrees} DoS. Move the token to any highlighted legal ${moveChoice.label.toLowerCase()} endpoint.`,
+      adjustedFromSpeed: baseSpeed,
+      speedDelta: maxAdjustment
+    });
+  }
+
+  async _performAdjustBearingAssist(actionActor = null) {
+    const baseSpeed = Math.max(0, Number(this.actor.getEffectiveShipSpeed?.() ?? this.actor.system?.speed ?? 0) || 0);
+    const moveChoice = await this._promptStandardMoveChoice(baseSpeed, {
+      title: `${this.actor.name}: Adjust Bearing`,
+      intro: "Choose whether the ship will attempt a half or full move. The pilot test will then determine how early the ship may turn and which one-turn endpoints are legal."
+    });
+    if (!moveChoice) return null;
+
+    if (moveChoice.distance <= 1) {
+      ui.notifications?.warn("Rogue Trader | Adjust Bearing needs enough movement to move at least 1 VU before turning and still have distance remaining afterward.");
+      return null;
+    }
+
+    const maneuverabilityModifier = this._getShipManoeuvreTestModifier();
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Adjust Bearing`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: maneuverabilityModifier,
+      actionActor,
+      modifierLabel: "Ship Manoeuvrability"
+    });
+
+    if (!result?.success) {
+      return this._performGuidedStandardMove({
+        actionLabel: "Adjust Bearing",
+        speed: baseSpeed,
+        endpointOptions: [{
+          distance: moveChoice.distance,
+          label: `${moveChoice.label} (Normal Move)`
+        }],
+        choiceIntro: `Adjust Bearing failed, so the ship must complete its chosen ${moveChoice.label.toLowerCase()} move without the early turn benefit.`,
+        adjustedFromSpeed: baseSpeed,
+        speedDelta: 0
+      });
+    }
+
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0]
+      ?? this.actor.getActiveTokens?.()[0]
+      ?? null;
+    const tokenDocument = sourceToken?.document ?? sourceToken ?? null;
+    if (!tokenDocument || !canvas?.scene) {
+      ui.notifications?.warn("Rogue Trader | Place the voidship token on the scene before using Adjust Bearing.");
+      return null;
+    }
+
+    const gridSize = Number(canvas.grid?.size ?? canvas.dimensions?.size ?? 100) || 100;
+    const gridDistance = Number(canvas.grid?.distance ?? canvas.dimensions?.distance ?? 1) || 1;
+    const startCenter = getShipTokenCenter(tokenDocument);
+    const facing = getShipFacingDegrees(tokenDocument);
+    const turnAngle = this._getShipTurnAngleDegrees();
+    const earliestTurnDistance = Math.max(1, moveChoice.distance - (2 + (Number(result.degrees ?? 0) || 0)));
+    const endpoints = [];
+    const seen = new Set();
+
+    for (let turnDistance = earliestTurnDistance; turnDistance <= moveChoice.distance - 1; turnDistance += 1) {
+      const remainingDistance = moveChoice.distance - turnDistance;
+      const firstLegPixels = (turnDistance / gridDistance) * gridSize;
+      const pivot = {
+        x: startCenter.x + (Math.cos((facing * Math.PI) / 180) * firstLegPixels),
+        y: startCenter.y + (Math.sin((facing * Math.PI) / 180) * firstLegPixels)
+      };
+
+      for (const direction of [-1, 1]) {
+        const turnedFacing = facing + (turnAngle * direction);
+        const secondLegPixels = (remainingDistance / gridDistance) * gridSize;
+        const expectedCenter = {
+          x: pivot.x + (Math.cos((turnedFacing * Math.PI) / 180) * secondLegPixels),
+          y: pivot.y + (Math.sin((turnedFacing * Math.PI) / 180) * secondLegPixels)
+        };
+        const key = `${Math.round(expectedCenter.x)}:${Math.round(expectedCenter.y)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        endpoints.push({
+          distance: moveChoice.distance,
+          label: `${direction < 0 ? "Left" : "Right"} ${turnAngle}° after ${turnDistance} VU`,
+          expectedCenter
+        });
+      }
+    }
+
+    if (!endpoints.length) {
+      ui.notifications?.warn("Rogue Trader | Adjust Bearing did not produce any legal end positions.");
+      return null;
+    }
+
+    return this._performEndpointGuideMove({
+      actionLabel: "Adjust Bearing",
+      tokenDocument,
+      endpointOptions: endpoints,
+      totalDistance: moveChoice.distance,
+      intro: `Adjust Bearing succeeded with ${result.degrees} DoS. Move the token to any highlighted legal endpoint after one ${turnAngle}° turn.`,
+      summaryHtml: `
+        <p><strong>Move:</strong> ${moveChoice.label}</p>
+        <p><strong>Distance:</strong> ${moveChoice.distance} VU</p>
+        <p><strong>Turn Angle:</strong> ${turnAngle}&deg;</p>
+        <p><strong>Earliest Turn:</strong> after ${earliestTurnDistance} VU</p>
+      `
+    });
+  }
+
+  async _performAdjustSpeedBearingAssist(actionActor = null) {
+    const baseSpeed = Math.max(0, Number(this.actor.getEffectiveShipSpeed?.() ?? this.actor.system?.speed ?? 0) || 0);
+    const moveChoice = await this._promptStandardMoveChoice(baseSpeed, {
+      title: `${this.actor.name}: Adjust Speed & Bearing`,
+      intro: "Choose whether the ship will attempt a half or full move. The pilot test will then determine which adjusted-speed endpoints are legal and how early the ship may turn."
+    });
+    if (!moveChoice) return null;
+
+    const maneuverabilityModifier = this._getShipManoeuvreTestModifier(-20);
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Adjust Speed & Bearing`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: maneuverabilityModifier,
+      actionActor,
+      modifierLabel: "Ship Manoeuvrability - 20"
+    });
+
+    if (!result?.success) {
+      return this._performGuidedStandardMove({
+        actionLabel: "Adjust Speed & Bearing",
+        speed: baseSpeed,
+        endpointOptions: [{
+          distance: moveChoice.mode === "half" ? Math.floor(baseSpeed / 2) : baseSpeed,
+          label: `${moveChoice.label} (Normal Speed)`
+        }],
+        choiceIntro: "Adjust Speed & Bearing failed, so the ship must move its normal amount.",
+        adjustedFromSpeed: baseSpeed,
+        speedDelta: 0
+      });
+    }
+
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0]
+      ?? this.actor.getActiveTokens?.()[0]
+      ?? null;
+    const tokenDocument = sourceToken?.document ?? sourceToken ?? null;
+    if (!tokenDocument || !canvas?.scene) {
+      ui.notifications?.warn("Rogue Trader | Place the voidship token on the scene before using Adjust Speed & Bearing.");
+      return null;
+    }
+
+    const gridSize = Number(canvas.grid?.size ?? canvas.dimensions?.size ?? 100) || 100;
+    const gridDistance = Number(canvas.grid?.distance ?? canvas.dimensions?.distance ?? 1) || 1;
+    const startCenter = getShipTokenCenter(tokenDocument);
+    const facing = getShipFacingDegrees(tokenDocument);
+    const turnAngle = this._getShipTurnAngleDegrees();
+    const degrees = Number(result.degrees ?? 0) || 0;
+    const maxAdjustment = Math.max(1, 1 + degrees);
+    const maxSpeed = Math.max(0, baseSpeed * 2);
+    const endpoints = [];
+    const seen = new Set();
+    let zeroMoveLegal = false;
+
+    for (let delta = -maxAdjustment; delta <= maxAdjustment; delta += 1) {
+      const adjustedSpeed = Math.min(maxSpeed, Math.max(0, baseSpeed + delta));
+      const moveDistance = moveChoice.mode === "half" ? Math.floor(adjustedSpeed / 2) : adjustedSpeed;
+
+      if (moveDistance <= 0) {
+        zeroMoveLegal = true;
+        continue;
+      }
+
+      if (moveDistance <= 1) continue;
+
+      const earliestTurnDistance = Math.max(1, moveDistance - (2 + degrees));
+      for (let turnDistance = earliestTurnDistance; turnDistance <= moveDistance - 1; turnDistance += 1) {
+        const remainingDistance = moveDistance - turnDistance;
+        const firstLegPixels = (turnDistance / gridDistance) * gridSize;
+        const pivot = {
+          x: startCenter.x + (Math.cos((facing * Math.PI) / 180) * firstLegPixels),
+          y: startCenter.y + (Math.sin((facing * Math.PI) / 180) * firstLegPixels)
+        };
+
+        for (const direction of [-1, 1]) {
+          const turnedFacing = facing + (turnAngle * direction);
+          const secondLegPixels = (remainingDistance / gridDistance) * gridSize;
+          const expectedCenter = {
+            x: pivot.x + (Math.cos((turnedFacing * Math.PI) / 180) * secondLegPixels),
+            y: pivot.y + (Math.sin((turnedFacing * Math.PI) / 180) * secondLegPixels)
+          };
+          const key = `${Math.round(expectedCenter.x)}:${Math.round(expectedCenter.y)}:${moveDistance}:${direction < 0 ? "L" : "R"}`;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          endpoints.push({
+            distance: moveDistance,
+            label: `${delta >= 0 ? "+" : ""}${delta} SPD, ${direction < 0 ? "Left" : "Right"} ${turnAngle}° after ${turnDistance} VU`,
+            expectedCenter
+          });
+        }
+      }
+    }
+
+    if (!endpoints.length && !zeroMoveLegal) {
+      ui.notifications?.warn("Rogue Trader | Adjust Speed & Bearing did not produce any legal end positions.");
+      return null;
+    }
+
+    if (zeroMoveLegal) {
+      const zeroMoveChoice = await this._promptZeroMoveOption("Adjust Speed & Bearing");
+      if (zeroMoveChoice === "stay") {
+        await ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+          content: `
+            <div class="roguetrader-roll-card">
+              <h3>${this.actor.name}: Adjust Speed & Bearing</h3>
+              <p><strong>Move:</strong> Stay in Place</p>
+              <p><strong>Distance:</strong> 0 VU</p>
+              <p>The ship held position as a legal result of the manoeuvre.</p>
+            </div>
+          `
+        });
+        return {
+          success: true,
+          distance: 0,
+          label: "Stay in Place"
+        };
+      }
+      if (zeroMoveChoice == null) return null;
+    }
+
+    return this._performEndpointGuideMove({
+      actionLabel: "Adjust Speed & Bearing",
+      tokenDocument,
+      endpointOptions: endpoints,
+      totalDistance: Math.max(...endpoints.map((endpoint) => endpoint.distance)),
+      intro: `Adjust Speed & Bearing succeeded with ${degrees} DoS. Move the token to any highlighted legal endpoint after one ${turnAngle}° turn.`,
+      summaryHtml: `
+        <p><strong>Move:</strong> ${moveChoice.label}</p>
+        <p><strong>Allowed Speed Change:</strong> up to ${maxAdjustment} VU</p>
+        <p><strong>Turn Angle:</strong> ${turnAngle}&deg;</p>
+        <p><strong>Limits:</strong> minimum 0 VU, maximum ${maxSpeed} VU</p>
+      `
+    });
+  }
+
+  async _performComeAboutAssist(actionActor = null) {
+    const baseSpeed = Math.max(0, Number(this.actor.getEffectiveShipSpeed?.() ?? this.actor.system?.speed ?? 0) || 0);
+    if (baseSpeed <= 1) {
+      ui.notifications?.warn("Rogue Trader | Come About needs enough movement to reach half Speed, turn, and then continue moving.");
+      return null;
+    }
+
+    const maneuverabilityModifier = this._getShipManoeuvreTestModifier(-10);
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Come About to New Heading`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: maneuverabilityModifier,
+      actionActor,
+      modifierLabel: "Ship Manoeuvrability - 10"
+    });
+
+    if (!result?.success) {
+      return this._performGuidedStandardMove({
+        actionLabel: "Come About to New Heading",
+        speed: baseSpeed,
+        endpointOptions: [{
+          distance: baseSpeed,
+          label: "Full Speed (Normal Move)"
+        }],
+        choiceIntro: "Come About failed, so the ship must make a normal full move instead.",
+        adjustedFromSpeed: baseSpeed,
+        speedDelta: 0
+      });
+    }
+
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0]
+      ?? this.actor.getActiveTokens?.()[0]
+      ?? null;
+    const tokenDocument = sourceToken?.document ?? sourceToken ?? null;
+    if (!tokenDocument || !canvas?.scene) {
+      ui.notifications?.warn("Rogue Trader | Place the voidship token on the scene before using Come About to New Heading.");
+      return null;
+    }
+
+    const gridSize = Number(canvas.grid?.size ?? canvas.dimensions?.size ?? 100) || 100;
+    const gridDistance = Number(canvas.grid?.distance ?? canvas.dimensions?.distance ?? 1) || 1;
+    const startCenter = getShipTokenCenter(tokenDocument);
+    const facing = getShipFacingDegrees(tokenDocument);
+    const turnAngle = this._getShipTurnAngleDegrees();
+    const firstLegDistance = Math.max(1, Math.floor(baseSpeed / 2));
+    const secondLegDistance = Math.max(0, baseSpeed - firstLegDistance);
+    const firstLegPixels = (firstLegDistance / gridDistance) * gridSize;
+    const secondLegPixels = (secondLegDistance / gridDistance) * gridSize;
+    const pivot = {
+      x: startCenter.x + (Math.cos((facing * Math.PI) / 180) * firstLegPixels),
+      y: startCenter.y + (Math.sin((facing * Math.PI) / 180) * firstLegPixels)
+    };
+
+    const endpoints = [];
+    for (const direction of [-1, 1]) {
+      const turnedFacing = facing + (turnAngle * direction);
+      endpoints.push({
+        distance: baseSpeed,
+        label: `${direction < 0 ? "Left" : "Right"} ${turnAngle}° at ${firstLegDistance} VU, then final ${turnAngle}° turn at end`,
+        expectedCenter: {
+          x: pivot.x + (Math.cos((turnedFacing * Math.PI) / 180) * secondLegPixels),
+          y: pivot.y + (Math.sin((turnedFacing * Math.PI) / 180) * secondLegPixels)
+        }
+      });
+    }
+
+    const moveResult = await this._performEndpointGuideMove({
+      actionLabel: "Come About to New Heading",
+      tokenDocument,
+      endpointOptions: endpoints,
+      totalDistance: baseSpeed,
+      intro: `Come About succeeded. Move the token to either highlighted legal endpoint. Ship weapon Ballistic Skill Tests suffer -20 during this turn.`,
+      summaryHtml: `
+        <p><strong>Move:</strong> Full Speed (${baseSpeed} VU)</p>
+        <p><strong>First Turn:</strong> after ${firstLegDistance} VU</p>
+        <p><strong>Second Turn:</strong> at the end of the move</p>
+        <p><strong>Turn Angle:</strong> ${turnAngle}&deg;</p>
+        <p><strong>Reminder:</strong> Ship weapon Ballistic Skill Tests suffer -20 this turn.</p>
+      `
+    });
+
+    if (!moveResult?.success) return moveResult;
+
+    await this.actor.update({
+      "system.modifiers.extraAccuracy.temporary": -20
+    });
+
+    return moveResult;
+  }
+
+  async _performEvasiveManeuversAssist(actionActor = null) {
+    const baseSpeed = Math.max(0, Number(this.actor.getEffectiveShipSpeed?.() ?? this.actor.system?.speed ?? 0) || 0);
+    const moveChoice = await this._promptStandardMoveChoice(baseSpeed, {
+      title: `${this.actor.name}: Evasive Manoeuvres`,
+      intro: "Choose whether the ship will attempt a half or full move. The pilot test will determine the shooting penalty applied until the beginning of the ship's next turn."
+    });
+    if (!moveChoice) return null;
+
+    const maneuverabilityModifier = this._getShipManoeuvreTestModifier(-10);
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Evasive Manoeuvres`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: maneuverabilityModifier,
+      actionActor,
+      modifierLabel: "Ship Manoeuvrability - 10"
+    });
+
+    const moveResult = await this._performGuidedStandardMove({
+      actionLabel: "Evasive Manoeuvres",
+      speed: baseSpeed,
+      endpointOptions: [{
+        distance: moveChoice.distance,
+        label: result?.success ? `${moveChoice.label} (Evasive)` : `${moveChoice.label} (Normal Speed)`
+      }],
+      choiceIntro: result?.success
+        ? `Evasive Manoeuvres succeeded with ${result.degrees} DoS. Complete the chosen move to apply the shooting penalty.`
+        : "Evasive Manoeuvres failed, so the ship still moves its chosen normal amount but gains no shooting penalty.",
+      adjustedFromSpeed: baseSpeed,
+      speedDelta: 0
+    });
+
+    if (!moveResult?.success) return moveResult;
+    if (!result?.success) return moveResult;
+
+    const tacticalPositioningBonusDegrees = Number(this.actor.getPendingTacticalPositioningBonusDegrees?.("evasiveManeuvers") ?? 0) || 0;
+    if (tacticalPositioningBonusDegrees > 0) {
+      result.degrees = Math.max(0, Number(result.degrees ?? 0) || 0) + tacticalPositioningBonusDegrees;
+      await this.actor.consumePendingTacticalPositioning?.("evasiveManeuvers");
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Tactical Positioning</h3>
+            <p><strong>Effect Applied:</strong> +${tacticalPositioningBonusDegrees} DoS to Evasive Manoeuvres.</p>
+          </div>
+        `
+      });
+    }
+
+    const additionalDegrees = Math.max(0, Number(result.degrees ?? 0) || 0);
+    const successfulSteps = 1 + additionalDegrees;
+    const penalty = successfulSteps * 10;
+    await this.actor.applyEvasiveManeuvers?.(penalty, { combat: game.combat ?? null, sourceName: "Evasive Manoeuvres" });
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Evasive Manoeuvres</h3>
+          <p><strong>Penalty Applied:</strong> -${penalty} to all shooting directed against the ship.</p>
+          <p><strong>Also Applies To:</strong> The ship's own shooting tests.</p>
+          <p><strong>Duration:</strong> Until the beginning of the ship's next turn.</p>
+        </div>
+      `
+    });
+
+    return moveResult;
+  }
+
+  async _performSilentRunningAction() {
+    if (this.actor.isSilentRunning?.()) {
+      ui.notifications?.info("Rogue Trader | This ship is already on Silent Running.");
+      return null;
+    }
+
+    const existingEffect = Array.from(this.actor.effects ?? []).find((effect) =>
+      effect?.statuses?.has?.("silent-running")
+      || Array.isArray(effect?.statuses) && effect.statuses.includes("silent-running")
+    );
+    if (!existingEffect) {
+      await this.actor.createEmbeddedDocuments("ActiveEffect", [{
+        name: "Silent Running",
+        img: "systems/roguetrader/assets/svg/hidden.svg",
+        statuses: ["silent-running"]
+      }]);
+    }
+
+    await this.actor.update({
+      "system.conditions.silentRunning.source": "Silent Running",
+      "system.conditions.silentRunning.appliedAt": {
+        combatId: String(game.combat?.id ?? ""),
+        round: Number(game.combat?.round ?? 0) || 0,
+        turn: Number(game.combat?.turn ?? 0) || 0
+      }
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Silent Running</h3>
+          <p><strong>Status:</strong> Silent Running engaged.</p>
+          <p><strong>Effects:</strong> Speed is halved and all Manoeuvre action tests suffer -10 while the ship remains in stealth mode.</p>
+        </div>
+      `
+    });
+
+    return {
+      success: true,
+      label: "Silent Running"
+    };
+  }
+
+  async _promptAidMachineSpiritTarget() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      new Dialog({
+        title: `${this.actor.name}: Aid the Machine Spirit`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Choose which ship system the machine spirit will aid this turn.</p>
+          </div>
+        `,
+        buttons: {
+          maneuverability: {
+            label: "Manoeuvrability",
+            callback: () => finish({
+              key: "extraManeuverability",
+              label: "Manoeuvrability"
+            })
+          },
+          detection: {
+            label: "Detection",
+            callback: () => finish({
+              key: "extraDetection",
+              label: "Detection"
+            })
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "maneuverability",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _performAidMachineSpiritAction(actionActor = null) {
+    const selectedTarget = await this._promptAidMachineSpiritTarget();
+    if (!selectedTarget) return null;
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Aid the Machine Spirit`,
+      skillName: "Tech-Use",
+      characteristicKey: "intelligence",
+      modifier: 0,
+      actionActor,
+      modifierLabel: "Action Modifier"
+    });
+    if (!result) return null;
+
+    const degrees = Math.max(0, Number(result.degrees ?? 0) || 0);
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Aid the Machine Spirit</h3>
+            <p><strong>Target System:</strong> ${selectedTarget.label}</p>
+            <p><strong>Result:</strong> Failed</p>
+            <p>The machine spirit does not grant any bonus this turn.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const bonus = 5 * (1 + degrees);
+    const currentTemporary = Number(this.actor.getShipModifierTemporaryTotal?.(selectedTarget.key) ?? 0) || 0;
+    await this.actor.update({
+      [`system.modifiers.${selectedTarget.key}.temporary`]: currentTemporary + bonus
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Aid the Machine Spirit</h3>
+          <p><strong>Target System:</strong> ${selectedTarget.label}</p>
+          <p><strong>Bonus Applied:</strong> +${bonus}</p>
+          <p><strong>Duration:</strong> Until the beginning of the ship's next turn.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      appliedModifierKey: selectedTarget.key,
+      appliedBonus: bonus
+    };
+  }
+
+  async _performFlankSpeedAction(actionActor = null) {
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Flank Speed`,
+      skillName: "Tech-Use",
+      characteristicKey: "intelligence",
+      modifier: 0,
+      actionActor,
+      modifierLabel: "Action Modifier"
+    });
+    if (!result) return null;
+
+    const degrees = Math.max(0, Number(result.degrees ?? 0) || 0);
+    if (result.success) {
+      const bonus = 1 + degrees;
+      const currentTemporary = Number(this.actor.getShipModifierTemporaryTotal?.("extraSpeed") ?? 0) || 0;
+      await this.actor.update({
+        "system.modifiers.extraSpeed.temporary": currentTemporary + bonus
+      });
+
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Flank Speed</h3>
+            <p><strong>Speed Bonus Applied:</strong> +${bonus} VU</p>
+            <p><strong>Duration:</strong> Until the beginning of the ship's next turn.</p>
+          </div>
+        `
+      });
+
+      return {
+        ...result,
+        appliedModifierKey: "extraSpeed",
+        appliedBonus: bonus
+      };
+    }
+
+    if (degrees >= 2) {
+      await this.actor.applyEnginesCrippled?.({
+        sourceName: "Flank Speed",
+        announced: true
+      });
+    } else {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Flank Speed</h3>
+            <p><strong>Result:</strong> Failed</p>
+            <p>The engines do not grant any additional speed this turn.</p>
+          </div>
+        `
+      });
+    }
+
+    return result;
+  }
+
+  async _performJamCommunicationsAction(actionActor = null) {
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0]
+      ?? this.actor.getActiveTokens?.()[0]
+      ?? null;
+    if (!sourceToken) {
+      ui.notifications?.warn("Rogue Trader | Place the voidship token on the scene before using Jam Communications.");
+      return null;
+    }
+
+    const targetToken = Array.from(game.user?.targets ?? []).find((token) =>
+      token?.actor?.type === "ship" && token.actor.uuid !== this.actor.uuid
+    ) ?? null;
+    if (!targetToken) {
+      ui.notifications?.warn("Rogue Trader | Target a ship to use Jam Communications.");
+      return null;
+    }
+
+    const distanceVu = getDistanceVuBetweenTokens(sourceToken, targetToken);
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Jam Communications`,
+      skillName: "Tech-Use",
+      characteristicKey: "intelligence",
+      modifier: -10,
+      actionActor,
+      modifierLabel: "Action Modifier"
+    });
+    if (!result) return null;
+    if (!result.success) return result;
+
+    const degrees = Math.max(0, Number(result.degrees ?? 0) || 0);
+    const maxRange = 10 + degrees;
+    if (distanceVu > maxRange) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Jam Communications</h3>
+            <p><strong>Target:</strong> ${targetToken.name}</p>
+            <p><strong>Result:</strong> Signal lock failed</p>
+            <p><strong>Range:</strong> ${distanceVu.toFixed(1)} / ${maxRange} VU</p>
+          </div>
+        `
+      });
+      return {
+        ...result,
+        success: false,
+        outOfRange: true
+      };
+    }
+
+    const targetActor = targetToken.actor;
+    if (!targetActor.isJammedCommunications?.()) {
+      await targetActor.createEmbeddedDocuments("ActiveEffect", [{
+        name: "Jammed Communications",
+        img: "systems/roguetrader/assets/svg/walkie-talkie.svg",
+        statuses: ["jammed-communications"]
+      }]);
+    }
+
+    await targetActor.update({
+      "system.conditions.jammedCommunications.source": this.actor.name
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Jam Communications</h3>
+          <p><strong>Target:</strong> ${targetToken.name}</p>
+          <p><strong>Status Applied:</strong> Jammed Communications</p>
+          <p><strong>Range:</strong> ${distanceVu.toFixed(1)} / ${maxRange} VU</p>
+          <p><strong>Effect:</strong> The target cannot use Extended / Social actions until the end of its turn.</p>
+        </div>
+      `
+    });
+
+    return result;
+  }
+
+  async _promptDisinformationSkill() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      new Dialog({
+        title: `${this.actor.name}: Disinformation`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Choose which social skill will be used for the deception campaign.</p>
+          </div>
+        `,
+        buttons: {
+          deceive: {
+            label: "Deceive",
+            callback: () => finish("Deceive")
+          },
+          blather: {
+            label: "Blather",
+            callback: () => finish("Blather")
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "deceive",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _performDisinformationAction(actionActor = null) {
+    const selectedSkill = await this._promptDisinformationSkill();
+    if (!selectedSkill) return null;
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Disinformation`,
+      skillName: selectedSkill,
+      characteristicKey: "fellowship",
+      modifier: -10,
+      actionActor,
+      modifierLabel: "Difficult Test"
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Disinformation</h3>
+            <p><strong>Skill:</strong> ${selectedSkill}</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>The disinformation campaign fails to bolster the crew's morale.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const degrees = Math.max(0, Number(result.degrees ?? 0) || 0);
+    const moraleDice = 1 + degrees;
+    const moraleRoll = await (new Roll(`${moraleDice}d5`)).evaluate({ async: true });
+    const moraleGain = Math.max(0, Number(moraleRoll.total ?? 0) || 0);
+    const moraleModifier = Number(this.actor.getShipModifierTotal?.("extraMoralePercent") ?? 0) || 0;
+    const currentMorale = Math.max(0, Number(this.actor.getEffectiveShipMoraleValue?.() ?? this.actor.system?.resources?.morale?.value ?? 0) || 0);
+    const maxMorale = Math.max(0, Number(this.actor.getEffectiveShipMoraleMax?.() ?? this.actor.system?.resources?.morale?.max ?? 0) || 0);
+    const newMorale = Math.min(maxMorale, currentMorale + moraleGain);
+
+    await this.actor.update({
+      "system.resources.morale.value": Math.max(0, newMorale - moraleModifier)
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Disinformation</h3>
+          <p><strong>Skill:</strong> ${selectedSkill}</p>
+          <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+          <p><strong>Morale Restored:</strong> ${moraleRoll.formula} = ${moraleGain}</p>
+          <p><strong>Morale:</strong> ${currentMorale} -> ${newMorale}</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      selectedSkill,
+      moraleGain,
+      moraleRoll,
+      moraleAfter: newMorale
+    };
+  }
+
+  async _promptFirefightingComponent(components = []) {
+    if (!Array.isArray(components) || !components.length) return null;
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      const optionMarkup = components.map((item) => {
+        const itemTypeLabel = item.type === "shipWeapon"
+          ? "Weapon Component"
+          : item.type === "supplementalComponent"
+            ? "Supplemental Component"
+            : "Essential Component";
+        const qualifiers = [];
+        if (Boolean(item.system?.depressurized)) qualifiers.push("depressurized");
+        if (Boolean(item.system?.onFire)) qualifiers.push("on fire");
+        return `<option value="${item.id}">${item.name} (${itemTypeLabel}${qualifiers.length ? ` | ${qualifiers.join(", ")}` : ""})</option>`;
+      }).join("");
+
+      new Dialog({
+        title: `${this.actor.name}: Firefighting`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Select a burning component to address.</p>
+            <div class="form-group">
+              <label for="rt-firefighting-component">Component</label>
+              <select id="rt-firefighting-component" name="componentId">${optionMarkup}</select>
+            </div>
+          </div>
+        `,
+        buttons: {
+          confirm: {
+            label: "Confirm",
+            callback: (html) => {
+              const root = html?.[0] ?? html;
+              const componentId = String(root?.querySelector?.('[name="componentId"]')?.value ?? "").trim();
+              finish(componentId || null);
+            }
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "confirm",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _promptFirefightingMethod() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      new Dialog({
+        title: `${this.actor.name}: Firefighting Method`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Choose how to deal with the blaze.</p>
+            <p><strong>Organise Team:</strong> Make a Difficult (-10) Command Test to extinguish the fire.</p>
+            <p><strong>Vent to Void:</strong> Immediately extinguish the fire. The component becomes depressurized, and the ship suffers 1d5 Crew Population damage and 2d10 Morale damage.</p>
+          </div>
+        `,
+        buttons: {
+          team: {
+            label: "Organise Team",
+            callback: () => finish("team")
+          },
+          vent: {
+            label: "Vent to Void",
+            callback: () => finish("vent")
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "team",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _performFirefightingAction(actionActor = null) {
+    const burningComponents = Array.from(this.actor.items ?? []).filter((item) => {
+      if (!["shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon"].includes(item?.type)) return false;
+      return Boolean(item.system?.onFire);
+    }).sort((left, right) => left.name.localeCompare(right.name));
+
+    if (!burningComponents.length) {
+      ui.notifications?.info("Rogue Trader | No burning ship components are currently available for Firefighting.");
+      return null;
+    }
+
+    const selectedComponentId = await this._promptFirefightingComponent(burningComponents);
+    if (!selectedComponentId) return null;
+
+    const selectedComponent = this.actor.items.get(selectedComponentId);
+    if (!selectedComponent || !selectedComponent.system?.onFire) {
+      ui.notifications?.warn("Rogue Trader | Could not find the selected burning component.");
+      return null;
+    }
+
+    const selectedMethod = await this._promptFirefightingMethod();
+    if (!selectedMethod) return null;
+
+    if (selectedMethod === "vent") {
+      const crewRoll = await (new Roll("1d5")).evaluate({ async: true });
+      const moraleRoll = await (new Roll("2d10")).evaluate({ async: true });
+      const crewDamage = Math.max(0, Number(crewRoll.total ?? 0) || 0);
+      const moraleDamage = Math.max(0, Number(moraleRoll.total ?? 0) || 0);
+      const crewModifier = Number(this.actor.getShipModifierTotal?.("extraCrewPercent") ?? 0) || 0;
+      const moraleModifier = Number(this.actor.getShipModifierTotal?.("extraMoralePercent") ?? 0) || 0;
+      const currentCrew = Math.max(0, Number(this.actor.getEffectiveShipCrewPopulationValue?.() ?? this.actor.system?.crew?.value ?? 0) || 0);
+      const currentMorale = Math.max(0, Number(this.actor.getEffectiveShipMoraleValue?.() ?? this.actor.system?.resources?.morale?.value ?? 0) || 0);
+      const newCrew = Math.max(0, currentCrew - crewDamage);
+      const newMorale = Math.max(0, currentMorale - moraleDamage);
+
+      await selectedComponent.update({
+        "system.onFire": false,
+        "system.depressurized": true
+      });
+
+      await this.actor.update({
+        "system.crew.value": Math.max(0, newCrew - crewModifier),
+        "system.resources.morale.value": Math.max(0, newMorale - moraleModifier)
+      });
+
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Firefighting</h3>
+            <p><strong>Component:</strong> ${selectedComponent.name}</p>
+            <p><strong>Method:</strong> Vent to Void</p>
+            <p><strong>Result:</strong> Fire extinguished immediately. The component is now depressurized.</p>
+            <p><strong>Crew Population Damage:</strong> ${crewRoll.formula} = ${crewDamage} (${currentCrew} -> ${newCrew})</p>
+            <p><strong>Morale Damage:</strong> ${moraleRoll.formula} = ${moraleDamage} (${currentMorale} -> ${newMorale})</p>
+          </div>
+        `
+      });
+
+      return {
+        success: true,
+        componentId: selectedComponent.id,
+        componentName: selectedComponent.name,
+        method: selectedMethod,
+        crewDamage,
+        moraleDamage,
+        crewRoll,
+        moraleRoll
+      };
+    }
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Firefighting`,
+      skillName: "Command",
+      characteristicKey: "fellowship",
+      modifier: -10,
+      actionActor,
+      modifierLabel: "Difficult Test"
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Firefighting</h3>
+            <p><strong>Component:</strong> ${selectedComponent.name}</p>
+            <p><strong>Method:</strong> Organise Team</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>The firefighting team fails to extinguish the blaze.</p>
+          </div>
+        `
+      });
+      return {
+        ...result,
+        componentId: selectedComponent.id,
+        componentName: selectedComponent.name,
+        method: selectedMethod
+      };
+    }
+
+    await selectedComponent.update({ "system.onFire": false });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Firefighting</h3>
+          <p><strong>Component:</strong> ${selectedComponent.name}</p>
+          <p><strong>Method:</strong> Organise Team</p>
+          <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+          <p>The firefighting team extinguishes the blaze.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      componentId: selectedComponent.id,
+      componentName: selectedComponent.name,
+      method: selectedMethod
+    };
+  }
+
+  async _promptEmergencyRepairComponent(components = []) {
+    if (!Array.isArray(components) || !components.length) return null;
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      const optionMarkup = components.map((item) => {
+        const itemTypeLabel = item.type === "shipWeapon"
+          ? "Weapon Component"
+          : item.type === "supplementalComponent"
+            ? "Supplemental Component"
+            : "Essential Component";
+        const statusLabel = String(item.system?.status ?? "intact").trim() || "intact";
+        const qualifiers = [
+          ...(statusLabel !== "intact" && statusLabel !== "destroyed" ? [statusLabel] : []),
+          ...(Boolean(item.system?.depressurized) ? ["depressurized"] : [])
+        ].join(", ");
+        return `<option value="${item.id}">${item.name} (${itemTypeLabel}${qualifiers ? ` | ${qualifiers}` : ""})</option>`;
+      }).join("");
+
+      new Dialog({
+        title: `${this.actor.name}: Emergency Repairs`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Select an unpowered, damaged, or depressurized component to repair.</p>
+            <div class="form-group">
+              <label for="rt-emergency-repairs-component">Component</label>
+              <select id="rt-emergency-repairs-component" name="componentId">${optionMarkup}</select>
+            </div>
+          </div>
+        `,
+        buttons: {
+          confirm: {
+            label: "Confirm",
+            callback: (html) => {
+              const root = html?.[0] ?? html;
+              const componentId = String(root?.querySelector?.('[name="componentId"]')?.value ?? "").trim();
+              finish(componentId || null);
+            }
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "confirm",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _performEmergencyRepairsAction(actionActor = null) {
+    const repairCandidates = Array.from(this.actor.items ?? []).filter((item) => {
+      if (!["shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon"].includes(item?.type)) return false;
+      const status = String(item.system?.status ?? "intact").trim().toLowerCase();
+      const isDestroyed = status === "destroyed";
+      const needsRepair = ["unpowered", "damaged"].includes(status) || Boolean(item.system?.depressurized);
+      const isAlreadyRepairing = Boolean(item.system?.emergencyRepair?.active);
+      return !isDestroyed && needsRepair && !isAlreadyRepairing;
+    }).sort((left, right) => left.name.localeCompare(right.name));
+
+    if (!repairCandidates.length) {
+      ui.notifications?.info("Rogue Trader | No unpowered, damaged, or depressurized ship components are currently available for Emergency Repairs.");
+      return null;
+    }
+
+    const selectedComponentId = await this._promptEmergencyRepairComponent(repairCandidates);
+    if (!selectedComponentId) return null;
+
+    const selectedComponent = this.actor.items.get(selectedComponentId);
+    if (!selectedComponent) {
+      ui.notifications?.warn("Rogue Trader | Could not find the selected component.");
+      return null;
+    }
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Emergency Repairs`,
+      skillName: "Tech-Use",
+      characteristicKey: "intelligence",
+      modifier: -10 + (Number(this.actor.getShipModifierTotal?.("repairBonus") ?? 0) || 0),
+      actionActor,
+      modifierLabel: "Difficult Test + Repair Bonus"
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Emergency Repairs</h3>
+            <p><strong>Component:</strong> ${selectedComponent.name}</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>No repair progress was made.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const repairRoll = await (new Roll("1d5")).evaluate({ async: true });
+    const baseTurns = Math.max(1, Number(repairRoll.total ?? 0) || 1);
+    const degrees = Math.max(0, Number(result.degrees ?? 0) || 0);
+    const repairTurns = Math.max(1, baseTurns - degrees);
+    const operatorName = actionActor?.name ?? (String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc"
+      ? `NPC Crew (${Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0})`
+      : "Assigned Repair Crew");
+
+    await selectedComponent.update({
+      "system.emergencyRepair.active": true,
+      "system.emergencyRepair.remainingTurns": repairTurns,
+      "system.emergencyRepair.source": "Emergency Repairs",
+      "system.emergencyRepair.operatorName": operatorName
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Emergency Repairs</h3>
+          <p><strong>Component:</strong> ${selectedComponent.name}</p>
+          <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+          <p><strong>Repair Time:</strong> ${repairRoll.formula} = ${baseTurns}, reduced by ${degrees} to ${repairTurns} turn${repairTurns === 1 ? "" : "s"}.</p>
+          <p><strong>Completion:</strong> The component will be repaired at the start of the ship's turn when the countdown reaches 0.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      componentId: selectedComponent.id,
+      componentName: selectedComponent.name,
+      baseTurns,
+      repairTurns,
+      repairRoll
+    };
+  }
+
+  async _performGuidedStandardMove({
+    actionLabel = "Standard Move",
+    speed = 0,
+    endpointOptions = null,
+      choiceIntro = "",
+    movePrefixLabel = "",
+    adjustedFromSpeed = null,
+    speedDelta = 0
+  } = {}) {
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0]
+      ?? this.actor.getActiveTokens?.()[0]
+      ?? null;
+    const tokenDocument = sourceToken?.document ?? sourceToken ?? null;
+    if (!tokenDocument || !canvas?.scene) {
+      ui.notifications?.warn(`Rogue Trader | Place the voidship token on the scene before using ${actionLabel}.`);
+      return null;
+    }
+
+    if (speed <= 0 && !(Array.isArray(endpointOptions) && endpointOptions.length > 0)) {
+      ui.notifications?.warn(`Rogue Trader | This voidship has no Speed to use for ${actionLabel}.`);
+      return null;
+    }
+
+    const moveOptions = endpointOptions?.length
+      ? endpointOptions
+      : [await this._promptStandardMoveChoice(speed, {
+        title: `${this.actor.name}: ${actionLabel}`,
+        intro: choiceIntro,
+        prefixLabel: movePrefixLabel
+      })].filter(Boolean);
+    if (!moveOptions.length) return null;
+
+    await this._clearStandardMoveAssist();
+
+    const gridSize = Number(canvas.grid?.size ?? canvas.dimensions?.size ?? 100) || 100;
+    const gridDistance = Number(canvas.grid?.distance ?? canvas.dimensions?.distance ?? 1) || 1;
+    const tokenRadiusPixels = (Math.max(Number(tokenDocument?.width ?? 1) || 1, Number(tokenDocument?.height ?? 1) || 1) * gridSize) / 2;
+    const startCenter = getShipTokenCenter(tokenDocument);
+    const facing = getShipFacingDegrees(tokenDocument);
+    const radians = (facing * Math.PI) / 180;
+    const tolerancePixels = Math.max(24, tokenRadiusPixels, gridSize * 0.5);
+    const expectedEndpoints = moveOptions.map((option) => {
+      const distancePixels = (option.distance / gridDistance) * gridSize;
+      return {
+        ...option,
+        expectedCenter: {
+          x: startCenter.x + (Math.cos(radians) * distancePixels),
+          y: startCenter.y + (Math.sin(radians) * distancePixels)
+        }
+      };
+    });
+
+    if (expectedEndpoints.some((endpoint) => endpoint.distance === 0)) {
+      const zeroMoveChoice = await this._promptZeroMoveOption(actionLabel);
+      if (zeroMoveChoice === "stay") {
+        await ChatMessage.create({
+          speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+          content: `
+            <div class="roguetrader-roll-card">
+              <h3>${this.actor.name}: ${actionLabel}</h3>
+              ${endpointOptions?.length ? `<p><strong>Allowed Speed Change:</strong> up to ${speedDelta} VU</p>` : ""}
+              <p><strong>Move:</strong> Stay in Place</p>
+              <p><strong>Distance:</strong> 0 VU</p>
+              <p>The ship held position as a legal result of the manoeuvre.</p>
+            </div>
+          `
+        });
+        return {
+          success: true,
+          distance: 0,
+          label: "Stay in Place"
+        };
+      }
+      if (zeroMoveChoice == null) return null;
+    }
+
+    return this._performEndpointGuideMove({
+      actionLabel,
+      tokenDocument,
+      endpointOptions: expectedEndpoints,
+      totalDistance: Math.max(...moveOptions.map((option) => option.distance)),
+      intro: `${actionLabel} guide active: move the token in a straight line, then stop near any highlighted legal endpoint. Press Escape to cancel.`,
+      summaryHtml: `
+        ${endpointOptions?.length ? `<p><strong>Allowed Speed Change:</strong> up to ${speedDelta} VU</p>` : ""}
+        ${adjustedFromSpeed != null && endpointOptions?.length ? "" : (adjustedFromSpeed != null ? `<p><strong>Adjusted Speed:</strong> ${adjustedFromSpeed} ${speedDelta >= 0 ? "+" : ""}${speedDelta} = ${speed} VU</p>` : "")}
+      `
+    });
+  }
+
+  async _promptStandardMoveChoice(speed, { title = `${this.actor.name}: Standard Move`, intro = "", prefixLabel = "" } = {}) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      new Dialog({
+        title,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p><strong>Current Speed:</strong> ${speed} VU</p>
+            <p>${intro || "Select whether the ship will move at half or full speed. This lightweight assist previews the straight-line move only; end-of-move turning is not automated yet."}</p>
+          </div>
+        `,
+        buttons: {
+          half: {
+            label: `${prefixLabel ? `${prefixLabel} ` : ""}Half Speed (${Math.floor(speed / 2)} VU)`,
+            callback: () => finish({
+              mode: "half",
+              label: "Half Speed",
+              distance: Math.floor(speed / 2)
+            })
+          },
+          full: {
+            label: `${prefixLabel ? `${prefixLabel} ` : ""}Full Speed (${speed} VU)`,
+            callback: () => finish({
+              mode: "full",
+              label: "Full Speed",
+              distance: speed
+            })
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "full",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _promptAdjustSpeedChoice(currentSpeed, maxAdjustment) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      const adjustmentOptions = Array.from({ length: maxAdjustment }, (_, index) => index + 1)
+        .map((value) => `<option value="${value}">${value}</option>`)
+        .join("");
+
+      new Dialog({
+        title: `${this.actor.name}: Adjust Speed`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p><strong>Current Speed:</strong> ${currentSpeed} VU</p>
+            <p><strong>Allowed Adjustment:</strong> up to ${maxAdjustment} VU</p>
+            <div class="form-group">
+              <label for="rt-adjust-speed-direction">Direction</label>
+              <select id="rt-adjust-speed-direction" name="direction">
+                <option value="increase">Increase Speed</option>
+                <option value="decrease">Decrease Speed</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="rt-adjust-speed-amount">Amount</label>
+              <select id="rt-adjust-speed-amount" name="amount">${adjustmentOptions}</select>
+            </div>
+          </div>
+        `,
+        buttons: {
+          confirm: {
+            label: "Continue",
+            callback: (html) => {
+              const root = html?.[0] ?? html;
+              const direction = String(root?.querySelector?.('[name="direction"]')?.value ?? "increase").trim();
+              const amount = Math.max(1, Math.min(maxAdjustment, Number(root?.querySelector?.('[name="amount"]')?.value ?? 1) || 1));
+              const signedAmount = direction === "decrease"
+                ? -Math.min(amount, currentSpeed)
+                : amount;
+              const nextSpeed = Math.max(0, currentSpeed + signedAmount);
+              finish({
+                direction,
+                amount: Math.abs(signedAmount),
+                delta: signedAmount,
+                nextSpeed,
+                label: `${direction === "decrease" ? "Decrease" : "Increase"} Speed by ${Math.abs(signedAmount)}`
+              });
+            }
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "confirm",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _promptZeroMoveOption(actionLabel) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      new Dialog({
+        title: `${this.actor.name}: ${actionLabel}`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>A 0 VU move is legal for this manoeuvre result.</p>
+            <p>You can either keep the ship in place immediately, or continue to the guide and choose one of the highlighted endpoints.</p>
+          </div>
+        `,
+        buttons: {
+          stay: {
+            label: "Stay in Place",
+            callback: () => finish("stay")
+          },
+          guide: {
+            label: "Show Guide",
+            callback: () => finish("guide")
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "guide",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  _getShipTurnAngleDegrees() {
+    const hullClassKey = normalizeShipHullClass(this.actor.system?.class ?? "");
+    return NINETY_DEGREE_TURN_HULL_CLASSES.has(hullClassKey) ? 90 : 45;
+  }
+
+  async _performEndpointGuideMove({
+    actionLabel,
+    tokenDocument,
+    endpointOptions = [],
+    totalDistance = 0,
+    intro = "",
+    summaryHtml = ""
+  } = {}) {
+    if (!tokenDocument || !canvas?.scene || !endpointOptions.length) return null;
+
+    await this._clearStandardMoveAssist();
+
+    const gridSize = Number(canvas.grid?.size ?? canvas.dimensions?.size ?? 100) || 100;
+    const tokenRadiusPixels = (Math.max(Number(tokenDocument?.width ?? 1) || 1, Number(tokenDocument?.height ?? 1) || 1) * gridSize) / 2;
+    const tolerancePixels = Math.max(24, tokenRadiusPixels, gridSize * 0.5);
+    const startCenter = getShipTokenCenter(tokenDocument);
+    const facing = getShipFacingDegrees(tokenDocument);
+    const templateIds = await this._createStandardMoveGuideTemplates({
+      sourceCenter: startCenter,
+      expectedEndpoints: endpointOptions,
+      facing,
+      distance: totalDistance,
+      tokenDocument
+    });
+
+    if (intro) {
+      ui.notifications?.info(`Rogue Trader | ${intro}`);
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+      let reverting = false;
+      let hookId = null;
+
+      const finish = async (value) => {
+        if (settled) return;
+        settled = true;
+
+        if (hookId !== null) Hooks.off("updateToken", hookId);
+        document.removeEventListener("keydown", handleEscape);
+        await this._clearStandardMoveAssist();
+        resolve(value);
+      };
+
+      const handleEscape = async (event) => {
+        if (event.key !== "Escape") return;
+        event.preventDefault();
+        await finish(null);
+      };
+
+      hookId = Hooks.on("updateToken", async (updatedToken, changed) => {
+        if (settled || reverting) return;
+        if (updatedToken?.id !== tokenDocument.id) return;
+        if (!("x" in changed) && !("y" in changed)) return;
+
+        const nextX = Number(changed?.x ?? updatedToken?.x ?? 0) || 0;
+        const nextY = Number(changed?.y ?? updatedToken?.y ?? 0) || 0;
+        const nextWidth = Number(updatedToken?.width ?? tokenDocument?.width ?? 1) || 1;
+        const nextHeight = Number(updatedToken?.height ?? tokenDocument?.height ?? 1) || 1;
+        const actualCenter = {
+          x: nextX + ((nextWidth * gridSize) / 2),
+          y: nextY + ((nextHeight * gridSize) / 2)
+        };
+        const matchedEndpoint = endpointOptions.find((endpoint) =>
+          Math.hypot(actualCenter.x - endpoint.expectedCenter.x, actualCenter.y - endpoint.expectedCenter.y) <= tolerancePixels
+        );
+
+        if (matchedEndpoint) {
+          await ChatMessage.create({
+            speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+            content: `
+              <div class="roguetrader-roll-card">
+                <h3>${this.actor.name}: ${actionLabel}</h3>
+                ${summaryHtml}
+                <p><strong>Result:</strong> ${matchedEndpoint.label}</p>
+                <p><strong>Distance:</strong> ${matchedEndpoint.distance} VU</p>
+                <p>The ship completed its guided move.</p>
+              </div>
+            `
+          });
+          await finish({
+            success: true,
+            distance: matchedEndpoint.distance,
+            label: matchedEndpoint.label
+          });
+          return;
+        }
+
+        reverting = true;
+        ui.notifications?.warn(`Rogue Trader | That token move did not match the ${actionLabel} guide. The ship has been returned to its starting position.`);
+        await updatedToken.update({
+          x: Number(this.#standardMoveAssist?.start?.x ?? 0),
+          y: Number(this.#standardMoveAssist?.start?.y ?? 0)
+        });
+        reverting = false;
+      });
+
+      document.addEventListener("keydown", handleEscape, { once: false });
+      this.#standardMoveAssist = {
+        templateIds,
+        hookId,
+        start: {
+          x: Number(tokenDocument.x ?? 0),
+          y: Number(tokenDocument.y ?? 0)
+        }
+      };
+    });
+  }
+
+  async _createStandardMoveGuideTemplates({ sourceCenter, expectedEndpoints = [], facing, distance, tokenDocument }) {
+    if (!canvas?.scene) return [];
+
+    const gridDistance = Number(canvas.grid?.distance ?? canvas.dimensions?.distance ?? 1) || 1;
+    const endpointRadius = Math.max(
+      gridDistance * 0.5,
+      ((Math.max(Number(tokenDocument?.width ?? 1) || 1, Number(tokenDocument?.height ?? 1) || 1)) * gridDistance) / 2
+    );
+
+    const templateData = [
+      {
+        t: "ray",
+        user: game.user?.id,
+        x: sourceCenter.x,
+        y: sourceCenter.y,
+        direction: facing,
+        distance,
+        width: gridDistance,
+        borderColor: "#5fa89a",
+        fillColor: "#7bc7b8",
+        flags: {
+          roguetrader: {
+            sourceActorUuid: this.actor.uuid,
+            temporaryMovementGuide: true
+          }
+        }
+      }
+    ];
+
+    for (const endpoint of expectedEndpoints) {
+      templateData.push({
+        t: "circle",
+        user: game.user?.id,
+        x: endpoint.expectedCenter.x,
+        y: endpoint.expectedCenter.y,
+        distance: endpointRadius,
+        borderColor: "#d1b469",
+        fillColor: "#f0d38a",
+        flags: {
+          roguetrader: {
+            sourceActorUuid: this.actor.uuid,
+            temporaryMovementGuide: true,
+            standardMoveEndpoint: true,
+            endpointDistance: endpoint.distance
+          }
+        }
+      });
+    }
+
+    const created = await canvas.scene.createEmbeddedDocuments("MeasuredTemplate", templateData);
+    return Array.from(created ?? []).map((entry) => entry.id).filter(Boolean);
+  }
+
+  async _clearStandardMoveAssist() {
+    const state = this.#standardMoveAssist;
+    if (!state) return;
+
+    if (state.hookId !== null && state.hookId !== undefined) {
+      Hooks.off("updateToken", state.hookId);
+    }
+
+    const templateIds = Array.isArray(state.templateIds) ? state.templateIds.filter(Boolean) : [];
+    if (templateIds.length && canvas?.scene) {
+      const existingTemplateIds = templateIds.filter((id) => canvas.scene.templates.has(id));
+      if (existingTemplateIds.length) {
+        await canvas.scene.deleteEmbeddedDocuments("MeasuredTemplate", existingTemplateIds);
+      }
+    }
+
+    this.#standardMoveAssist = null;
   }
 
   async _onShipWeaponFire(event) {
@@ -1201,7 +3438,20 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       return;
     }
 
+    if (game.combat && !this.actor.isFireWeaponsActive?.(game.combat)) {
+      ui.notifications?.warn("Rogue Trader | Activate Fire Weapons before firing any ship weapons this Strategic Turn.");
+      return;
+    }
+
+    if (game.combat && this.actor.hasShipWeaponFiredThisTurn?.(item.id, game.combat)) {
+      ui.notifications?.warn(`Rogue Trader | ${item.name} has already fired this Strategic Turn.`);
+      return;
+    }
+
     const result = await rollStarshipWeaponAttack(this.actor, item);
+    if (result && game.combat) {
+      await this.actor.markShipWeaponFiredThisTurn?.(item.id, game.combat);
+    }
     if (result && String(item.system?.weaponClass ?? "").trim().toLowerCase() === "torpedo") {
       await item.update({
         "system.torpedoLoaded": false,
@@ -1209,6 +3459,44 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         "system.torpedoLoadingMode": ""
       });
     }
+  }
+
+  async _performFireWeaponsAction(actionActor = null) {
+    if (!game.combat) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Fire Weapons</h3>
+            <p><strong>Effect:</strong> Ship weapons are ready to fire.</p>
+          </div>
+        `
+      });
+
+      return { success: true };
+    }
+
+    if (this.actor.isFireWeaponsActive?.(game.combat)) {
+      ui.notifications?.info("Rogue Trader | Fire Weapons is already active for this Strategic Turn.");
+      return null;
+    }
+
+    await this.actor.activateFireWeapons?.(game.combat);
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Fire Weapons</h3>
+          <p><strong>Effect:</strong> The ship may now fire each weapon component once during this Strategic Turn.</p>
+        </div>
+      `
+    });
+
+    return {
+      success: true,
+      activated: true
+    };
   }
 
   async _onShipWeaponLoad(event) {
@@ -1310,15 +3598,11 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
   }
 
-  async _onShipProfileRoll(event) {
-    event.preventDefault();
-    const action = String(event.currentTarget?.dataset?.shipTest ?? "").trim();
-    if (action === "activeAugury") {
-      return this._rollActiveAugury();
-    }
-  }
-
   async _performFocusedAugury(assignedActor) {
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const npcCrewRating = Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0;
+    const operatorLabel = assignedActor?.name ?? (isNpcControlled ? `NPC Crew (${npcCrewRating})` : "Unassigned Operator");
+
     if (this.actor.isSensorsDamaged?.()) {
       await ChatMessage.create({
         speaker: ChatMessage.getSpeaker({ actor: this.actor }),
@@ -1326,7 +3610,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
           <div class="roguetrader ship-critical-hit-card">
             <div class="ship-critical-hit-banner">Focused Augury Failed</div>
             <h3>${this.actor.name}</h3>
-            <p><strong>Operator:</strong> ${assignedActor.name}</p>
+            <p><strong>Operator:</strong> ${operatorLabel}</p>
             <p><strong>Reason:</strong> Sensors Damaged</p>
             <p>All sensor sweep attempts automatically fail until the damage is repaired.</p>
           </div>
@@ -1426,7 +3710,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         content: `
           <div class="roguetrader-roll-card">
             <h3>${this.actor.name}: Focused Augury</h3>
-            <p><strong>Operator:</strong> ${assignedActor.name}</p>
+            <p><strong>Operator:</strong> ${operatorLabel}</p>
             <p><strong>Target:</strong> ${targetActor?.name ?? targetToken.name}</p>
             <p><strong>Range:</strong> ${distanceVu.toFixed(1)} / 20.0 VU</p>
             <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
@@ -1440,7 +3724,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         content: `
           <div class="roguetrader-roll-card">
             <h3>${this.actor.name}: Focused Augury</h3>
-            <p><strong>Operator:</strong> ${assignedActor.name}</p>
+            <p><strong>Operator:</strong> ${operatorLabel}</p>
             <p><strong>Target:</strong> ${targetActor?.name ?? targetToken.name}</p>
             <p><strong>Range:</strong> ${distanceVu.toFixed(1)} / 20.0 VU</p>
             <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
@@ -1453,7 +3737,169 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     return result;
   }
 
-  async _rollActiveAugury() {
+  async _performLockOnTargetAction(assignedActor = null) {
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const npcCrewRating = Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0;
+    const operatorLabel = assignedActor?.name ?? (isNpcControlled ? `NPC Crew (${npcCrewRating})` : "Unassigned Operator");
+
+    if (this.actor.isSensorsDamaged?.()) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader ship-critical-hit-card">
+            <div class="ship-critical-hit-banner">Lock on Target Failed</div>
+            <h3>${this.actor.name}</h3>
+            <p><strong>Operator:</strong> ${operatorLabel}</p>
+            <p><strong>Reason:</strong> Sensors Damaged</p>
+            <p>All sensor targeting attempts automatically fail until the damage is repaired.</p>
+          </div>
+        `
+      });
+      return {
+        success: false,
+        failedAutomatically: true,
+        reason: "Sensors Damaged"
+      };
+    }
+
+    const targetToken = Array.from(game.user?.targets ?? []).find((token) => token?.actor?.type === "ship" && token.actor.uuid !== this.actor.uuid) ?? null;
+    if (!targetToken) {
+      ui.notifications?.warn("Rogue Trader | Target an enemy ship before using Lock on Target.");
+      return null;
+    }
+
+    const shipWeapons = Array.from(this.actor.items ?? [])
+      .filter((item) => item?.type === "shipWeapon")
+      .sort((left, right) => left.name.localeCompare(right.name));
+    if (!shipWeapons.length) {
+      ui.notifications?.warn("Rogue Trader | This voidship has no weapon components to lock onto a target.");
+      return null;
+    }
+
+    const detectionModifier = Number(this.actor.getEffectiveShipDetection?.() ?? this.actor.system?.detection ?? 0) || 0;
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Lock on Target`,
+      skillName: "Scrutiny",
+      characteristicKey: "perception",
+      modifier: detectionModifier,
+      actionActor: assignedActor,
+      modifierLabel: "Ship Detection"
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Lock on Target</h3>
+            <p><strong>Operator:</strong> ${operatorLabel}</p>
+            <p><strong>Target:</strong> ${targetToken.actor?.name ?? targetToken.name}</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>No firing solution was established.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const selectedWeaponId = await this._promptShipWeaponSelection({
+      title: `${this.actor.name}: Lock on Target`,
+      intro: `Select the weapon component that will receive the firing solution bonus against ${targetToken.actor?.name ?? targetToken.name}.`,
+      weapons: shipWeapons
+    });
+    if (!selectedWeaponId) return null;
+
+    const selectedWeapon = this.actor.items.get(selectedWeaponId);
+    if (!selectedWeapon || selectedWeapon.type !== "shipWeapon") {
+      ui.notifications?.warn("Rogue Trader | Could not find the selected weapon component.");
+      return null;
+    }
+
+    const bonus = 5 + (Math.floor(Math.max(0, (Number(result.degrees ?? 0) || 0) - 1) / 2) * 5);
+    await this.actor.applyPendingLockOnTarget?.({
+      weaponId: selectedWeapon.id,
+      weaponName: selectedWeapon.name,
+      targetActorUuid: String(targetToken.actor?.uuid ?? ""),
+      targetName: String(targetToken.actor?.name ?? targetToken.name ?? ""),
+      bonus,
+      sourceName: "Lock on Target",
+      operatorName: operatorLabel,
+      combat: game.combat ?? null
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Lock on Target</h3>
+          <p><strong>Operator:</strong> ${operatorLabel}</p>
+          <p><strong>Target:</strong> ${targetToken.actor?.name ?? targetToken.name}</p>
+          <p><strong>Weapon:</strong> ${selectedWeapon.name}</p>
+          <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+          <p><strong>Bonus:</strong> +${bonus} to the next Ballistic Skill Test made to fire this weapon at that target during this turn.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      bonus,
+      weaponId: selectedWeapon.id,
+      weaponName: selectedWeapon.name,
+      targetActorUuid: String(targetToken.actor?.uuid ?? ""),
+      targetName: String(targetToken.actor?.name ?? targetToken.name ?? "")
+    };
+  }
+
+  async _promptShipWeaponSelection({ title = `${this.actor.name}: Select Weapon`, intro = "", weapons = [] } = {}) {
+    if (!Array.isArray(weapons) || !weapons.length) return null;
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      const optionMarkup = weapons.map((weapon) => {
+        const mountLabel = SHIP_WEAPON_LOCATION_LABELS[String(weapon.system?.location ?? "").trim().toLowerCase()] ?? "Unknown Mount";
+        return `<option value="${weapon.id}">${weapon.name} (${mountLabel})</option>`;
+      }).join("");
+
+      new Dialog({
+        title,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>${intro || "Select a weapon component."}</p>
+            <div class="form-group">
+              <label for="rt-ship-weapon-selection">Weapon</label>
+              <select id="rt-ship-weapon-selection" name="weaponId">${optionMarkup}</select>
+            </div>
+          </div>
+        `,
+        buttons: {
+          confirm: {
+            label: "Confirm",
+            callback: (html) => {
+              const root = html?.[0] ?? html;
+              const weaponId = String(root?.querySelector?.('[name="weaponId"]')?.value ?? "").trim();
+              finish(weaponId || null);
+            }
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "confirm",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _rollActiveAugury(actionActor = null) {
     await this._playActiveAugurySequence();
 
     if (this.actor.isSensorsDamaged?.()) {
@@ -1476,10 +3922,10 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
 
     const detectionModifier = Number(this.actor.getEffectiveShipDetection?.() ?? this.actor.system?.detection ?? 0) || 0;
-    const isNpcControlled = String(this.actor.system?.controlMode ?? "player").trim().toLowerCase() === "npc";
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
 
     if (isNpcControlled) {
-      const npcCrewRating = Number(this.actor.system?.npcCrewRating ?? 0) || 0;
+      const npcCrewRating = Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0;
       const result = await rollD100Test({
         actor: null,
         title: `${this.actor.name}: Active Augury`,
@@ -1499,7 +3945,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
 
     const role = this._getShipRosterRole("masterOfAetherics");
     const actorUuid = String(this.actor.system?.roster?.masterOfAetherics?.actorUuid ?? "").trim();
-    const assignedActor = actorUuid ? fromUuidSync(actorUuid) : null;
+    const assignedActor = actionActor ?? (actorUuid ? fromUuidSync(actorUuid) : null);
     if (!assignedActor) {
       ui.notifications?.warn("Rogue Trader | Assign a Master of Aetherics to make an Active Augury test.");
       return null;
@@ -1524,7 +3970,288 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     return result;
   }
 
-  async _playActiveAugurySequence() {
+  async _performScanningTheAetherAction(assignedActor = null) {
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const npcCrewRating = Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0;
+    const operatorLabel = assignedActor?.name ?? (isNpcControlled ? `NPC Crew (${npcCrewRating})` : "Unassigned Navigator");
+    const perceptionBonus = isNpcControlled
+      ? Math.max(0, Math.floor(npcCrewRating / 10))
+      : Math.max(
+        0,
+        Number(assignedActor?.getCharacteristicBonus?.("perception")
+          ?? Math.floor((Number(assignedActor?.system?.characteristics?.perception?.value ?? 0) || 0) / 10)
+          ?? 0) || 0
+      );
+    const rangeVu = Math.max(0, perceptionBonus * 3);
+    if (rangeVu <= 0) {
+      ui.notifications?.warn("Rogue Trader | The assigned Navigator needs a valid Perception Bonus to use Scanning the Aether.");
+      return null;
+    }
+
+    await this._playActiveAugurySequence({ radiusVu: rangeVu });
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Scanning the Aether`,
+      skillName: "Psyniscience",
+      characteristicKey: "perception",
+      modifier: -10,
+      actionActor: assignedActor,
+      modifierLabel: "Difficult Test",
+      extraBreakdown: [`Extended Augury Range: ${rangeVu} VU (${perceptionBonus} PB x 3)`]
+    });
+    if (!result) return null;
+
+    if (result.success) {
+      await this._postActiveAuguryContacts({
+        rangeVu,
+        title: "Scanning the Aether Contacts",
+        emptyMessage: `No contacts detected within ${rangeVu} VU.`,
+        scanSourceLabel: "Scanning the Aether"
+      });
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Scanning the Aether</h3>
+            <p><strong>Navigator:</strong> ${operatorLabel}</p>
+            <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+            <p><strong>Range:</strong> ${rangeVu} VU (${perceptionBonus} Perception Bonus x 3)</p>
+            <p><strong>Effect:</strong> The ship counts as having successfully performed Active Augury at this extended range.</p>
+            ${this.actor.isSensorsDamaged?.() ? "<p><strong>Auspex Override:</strong> Damaged augers count as operational for this scan until the vessel's next Strategic Turn.</p>" : ""}
+          </div>
+        `
+      });
+    } else {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Scanning the Aether</h3>
+            <p><strong>Navigator:</strong> ${operatorLabel}</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p><strong>Range:</strong> ${rangeVu} VU (${perceptionBonus} Perception Bonus x 3)</p>
+            <p>No warp-sight contacts were revealed.</p>
+          </div>
+        `
+      });
+    }
+
+    return {
+      ...result,
+      rangeVu,
+      perceptionBonus
+    };
+  }
+
+  _getNavigatorPerceptionBonus(actionActor = null) {
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const npcCrewRating = Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0;
+    if (isNpcControlled) {
+      return Math.max(0, Math.floor(npcCrewRating / 10));
+    }
+
+    return Math.max(
+      0,
+      Number(actionActor?.getCharacteristicBonus?.("perception")
+        ?? Math.floor((Number(actionActor?.system?.characteristics?.perception?.value ?? 0) || 0) / 10)
+        ?? 0) || 0
+    );
+  }
+
+  async _performWarpInterferenceAction(assignedActor = null) {
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const npcCrewRating = Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0;
+    const operatorLabel = assignedActor?.name ?? (isNpcControlled ? `NPC Crew (${npcCrewRating})` : "Unassigned Navigator");
+    const perceptionBonus = this._getNavigatorPerceptionBonus(assignedActor);
+    const rangeVu = Math.max(0, perceptionBonus * 3);
+    if (rangeVu <= 0) {
+      ui.notifications?.warn("Rogue Trader | The assigned Navigator needs a valid Perception Bonus to use Warp Interference.");
+      return null;
+    }
+
+    const targetToken = Array.from(game.user?.targets ?? []).find((token) => token?.actor?.type === "ship" && token.actor.uuid !== this.actor.uuid) ?? null;
+    if (!targetToken) {
+      ui.notifications?.warn("Rogue Trader | Target an enemy ship before using Warp Interference.");
+      return null;
+    }
+
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0]
+      ?? this.actor.getActiveTokens?.()[0]
+      ?? null;
+    if (!sourceToken) {
+      ui.notifications?.warn("Rogue Trader | Place the voidship token on the scene before using Warp Interference.");
+      return null;
+    }
+
+    const distanceVu = getDistanceVuBetweenTokens(sourceToken, targetToken);
+    if (distanceVu > rangeVu) {
+      ui.notifications?.warn(`Rogue Trader | ${targetToken.name} is out of Warp Interference range (${distanceVu.toFixed(1)} / ${rangeVu.toFixed(1)} VU).`);
+      return null;
+    }
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Warp Interference`,
+      skillName: "Psyniscience",
+      characteristicKey: "perception",
+      modifier: -20,
+      actionActor: assignedActor,
+      modifierLabel: "Hard Test",
+      extraBreakdown: [`Navigator Range: ${rangeVu} VU (${perceptionBonus} PB x 3)`]
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Warp Interference</h3>
+            <p><strong>Navigator:</strong> ${operatorLabel}</p>
+            <p><strong>Target:</strong> ${targetToken.actor?.name ?? targetToken.name}</p>
+            <p><strong>Range:</strong> ${distanceVu.toFixed(1)} / ${rangeVu.toFixed(1)} VU</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>No warp interference was imposed.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const durationRounds = Math.max(1, 1 + (Number(result.degrees ?? 0) || 0));
+    await targetToken.actor.applyWarpInterference?.({
+      sourceName: "Warp Interference",
+      sourceShipName: this.actor.name,
+      rounds: durationRounds,
+      penalty: 10,
+      announced: false
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Warp Interference</h3>
+          <p><strong>Navigator:</strong> ${operatorLabel}</p>
+          <p><strong>Target:</strong> ${targetToken.actor?.name ?? targetToken.name}</p>
+          <p><strong>Range:</strong> ${distanceVu.toFixed(1)} / ${rangeVu.toFixed(1)} VU</p>
+          <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+          <p><strong>Effect:</strong> ${targetToken.actor?.name ?? targetToken.name} suffers -10 Detection.</p>
+          <p><strong>Duration:</strong> ${durationRounds} Strategic Round${durationRounds === 1 ? "" : "s"}.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      rangeVu,
+      perceptionBonus,
+      durationRounds,
+      targetActorUuid: String(targetToken.actor?.uuid ?? ""),
+      targetName: String(targetToken.actor?.name ?? targetToken.name ?? "")
+    };
+  }
+
+  async _performTacticalPositioningAction(assignedActor = null) {
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const npcCrewRating = Number(this.actor.system?.npcCrewRating ?? 0) || 0;
+    const operatorLabel = assignedActor?.name ?? (isNpcControlled ? `NPC Crew (${npcCrewRating})` : "Unassigned Navigator");
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Tactical Positioning`,
+      skillName: "Psyniscience",
+      characteristicKey: "perception",
+      modifier: -10,
+      actionActor: assignedActor,
+      modifierLabel: "Difficult Test"
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Tactical Positioning</h3>
+            <p><strong>Navigator:</strong> ${operatorLabel}</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>No tactical positioning bonus was established.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const selectedMode = await this._promptTacticalPositioningMode();
+    if (!selectedMode) return null;
+
+    await this.actor.applyPendingTacticalPositioning?.({
+      mode: selectedMode,
+      bonusDegrees: 1,
+      sourceName: "Tactical Positioning",
+      operatorName: operatorLabel,
+      combat: game.combat ?? null
+    });
+
+    const modeLabel = selectedMode === "evasiveManeuvers"
+      ? "the next successful Evasive Manoeuvres test"
+      : "the next successful ship weapon Ballistic Skill test";
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Tactical Positioning</h3>
+          <p><strong>Navigator:</strong> ${operatorLabel}</p>
+          <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+          <p><strong>Effect:</strong> ${modeLabel} gains +1 DoS during this Strategic Turn.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      mode: selectedMode,
+      bonusDegrees: 1
+    };
+  }
+
+  async _promptTacticalPositioningMode() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      new Dialog({
+        title: `${this.actor.name}: Tactical Positioning`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Choose which kind of successful test will benefit from Tactical Positioning during this Strategic Turn.</p>
+          </div>
+        `,
+        buttons: {
+          shooting: {
+            label: "Weapon Attack",
+            callback: () => finish("shooting")
+          },
+          evasive: {
+            label: "Evasive Manoeuvres",
+            callback: () => finish("evasiveManeuvers")
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "shooting",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _playActiveAugurySequence({ radiusVu = ACTIVE_AUGURY_RADIUS_METERS } = {}) {
     const sourceToken = this.actor.getActiveTokens?.()?.[0] ?? null;
     if (!sourceToken || !globalThis.Sequence) return;
 
@@ -1533,7 +4260,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         .effect()
         .file(ACTIVE_AUGURY_SEQUENCE_FILE)
         .atLocation(sourceToken)
-        .size(ACTIVE_AUGURY_RADIUS_METERS * 2, { gridUnits: true })
+        .size((Math.max(0, Number(radiusVu ?? ACTIVE_AUGURY_RADIUS_METERS) || ACTIVE_AUGURY_RADIUS_METERS)) * 2, { gridUnits: true })
         .opacity(0.9)
         .belowTokens()
         .play();
@@ -1542,7 +4269,12 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     }
   }
 
-  async _postActiveAuguryContacts() {
+  async _postActiveAuguryContacts({
+    rangeVu = ACTIVE_AUGURY_RADIUS_METERS,
+    title = "Active Augury Contacts",
+    emptyMessage = null,
+    scanSourceLabel = "Active Augury"
+  } = {}) {
     const sourceToken = this.actor.getActiveTokens?.()?.[0] ?? null;
     if (!sourceToken || !canvas?.tokens) return;
 
@@ -1552,7 +4284,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         && token.id !== sourceToken.id
         && token.actor
         && !token.document?.hidden
-        && getDistanceMetersBetweenTokens(sourceToken, token) <= ACTIVE_AUGURY_RADIUS_METERS
+        && getDistanceVuBetweenTokens(sourceToken, token) <= rangeVu
       );
 
     await this._playActiveAuguryContactPings(detectedTokens);
@@ -1580,14 +4312,16 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     const content = contacts.length
       ? `
         <div class="roguetrader ship-augury-results">
-          <h3>${this.actor.name}: Active Augury Contacts</h3>
+          <h3>${this.actor.name}: ${title}</h3>
+          <p><strong>Scan:</strong> ${scanSourceLabel} (${rangeVu} VU)</p>
           <ul>${contacts.join("")}</ul>
         </div>
       `
       : `
         <div class="roguetrader ship-augury-results">
-          <h3>${this.actor.name}: Active Augury Contacts</h3>
-          <p>No contacts detected within ${ACTIVE_AUGURY_RADIUS_METERS} VU.</p>
+          <h3>${this.actor.name}: ${title}</h3>
+          <p><strong>Scan:</strong> ${scanSourceLabel} (${rangeVu} VU)</p>
+          <p>${emptyMessage ?? `No contacts detected within ${rangeVu} VU.`}</p>
         </div>
       `;
 

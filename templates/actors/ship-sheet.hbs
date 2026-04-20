@@ -11,25 +11,37 @@
           <div class="ship-sheet-title-block">
             <input class="ship-sheet-name" name="name" type="text" value="{{actor.name}}" placeholder="Voidship Name" />
             <div class="ship-sheet-meta">
-              <div class="ship-stat-line">
-                <label>Class</label>
-                <input name="system.class" type="text" value="{{system.class}}" />
+              <div class="ship-sheet-meta-row ship-sheet-meta-row-primary">
+                <div class="ship-stat-line">
+                  <label>Class</label>
+                  <div class="ship-meta-display-field">{{system.class}}</div>
+                </div>
+                <div class="ship-stat-line">
+                  <label>Hull</label>
+                  <div class="ship-meta-display-field">{{system.hull}}</div>
+                </div>
+                <div class="ship-stat-line ship-stat-line-compact ship-stat-line-ship-points">
+                  <label>Ship Points</label>
+                  <input name="system.shipPoints.value" type="number" value="{{system.shipPoints.value}}" step="1" />
+                </div>
               </div>
-              <div class="ship-stat-line">
-                <label>Hull</label>
-                <input name="system.hull" type="text" value="{{system.hull}}" />
-              </div>
-              <div class="ship-stat-line ship-stat-line-compact">
-                <label>Ship Points</label>
-                <input name="system.shipPoints.value" type="number" value="{{system.shipPoints.value}}" step="1" />
-              </div>
-              <div class="ship-stat-line ship-stat-line-compact">
-                <label>Ship Control</label>
-                <select name="system.controlMode">
-                  {{#each ship.controlModeOptions as |option|}}
-                    <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
-                  {{/each}}
-                </select>
+              <div class="ship-sheet-meta-row ship-sheet-meta-row-secondary">
+                <div class="ship-stat-line ship-stat-line-control">
+                  <label>Ship Control</label>
+                  <select name="system.controlMode">
+                    {{#each ship.controlModeOptions as |option|}}
+                      <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                    {{/each}}
+                  </select>
+                </div>
+                <div class="ship-stat-line ship-stat-line-compact">
+                  <label>Crew Rating</label>
+                  <select name="system.npcCrewRating">
+                    {{#each ship.npcCrewRatingOptions as |option|}}
+                      <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
+                    {{/each}}
+                  </select>
+                </div>
               </div>
             </div>
             <div class="ship-title-actions">
@@ -41,25 +53,7 @@
           </div>
         </header>
 
-        {{#if ship.isNpcControlled}}
-          <section class="ship-card ship-roster-card">
-            <h2>NPC Crew</h2>
-            <div class="ship-npc-crew-panel">
-              <div class="ship-npc-crew-field">
-                <label>Crew Rating</label>
-                <select name="system.npcCrewRating">
-                  {{#each ship.npcCrewRatingOptions as |option|}}
-                    <option value="{{option.value}}" {{#if option.selected}}selected{{/if}}>{{option.label}}</option>
-                  {{/each}}
-                </select>
-              </div>
-              <div class="ship-npc-crew-summary">
-                <div class="ship-npc-crew-target">{{ship.npcCrewRating}}</div>
-                <div class="ship-npc-crew-text">Base target number for voidship tests.</div>
-              </div>
-            </div>
-          </section>
-        {{else}}
+        {{#unless ship.isNpcControlled}}
           <section class="ship-card ship-roster-card">
             <h2>Voidship Roster</h2>
             <div class="ship-roster-grid">
@@ -92,26 +86,35 @@
               {{/each}}
             </div>
           </section>
-        {{/if}}
+        {{/unless}}
 
         {{#if ship.showActions}}
           <section class="ship-card ship-actions-card">
             <div class="ship-section-header">
               <h2>Voidship Actions</h2>
             </div>
-            <div class="ship-actions-grid">
-              {{#each ship.actions as |action|}}
-                <button
-                  type="button"
-                  class="ship-action-button {{#if action.isAssigned}}is-assigned{{/if}}"
-                  data-action-key="{{action.key}}"
-                  data-tooltip="{{action.tooltip}}">
-                  <span class="ship-action-label">{{action.label}}</span>
-                  <span class="ship-action-meta">{{action.mode}} / {{action.subtype}}</span>
-                  {{#if action.isAssigned}}
-                    <span class="ship-action-assignee" title="{{action.assignedName}}">{{action.initials}}</span>
-                  {{/if}}
-                </button>
+            <div class="ship-actions-groups">
+              {{#each ship.actionGroups as |group|}}
+                <section class="ship-action-group {{group.accentClass}}">
+                  <div class="ship-action-group-header">
+                    <h3>{{group.label}}</h3>
+                  </div>
+                  <div class="ship-action-group-list">
+                    {{#each group.actions as |action|}}
+                      <button
+                        type="button"
+                        class="ship-action-button {{../accentClass}} {{#if action.isAssigned}}is-assigned{{/if}}"
+                        data-action-key="{{action.key}}"
+                        data-tooltip="{{action.tooltip}}">
+                        <span class="ship-action-label">{{action.label}}</span>
+                        <span class="ship-action-meta">{{action.mode}} / {{action.subtype}}</span>
+                        {{#if action.isAssigned}}
+                          <span class="ship-action-assignee" title="{{action.assignedName}}">{{action.initials}}</span>
+                        {{/if}}
+                      </button>
+                    {{/each}}
+                  </div>
+                </section>
               {{/each}}
             </div>
           </section>
@@ -129,7 +132,7 @@
             {{#if system.conditions.enginesCrippled.active}}
               <p class="ship-condition-note">Engines Crippled: {{#if system.conditions.enginesCrippled.speedReducedToOne}}Speed reduced to 1.{{else}}Speed reduced by half.{{/if}}</p>
             {{/if}}
-            <div class="ship-profile-grid ship-profile-grid-four">
+            <div class="ship-profile-grid ship-profile-grid-five">
               <div class="ship-profile-column">
                 <div class="ship-profile-field">
                   <label>SPD</label>
@@ -137,7 +140,8 @@
                     <div class="ship-profile-rating-pair">
                       <input class="ship-profile-current {{ship.profileStats.speed.stateClass}}" type="number" value="{{ship.profileStats.speed.effective}}" step="1" readonly />
                       <span class="ship-profile-rating-separator">/</span>
-                      <input name="system.speed.permanent" type="number" value="{{ship.profileStats.speed.permanent}}" step="1" />
+                      <input type="number" value="{{ship.profileStats.speed.permanent}}" step="1" readonly />
+                      <input type="hidden" name="system.speed.permanent" value="{{system.speed.permanent}}" />
                     </div>
                   </div>
                 </div>
@@ -147,17 +151,19 @@
                     <div class="ship-profile-rating-pair">
                       <input class="ship-profile-current {{ship.profileStats.maneuverability.stateClass}}" type="number" value="{{ship.profileStats.maneuverability.effective}}" step="1" readonly />
                       <span class="ship-profile-rating-separator">/</span>
-                      <input name="system.maneuverability.permanent" type="number" value="{{ship.profileStats.maneuverability.permanent}}" step="1" />
+                      <input type="number" value="{{ship.profileStats.maneuverability.permanent}}" step="1" readonly />
+                      <input type="hidden" name="system.maneuverability.permanent" value="{{system.maneuverability.permanent}}" />
                     </div>
                   </div>
                 </div>
                 <div class="ship-profile-field">
-                  <button type="button" class="ship-profile-roll" data-ship-test="activeAugury">DET</button>
+                  <label>DET</label>
                   <div class="ship-profile-rating-group">
                     <div class="ship-profile-rating-pair">
                       <input class="ship-profile-current {{ship.profileStats.detection.stateClass}}" type="number" value="{{ship.profileStats.detection.effective}}" step="1" readonly />
                       <span class="ship-profile-rating-separator">/</span>
-                      <input name="system.detection.permanent" type="number" value="{{ship.profileStats.detection.permanent}}" step="1" />
+                      <input type="number" value="{{ship.profileStats.detection.permanent}}" step="1" readonly />
+                      <input type="hidden" name="system.detection.permanent" value="{{system.detection.permanent}}" />
                     </div>
                   </div>
                 </div>
@@ -165,15 +171,44 @@
               <div class="ship-profile-column">
                 <div class="ship-profile-field">
                   <label>Turret Rating</label>
-                  <input name="system.turretRating" type="number" value="{{system.turretRating}}" step="1" />
+                  <div class="ship-profile-rating-group">
+                    <div class="ship-profile-rating-pair">
+                      <input class="ship-profile-current" type="number" value="{{ship.effectiveTurretRating}}" step="1" readonly />
+                      <span class="ship-profile-rating-separator">/</span>
+                      <input name="system.turretRating" type="number" value="{{system.turretRating}}" step="1" />
+                    </div>
+                  </div>
                 </div>
                 <div class="ship-profile-field">
                   <label>Shields</label>
                   <input type="number" value="{{ship.effectiveShields}}" step="1" readonly />
                 </div>
-                <div class="ship-profile-field">
-                  <label>Armour</label>
-                  <input name="system.armor" type="number" value="{{system.armor}}" step="1" />
+              </div>
+              <div class="ship-profile-column ship-profile-armor-column">
+                <div class="ship-profile-field ship-profile-field-stack">
+                  <div class="ship-armor-stack">
+                    <div class="ship-armor-row">
+                      <span class="ship-armor-label-group">
+                        <span class="ship-armor-heading">Prow</span>
+                        <span class="ship-armor-label">Armour</span>
+                      </span>
+                      <input type="number" value="{{ship.effectiveArmorProfile.prow}}" step="1" readonly />
+                    </div>
+                    <div class="ship-armor-row">
+                      <span class="ship-armor-label-group">
+                        <span class="ship-armor-heading">Port/Star</span>
+                        <span class="ship-armor-label">Armour</span>
+                      </span>
+                      <input class="ship-armor-display" type="text" value="{{ship.portStarArmorDisplay}}" readonly />
+                    </div>
+                    <div class="ship-armor-row">
+                      <span class="ship-armor-label-group">
+                        <span class="ship-armor-heading">Aft</span>
+                        <span class="ship-armor-label">Armour</span>
+                      </span>
+                      <input type="number" value="{{ship.effectiveArmorProfile.aft}}" step="1" readonly />
+                    </div>
+                  </div>
                 </div>
               </div>
               <div class="ship-profile-column">
@@ -183,7 +218,8 @@
                     <div class="ship-profile-rating-pair">
                       <input class="ship-profile-current {{ship.resourceStats.hullIntegrity.stateClass}}" name="system.resources.hullIntegrity.value" type="number" value="{{ship.resourceStats.hullIntegrity.current}}" step="1" />
                       <span class="ship-profile-rating-separator">/</span>
-                      <input name="system.resources.hullIntegrity.max" type="number" value="{{ship.resourceStats.hullIntegrity.permanent}}" step="1" />
+                      <input type="number" value="{{ship.effectiveHullIntegrityMax}}" step="1" readonly />
+                      <input type="hidden" name="system.resources.hullIntegrity.max" value="{{ship.resourceStats.hullIntegrity.permanent}}" />
                     </div>
                   </div>
                 </div>
@@ -193,7 +229,8 @@
                     <div class="ship-profile-rating-pair">
                       <input class="ship-profile-current {{ship.resourceStats.crew.stateClass}}" name="system.crew.value" type="number" value="{{ship.resourceStats.crew.current}}" step="1" />
                       <span class="ship-profile-rating-separator">/</span>
-                      <input name="system.crew.max" type="number" value="{{ship.resourceStats.crew.permanent}}" step="1" />
+                      <input type="number" value="{{ship.effectiveCrewMax}}" step="1" readonly />
+                      <input type="hidden" name="system.crew.max" value="{{ship.resourceStats.crew.permanent}}" />
                     </div>
                   </div>
                 </div>
@@ -203,7 +240,8 @@
                     <div class="ship-profile-rating-pair">
                       <input class="ship-profile-current {{ship.resourceStats.morale.stateClass}}" name="system.resources.morale.value" type="number" value="{{ship.resourceStats.morale.current}}" step="1" />
                       <span class="ship-profile-rating-separator">/</span>
-                      <input name="system.resources.morale.max" type="number" value="{{ship.resourceStats.morale.permanent}}" step="1" />
+                      <input type="number" value="{{ship.effectiveMoraleMax}}" step="1" readonly />
+                      <input type="hidden" name="system.resources.morale.max" value="{{ship.resourceStats.morale.permanent}}" />
                     </div>
                   </div>
                 </div>
@@ -215,7 +253,8 @@
                     <div class="ship-profile-rating-pair">
                       <input class="ship-profile-current {{ship.resourceStats.power.stateClass}}" type="number" value="{{ship.resourceStats.power.current}}" step="1" readonly />
                       <span class="ship-profile-rating-separator">/</span>
-                      <input name="system.power.value" type="number" value="{{ship.resourceStats.power.permanent}}" step="1" />
+                      <input type="number" value="{{ship.effectivePower}}" step="1" readonly />
+                      <input type="hidden" name="system.power.value" value="{{ship.resourceStats.power.permanent}}" />
                     </div>
                   </div>
                 </div>
@@ -225,7 +264,8 @@
                     <div class="ship-profile-rating-pair">
                       <input class="ship-profile-current {{ship.resourceStats.space.stateClass}}" type="number" value="{{ship.resourceStats.space.current}}" step="1" readonly />
                       <span class="ship-profile-rating-separator">/</span>
-                      <input name="system.space.value" type="number" value="{{ship.resourceStats.space.permanent}}" step="1" />
+                      <input type="number" value="{{ship.effectiveSpace}}" step="1" readonly />
+                      <input type="hidden" name="system.space.value" value="{{ship.resourceStats.space.permanent}}" />
                     </div>
                   </div>
                 </div>
@@ -234,10 +274,8 @@
           </section>
 
           <div class="ship-sheet-wide">
-            <section class="ship-card ship-wide-table-card">
-              <div class="ship-section-header">
-                <h2>Ship Weapons</h2>
-              </div>
+            <section class="ship-card ship-wide-table-card ship-table-card">
+              <h2 class="ship-table-title">Ship Weapons</h2>
               {{#if ship.hasShipWeapons}}
                 <div class="ship-table-wrap">
                   <table class="ship-data-table ship-weapon-table">
@@ -303,10 +341,8 @@
               {{/if}}
             </section>
 
-            <section class="ship-card ship-wide-table-card">
-              <div class="ship-section-header">
-                <h2>Essential Components</h2>
-              </div>
+            <section class="ship-card ship-wide-table-card ship-table-card">
+              <h2 class="ship-table-title">Essential Components</h2>
               {{#if ship.hasEssentialComponents}}
                 <div class="ship-table-wrap">
                   <table class="ship-data-table">
@@ -315,6 +351,8 @@
                       <th></th>
                       <th>Name</th>
                       <th>Type</th>
+                      <th>Status</th>
+                      <th>Hazards</th>
                       <th>SP</th>
                       <th>Power</th>
                       <th>Space</th>
@@ -323,14 +361,16 @@
                     </thead>
                     <tbody>
                       {{#each ship.essentialComponents as |component|}}
-                        <tr>
+                        <tr class="{{#if component.isOnFire}}ship-component-row-on-fire{{/if}}">
                           <td class="ship-table-icon-cell"><img class="ship-table-icon" src="{{component.img}}" alt="{{component.name}}" /></td>
                           <td><button type="button" class="ship-item-open ship-list-primary" data-item-id="{{component.id}}">{{component.name}}</button></td>
                         <td>{{component.componentType}}</td>
+                        <td><span class="ship-component-status-badge {{component.statusClass}}">{{component.statusLabel}}</span></td>
+                        <td>{{#if component.hasHazards}}{{component.hazardSummary}}{{else}}-{{/if}}</td>
                         <td>{{component.shipPointCost}}</td>
                         <td>{{component.power}}</td>
                         <td>{{component.space}}</td>
-                        <td>{{component.shortDescription}}</td>
+                        <td><span class="ship-component-summary">{{component.shortDescription}}</span></td>
                       </tr>
                       {{/each}}
                     </tbody>
@@ -341,10 +381,8 @@
               {{/if}}
             </section>
 
-            <section class="ship-card ship-wide-table-card">
-              <div class="ship-section-header">
-                <h2>Supplemental Components</h2>
-              </div>
+            <section class="ship-card ship-wide-table-card ship-table-card">
+              <h2 class="ship-table-title">Supplemental Components</h2>
               {{#if ship.hasSupplementalComponents}}
                 <div class="ship-table-wrap">
                   <table class="ship-data-table">
@@ -353,6 +391,8 @@
                       <th></th>
                       <th>Name</th>
                       <th>Type</th>
+                      <th>Status</th>
+                      <th>Hazards</th>
                       <th>SP</th>
                       <th>Power</th>
                       <th>Space</th>
@@ -361,14 +401,16 @@
                     </thead>
                     <tbody>
                       {{#each ship.supplementalComponents as |component|}}
-                        <tr>
+                        <tr class="{{#if component.isOnFire}}ship-component-row-on-fire{{/if}}">
                           <td class="ship-table-icon-cell"><img class="ship-table-icon" src="{{component.img}}" alt="{{component.name}}" /></td>
                           <td><button type="button" class="ship-item-open ship-list-primary" data-item-id="{{component.id}}">{{component.name}}</button></td>
                         <td>{{component.componentType}}</td>
+                        <td><span class="ship-component-status-badge {{component.statusClass}}">{{component.statusLabel}}</span></td>
+                        <td>{{#if component.hasHazards}}{{component.hazardSummary}}{{else}}-{{/if}}</td>
                         <td>{{component.shipPointCost}}</td>
                         <td>{{component.power}}</td>
                         <td>{{component.space}}</td>
-                        <td>{{component.shortDescription}}</td>
+                        <td><span class="ship-component-summary">{{component.shortDescription}}</span></td>
                       </tr>
                       {{/each}}
                     </tbody>
@@ -379,10 +421,8 @@
               {{/if}}
             </section>
 
-            <section class="ship-card ship-wide-table-card">
-              <div class="ship-section-header">
-                <h2>Voidship Effects</h2>
-              </div>
+            <section class="ship-card ship-wide-table-card ship-table-card">
+              <h2 class="ship-table-title">Voidship Effects</h2>
               {{#if ship.hasEffects}}
                 <div class="ship-table-wrap">
                   <table class="ship-data-table ship-effects-table">
@@ -420,6 +460,68 @@
           <div class="ship-sheet-left">
             <section class="ship-card">
               <div class="ship-section-header">
+                <h2>Ship Modifiers</h2>
+              </div>
+              <div class="ship-table-wrap">
+                <table class="ship-data-table ship-modifier-table">
+                  <thead>
+                    <tr>
+                      <th>Modifier</th>
+                      <th>Manual</th>
+                      <th>Auto</th>
+                      <th>Temp</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {{#each ship.modifiers as |modifier|}}
+                      <tr>
+                        <td>{{modifier.label}}</td>
+                        <td>
+                          <input
+                            class="ship-modifier-input"
+                            type="number"
+                            name="system.modifiers.{{modifier.key}}.manual"
+                            value="{{modifier.manual}}"
+                            step="1"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            class="ship-modifier-input"
+                            type="number"
+                            value="{{modifier.automatic}}"
+                            step="1"
+                            readonly
+                          />
+                        </td>
+                        <td>
+                          <input
+                            class="ship-modifier-input"
+                            type="number"
+                            name="system.modifiers.{{modifier.key}}.temporary"
+                            value="{{modifier.temporary}}"
+                            step="1"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            class="ship-modifier-input"
+                            type="number"
+                            value="{{modifier.total}}"
+                            step="1"
+                            readonly
+                          />
+                        </td>
+                      </tr>
+                    {{/each}}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="ship-card">
+              <div class="ship-section-header">
                 <h2>Starship Hull</h2>
               </div>
               {{#if ship.activeHull}}
@@ -455,6 +557,28 @@
           </div>
 
           <div class="ship-sheet-right">
+            <section class="ship-card">
+              <div class="ship-section-header">
+                <h2>Astropathic Powers</h2>
+              </div>
+              {{#if ship.hasAssignedAstropath}}
+                <div class="ship-astropathic-powers-grid">
+                  {{#each ship.astropathicPowerOptions as |power|}}
+                    <label class="ship-astropathic-power-toggle">
+                      <input
+                        type="checkbox"
+                        name="system.astropathicPowers.{{power.key}}"
+                        {{checked power.checked}}
+                      />
+                      <span>{{power.label}}</span>
+                    </label>
+                  {{/each}}
+                </div>
+              {{else}}
+                <p class="ship-empty-state">Assign an Astropath in the roster to enable ship astropathic powers and actions.</p>
+              {{/if}}
+            </section>
+
             <section class="ship-card">
               <h2>Traits</h2>
               <textarea class="ship-history-field ship-traits-field" name="system.traits">{{system.traits}}</textarea>

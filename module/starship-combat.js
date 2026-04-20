@@ -107,6 +107,23 @@ function getRelativeBearing(sourceTokenLike, targetTokenLike, options = {}) {
   };
 }
 
+function getArmorFacingForBearing(bearing) {
+  const normalized = String(bearing ?? "fore").trim().toLowerCase();
+  if (normalized === "fore") return "prow";
+  if (normalized === "aft") return "aft";
+  if (normalized === "port") return "port";
+  if (normalized === "starboard") return "starboard";
+  return "prow";
+}
+
+function getIncomingArmorFacingData(targetTokenLike, attackerTokenLike, options = {}) {
+  const relative = getRelativeBearing(targetTokenLike, attackerTokenLike, options);
+  return {
+    ...relative,
+    armorFacing: getArmorFacingForBearing(relative.bearing)
+  };
+}
+
 function normalizeHullClassKey(value) {
   return String(value ?? "").trim().toLowerCase().replace(/[\s-]+/g, "");
 }
@@ -139,6 +156,23 @@ function canWeaponFireAtTarget(sourceTokenLike, targetTokenLike, mountLocation, 
     allowedBearingLabels: allowedBearings.map((entry) => STARSHIP_BEARING_LABELS[entry] ?? entry),
     canFire: allowedBearings.includes(relative.bearing)
   };
+}
+
+function getShipWeaponOfflineReasons(weapon) {
+  if (!weapon) return ["unknown condition"];
+
+  const reasons = [];
+  const status = String(weapon.system?.status ?? "intact").trim().toLowerCase();
+  if (["unpowered", "damaged", "destroyed"].includes(status)) {
+    reasons.push(status);
+  }
+  if (Boolean(weapon.system?.depressurized)) {
+    reasons.push("depressurized");
+  }
+  if (Boolean(weapon.system?.onFire)) {
+    reasons.push("on fire");
+  }
+  return reasons;
 }
 
 function getActiveStarshipGunnerActor(shipActor = null) {
@@ -286,7 +320,7 @@ function getStarshipRangeData(sourceTokenLike, targetTokenLike, weaponRangeValue
 }
 
 function getNpcCrewRating(shipActor) {
-  return Math.max(0, Number(shipActor?.system?.npcCrewRating ?? 0) || 0);
+  return Math.max(0, Number(shipActor?.getEffectiveShipCrewRating?.() ?? shipActor?.system?.npcCrewRating ?? 0) || 0);
 }
 
 function isNpcControlledShip(shipActor) {
@@ -409,8 +443,8 @@ function getTorpedoGuidanceLabel(guidance) {
 }
 
 async function resolveTorpedoTurretDefence(targetShipActor, torpedoActor) {
-  const turretRating = Math.max(0, Number(targetShipActor?.system?.turretRating ?? 0) || 0);
-  const crewRating = Math.max(0, Number(targetShipActor?.system?.npcCrewRating ?? 0) || 0);
+  const turretRating = Math.max(0, Number(targetShipActor?.getEffectiveShipTurretRating?.() ?? targetShipActor?.system?.turretRating ?? 0) || 0);
+  const crewRating = Math.max(0, Number(targetShipActor?.getEffectiveShipCrewRating?.() ?? targetShipActor?.system?.npcCrewRating ?? 0) || 0);
   const incomingSalvoStrength = Math.max(0, Number(torpedoActor?.system?.salvoStrength ?? 0) || 0);
   const shootingModifier = Number(targetShipActor?.getShipShootingModifier?.() ?? 0) || 0;
 
@@ -644,9 +678,14 @@ async function resolveTorpedoDetonation(torpedoActor, targetTokenLike) {
   const firingActorUuid = String(torpedoActor.system?.firingActorUuid ?? "").trim();
   const firingActor = firingActorUuid ? fromUuidSync(firingActorUuid) : null;
   const firingActorName = String(torpedoActor.system?.firingActorName ?? "").trim() || firingActor?.name || sourceShipActor?.name || "Unknown Firer";
-  const currentHullIntegrity = Math.max(0, Number(targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
-  const currentCrew = Math.max(0, Number(targetShipActor.system?.crew?.value ?? 0) || 0);
-  const currentMorale = Math.max(0, Number(targetShipActor.system?.resources?.morale?.value ?? 0) || 0);
+  const sourceToken = sourceShipActor?.getActiveTokens?.(true)?.[0] ?? sourceShipActor?.getActiveTokens?.()[0] ?? null;
+  const armorFacingData = sourceToken ? getIncomingArmorFacingData(targetToken, sourceToken) : { armorFacing: "prow", bearingLabel: "Fore" };
+  const currentHullIntegrity = Math.max(0, Number(targetShipActor.getEffectiveShipHullIntegrityValue?.() ?? targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+  const hullModifier = Number(targetShipActor.getShipModifierTotal?.("extraHullIntegrity") ?? 0) || 0;
+  const currentCrew = Math.max(0, Number(targetShipActor.getEffectiveShipCrewPopulationValue?.() ?? targetShipActor.system?.crew?.value ?? 0) || 0);
+  const crewModifier = Number(targetShipActor.getShipModifierTotal?.("extraCrewPercent") ?? 0) || 0;
+  const currentMorale = Math.max(0, Number(targetShipActor.getEffectiveShipMoraleValue?.() ?? targetShipActor.system?.resources?.morale?.value ?? 0) || 0);
+  const moraleModifier = Number(targetShipActor.getShipModifierTotal?.("extraMoralePercent") ?? 0) || 0;
   const turretDefence = await resolveTorpedoTurretDefence(targetShipActor, torpedoActor);
   const torpedoesShotDown = Math.min(salvoStrength, Math.max(0, Number(turretDefence?.hits ?? 0) || 0));
   const survivingSalvoStrength = Math.max(0, salvoStrength - torpedoesShotDown);
@@ -665,6 +704,7 @@ async function resolveTorpedoDetonation(torpedoActor, targetTokenLike) {
         `Source Ship: ${String(torpedoActor.system?.sourceShipName ?? sourceShipActor?.name ?? "Unknown Ship")}`,
         `Launcher: ${String(torpedoActor.system?.launcher ?? "Torpedo Tube")}`,
         `Target: ${targetShipActor.name}`,
+        `Hit Facing: ${armorFacingData.bearingLabel}`,
         `Incoming Salvo: ${salvoStrength}`,
         `Turret Defence: ${torpedoesShotDown} shot down`,
         `Surviving Torpedoes: ${survivingSalvoStrength}`
@@ -677,7 +717,7 @@ async function resolveTorpedoDetonation(torpedoActor, targetTokenLike) {
   let runningHullIntegrity = currentHullIntegrity;
   let runningCrew = currentCrew;
   let runningMorale = currentMorale;
-  const targetArmor = Math.max(0, Number(targetShipActor.system?.armor ?? 0) || 0);
+  const targetArmor = Math.max(0, Number(targetShipActor.getEffectiveShipArmor?.(armorFacingData.armorFacing) ?? 0) || 0);
   const damageRolls = [];
   const criticalResults = [];
   const torpedoCriticalRolls = [];
@@ -746,9 +786,9 @@ async function resolveTorpedoDetonation(torpedoActor, targetTokenLike) {
 
     if (totalHullIntegrityDamage > 0) {
       await updateShipActorDocument(targetShipActor, {
-        "system.resources.hullIntegrity.value": runningHullIntegrity,
-        "system.crew.value": runningCrew,
-        "system.resources.morale.value": runningMorale
+        "system.resources.hullIntegrity.value": Math.max(0, runningHullIntegrity - hullModifier),
+        "system.crew.value": Math.max(0, runningCrew - crewModifier),
+        "system.resources.morale.value": Math.max(0, runningMorale - moraleModifier)
       });
       await callShipActorMethod(targetShipActor, "syncCrippledState", { announced: true, sourceName: `${torpedoLabel} Torpedo` });
     }
@@ -777,11 +817,12 @@ async function resolveTorpedoDetonation(torpedoActor, targetTokenLike) {
         <p><strong>Firer:</strong> ${firingActorName}</p>
         <p><strong>Guidance:</strong> ${getTorpedoGuidanceLabel(guidance)} (${guidanceModifier >= 0 ? `+${guidanceModifier}` : guidanceModifier})</p>
         <p><strong>Incoming Salvo:</strong> ${salvoStrength}</p>
+        <p><strong>Hit Facing:</strong> ${armorFacingData.bearingLabel}</p>
         <p><strong>Turrets Shot Down:</strong> ${torpedoesShotDown}</p>
         <p><strong>Surviving Torpedoes:</strong> ${survivingSalvoStrength}</p>
         <p><strong>Attack:</strong> ${survivingSalvoStrength > 0 ? `${attackResult?.rollTotal ?? "?"} vs ${attackResult?.finalTarget ?? "?"} (${attackResult?.outcome ?? "Unknown"})` : "No attack; the salvo was destroyed by turret fire."}</p>
         <p><strong>Hits:</strong> ${hits}</p>
-        <p><strong>Armour:</strong> ${targetArmor}</p>
+        <p><strong>Armour (${armorFacingData.armorFacing}):</strong> ${targetArmor}</p>
         <p><strong>Hull Integrity Damage:</strong> ${totalHullIntegrityDamage}</p>
         <p><strong>Hull Integrity:</strong> ${currentHullIntegrity} -> ${runningHullIntegrity}</p>
         <p><strong>Crew:</strong> ${currentCrew} -> ${runningCrew}</p>
@@ -799,6 +840,7 @@ async function resolveTorpedoDetonation(torpedoActor, targetTokenLike) {
     attackResult,
     hits,
     totalHullIntegrityDamage,
+    armorFacing: armorFacingData.armorFacing,
     targetArmor,
     damageRolls,
     torpedoCriticalRolls,
@@ -1144,6 +1186,7 @@ async function resolveStarshipCriticalHit(targetShipActor, shipActor, weapon, cr
     ? `
       <div class="ship-critical-subresult">
         <h4>Shipboard Fire</h4>
+        <p><strong>Component Ignited:</strong> ${shipFireResult.componentName ?? "Random Component"}</p>
         <p><strong>Crew Damage:</strong> ${shipFireResult.crewRoll?.formula ?? "1d5"} = ${shipFireResult.crewDamage} (${shipFireResult.currentCrew} -> ${shipFireResult.newCrew})</p>
         <p><strong>Morale Damage:</strong> ${shipFireResult.moraleRoll?.formula ?? "1d10"} = ${shipFireResult.moraleDamage} (${shipFireResult.currentMorale} -> ${shipFireResult.newMorale})</p>
       </div>
@@ -1193,6 +1236,8 @@ async function resolveStarshipCriticalHit(targetShipActor, shipActor, weapon, cr
 async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackResult) {
   const targetShipActor = targetToken?.actor;
   if (!targetShipActor || targetShipActor.type !== "ship") return null;
+  const sourceToken = shipActor.getActiveTokens?.(true)?.[0] ?? shipActor.getActiveTokens?.()[0] ?? null;
+  const armorFacingData = sourceToken ? getIncomingArmorFacingData(targetToken, sourceToken) : { armorFacing: "prow", bearingLabel: "Fore" };
 
   const shieldActor = getShieldStateActor(targetShipActor);
   const attackerKey = getShieldAttackerKey(shipActor);
@@ -1220,24 +1265,27 @@ async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackR
     });
   }
 
-  const armor = Math.max(0, Number(targetShipActor.system?.armor ?? 0) || 0);
+  const armor = Math.max(0, Number(targetShipActor.getEffectiveShipArmor?.(armorFacingData.armorFacing) ?? 0) || 0);
   const appliedDamage = Math.max(0, totalDamage - armor);
-  const currentHullIntegrity = Math.max(0, Number(targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+  const currentHullIntegrity = Math.max(0, Number(targetShipActor.getEffectiveShipHullIntegrityValue?.() ?? targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+  const hullModifier = Number(targetShipActor.getShipModifierTotal?.("extraHullIntegrity") ?? 0) || 0;
   const newHullIntegrity = Math.max(0, currentHullIntegrity - appliedDamage);
   const criticalDamage = currentHullIntegrity > 0
     ? Math.max(0, appliedDamage - currentHullIntegrity)
     : appliedDamage;
-  const currentCrew = Math.max(0, Number(targetShipActor.system?.crew?.value ?? 0) || 0);
-  const currentMorale = Math.max(0, Number(targetShipActor.system?.resources?.morale?.value ?? 0) || 0);
+  const currentCrew = Math.max(0, Number(targetShipActor.getEffectiveShipCrewPopulationValue?.() ?? targetShipActor.system?.crew?.value ?? 0) || 0);
+  const crewModifier = Number(targetShipActor.getShipModifierTotal?.("extraCrewPercent") ?? 0) || 0;
+  const currentMorale = Math.max(0, Number(targetShipActor.getEffectiveShipMoraleValue?.() ?? targetShipActor.system?.resources?.morale?.value ?? 0) || 0);
+  const moraleModifier = Number(targetShipActor.getShipModifierTotal?.("extraMoralePercent") ?? 0) || 0;
   const newCrew = Math.max(0, currentCrew - appliedDamage);
   const newMorale = Math.max(0, currentMorale - appliedDamage);
   let criticalResult = null;
 
   if (appliedDamage > 0) {
     await updateShipActorDocument(targetShipActor, {
-      "system.resources.hullIntegrity.value": newHullIntegrity,
-      "system.crew.value": newCrew,
-      "system.resources.morale.value": newMorale
+      "system.resources.hullIntegrity.value": Math.max(0, newHullIntegrity - hullModifier),
+      "system.crew.value": Math.max(0, newCrew - crewModifier),
+      "system.resources.morale.value": Math.max(0, newMorale - moraleModifier)
     });
     await callShipActorMethod(targetShipActor, "syncCrippledState", { announced: true, sourceName: `${shipActor.name}: ${weapon.name}` });
     if (criticalDamage > 0) {
@@ -1253,12 +1301,13 @@ async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackR
       <div class="roguetrader ship-augury-results">
         <h3>${shipActor.name}: ${weapon.name} Hits ${targetShipActor.name}</h3>
         <p><strong>Volley Strength:</strong> ${volleyStrength}</p>
+        <p><strong>Hit Facing:</strong> ${armorFacingData.bearingLabel}</p>
         <p><strong>Raw Hits:</strong> ${rawHits}</p>
         <p><strong>Void Shields:</strong> ${shieldsShorted ? "Shorted against this attacker" : targetShields}</p>
         <p><strong>Hits Absorbed:</strong> ${absorbedHits}</p>
         <p><strong>Hits Through:</strong> ${remainingHits}</p>
         <p><strong>Damage Total:</strong> ${totalDamage}</p>
-        <p><strong>Armour:</strong> ${armor}</p>
+        <p><strong>Armour (${armorFacingData.armorFacing}):</strong> ${armor}</p>
         <p><strong>Hull Integrity Damage:</strong> ${appliedDamage}</p>
         <p><strong>Hull Integrity:</strong> ${currentHullIntegrity} -> ${newHullIntegrity}</p>
         <p><strong>Crew:</strong> ${currentCrew} -> ${newCrew}</p>
@@ -1277,6 +1326,7 @@ async function resolveMacrobatteryAttack(shipActor, weapon, targetToken, attackR
     absorbedHits,
     remainingHits,
     totalDamage,
+    armorFacing: armorFacingData.armorFacing,
     armor,
     appliedDamage,
     currentHullIntegrity,
@@ -1304,9 +1354,12 @@ async function resolveLanceAttack(shipActor, weapon, targetToken, attackResult) 
     await markShieldsShortedForAttacker(targetShipActor, shipActor);
   }
 
-  const currentHullIntegrity = Math.max(0, Number(targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
-  const currentCrew = Math.max(0, Number(targetShipActor.system?.crew?.value ?? 0) || 0);
-  const currentMorale = Math.max(0, Number(targetShipActor.system?.resources?.morale?.value ?? 0) || 0);
+  const currentHullIntegrity = Math.max(0, Number(targetShipActor.getEffectiveShipHullIntegrityValue?.() ?? targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+  const hullModifier = Number(targetShipActor.getShipModifierTotal?.("extraHullIntegrity") ?? 0) || 0;
+  const currentCrew = Math.max(0, Number(targetShipActor.getEffectiveShipCrewPopulationValue?.() ?? targetShipActor.system?.crew?.value ?? 0) || 0);
+  const crewModifier = Number(targetShipActor.getShipModifierTotal?.("extraCrewPercent") ?? 0) || 0;
+  const currentMorale = Math.max(0, Number(targetShipActor.getEffectiveShipMoraleValue?.() ?? targetShipActor.system?.resources?.morale?.value ?? 0) || 0);
+  const moraleModifier = Number(targetShipActor.getShipModifierTotal?.("extraMoralePercent") ?? 0) || 0;
   let runningHullIntegrity = currentHullIntegrity;
   let runningCrew = currentCrew;
   let runningMorale = currentMorale;
@@ -1345,9 +1398,9 @@ async function resolveLanceAttack(shipActor, weapon, targetToken, attackResult) 
   const appliedDamage = totalDamage;
   if (appliedDamage > 0) {
     await updateShipActorDocument(targetShipActor, {
-      "system.resources.hullIntegrity.value": runningHullIntegrity,
-      "system.crew.value": runningCrew,
-      "system.resources.morale.value": runningMorale
+      "system.resources.hullIntegrity.value": Math.max(0, runningHullIntegrity - hullModifier),
+      "system.crew.value": Math.max(0, runningCrew - crewModifier),
+      "system.resources.morale.value": Math.max(0, runningMorale - moraleModifier)
     });
     await callShipActorMethod(targetShipActor, "syncCrippledState", { announced: true, sourceName: `${shipActor.name}: ${weapon.name}` });
     for (const criticalHit of criticalHits) {
@@ -1412,6 +1465,12 @@ async function rollStarshipWeaponAttack(shipActor, weaponRef, options = {}) {
   const weapon = typeof weaponRef === "string" ? shipActor.items.get(weaponRef) : weaponRef;
   if (!weapon || weapon.type !== "shipWeapon") {
     ui.notifications?.warn("Rogue Trader | Could not find that ship weapon.");
+    return null;
+  }
+
+  const offlineReasons = getShipWeaponOfflineReasons(weapon);
+  if (offlineReasons.length) {
+    ui.notifications?.warn(`Rogue Trader | ${weapon.name} cannot fire while ${offlineReasons.join(", ")}.`);
     return null;
   }
 
@@ -1490,27 +1549,56 @@ async function rollStarshipWeaponAttack(shipActor, weaponRef, options = {}) {
   }
 
   const shipShootingModifier = Number(shipActor.getShipShootingModifier?.() ?? 0) || 0;
+  const targetShootingModifier = targetToken?.actor?.type === "ship"
+    ? (Number(targetToken.actor.getShipIncomingShootingModifier?.() ?? 0) || 0)
+    : 0;
+  const lockOnTargetModifier = Number(shipActor.getPendingLockOnTargetBonusForAttack?.(weapon, targetToken) ?? 0) || 0;
   const result = useNpcCrew
     ? await rollD100Test({
       actor: null,
       title: `${shipActor.name}: Fire ${weapon.name}`,
       target: npcCrewRating,
-      modifier: Number(rangeData?.modifier ?? 0) + shipShootingModifier,
+      modifier: Number(rangeData?.modifier ?? 0) + shipShootingModifier + targetShootingModifier + lockOnTargetModifier,
       breakdown: [
         `NPC Crew Rating: ${npcCrewRating}`,
         ...(rangeData ? [`Range Modifier: ${rangeData.modifier >= 0 ? `+${rangeData.modifier}` : rangeData.modifier}`] : []),
-        ...(shipShootingModifier ? [`Ship Shooting Modifier: ${shipShootingModifier >= 0 ? `+${shipShootingModifier}` : shipShootingModifier}`] : [])
+        ...(shipShootingModifier ? [`Ship Shooting Modifier: ${shipShootingModifier >= 0 ? `+${shipShootingModifier}` : shipShootingModifier}`] : []),
+        ...(targetShootingModifier ? [`Target Evasion Modifier: ${targetShootingModifier}`] : []),
+        ...(lockOnTargetModifier ? [`Lock on Target: +${lockOnTargetModifier}`] : [])
       ],
       extra
     })
     : await gunnerActor.rollCharacteristic("ballisticSkill", {
-      modifier: Number(rangeData?.modifier ?? 0) + shipShootingModifier,
+      modifier: Number(rangeData?.modifier ?? 0) + shipShootingModifier + targetShootingModifier + lockOnTargetModifier,
       label: `${gunnerActor.name}: Fire ${weapon.name} (${shipActor.name})`,
       extra: [
         ...extra,
-        ...(shipShootingModifier ? [`Ship Shooting Modifier: ${shipShootingModifier >= 0 ? `+${shipShootingModifier}` : shipShootingModifier}`] : [])
+        ...(shipShootingModifier ? [`Ship Shooting Modifier: ${shipShootingModifier >= 0 ? `+${shipShootingModifier}` : shipShootingModifier}`] : []),
+        ...(targetShootingModifier ? [`Target Evasion Modifier: ${targetShootingModifier}`] : []),
+        ...(lockOnTargetModifier ? [`Lock on Target: +${lockOnTargetModifier}`] : [])
       ]
     });
+
+  const tacticalPositioningBonusDegrees = result?.success
+    ? (Number(shipActor.getPendingTacticalPositioningBonusDegrees?.("shooting") ?? 0) || 0)
+    : 0;
+  if (result?.success && tacticalPositioningBonusDegrees > 0) {
+    result.degrees = Math.max(0, Number(result.degrees ?? 0) || 0) + tacticalPositioningBonusDegrees;
+    await shipActor.consumePendingTacticalPositioning?.("shooting");
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: shipActor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${shipActor.name}: Tactical Positioning</h3>
+          <p><strong>Effect Applied:</strong> +${tacticalPositioningBonusDegrees} DoS to ${weapon.name}.</p>
+        </div>
+      `
+    });
+  }
+
+  if (result && lockOnTargetModifier > 0) {
+    await shipActor.consumePendingLockOnTargetForAttack?.(weapon, targetToken);
+  }
 
   if (result?.success && shipActor?._playAutomatedAttackAnimation) {
     try {

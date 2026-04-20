@@ -135,6 +135,12 @@ export class RogueTraderShipWeaponSheet extends HandlebarsApplicationMixin(ItemS
       common: "Common",
       poor: "Poor"
     };
+    context.componentStatusOptions = {
+      intact: "Intact",
+      unpowered: "Unpowered",
+      damaged: "Damaged",
+      destroyed: "Destroyed"
+    };
     return context;
   }
 

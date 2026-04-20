@@ -122,6 +122,120 @@ const RESOURCE_MODIFIER_ALIASES = {
   wound: "wounds",
   wounds: "wounds"
 };
+const SHIP_MODIFIER_ALIASES = {
+  spd: "extraSpeed",
+  speed: "extraSpeed",
+  "extra spd": "extraSpeed",
+  "extra speed": "extraSpeed",
+  man: "extraManeuverability",
+  manoeuvrability: "extraManeuverability",
+  maneuverability: "extraManeuverability",
+  "extra man": "extraManeuverability",
+  "extra manoeuvrability": "extraManeuverability",
+  "extra maneuverability": "extraManeuverability",
+  det: "extraDetection",
+  detection: "extraDetection",
+  "extra det": "extraDetection",
+  "extra detection": "extraDetection",
+  turret: "extraTurrets",
+  turrets: "extraTurrets",
+  "extra turret": "extraTurrets",
+  "extra turrets": "extraTurrets",
+  shield: "extraShields",
+  shields: "extraShields",
+  "extra shield": "extraShields",
+  "extra shields": "extraShields",
+  armour: "extraArmor",
+  armor: "extraArmor",
+  "extra armour": "extraArmor",
+  "extra armor": "extraArmor",
+  "prow armour": "extraArmorProw",
+  "prow armor": "extraArmorProw",
+  "extra prow armour": "extraArmorProw",
+  "extra prow armor": "extraArmorProw",
+  "port armour": "extraArmorPort",
+  "port armor": "extraArmorPort",
+  "extra port armour": "extraArmorPort",
+  "extra port armor": "extraArmorPort",
+  "starboard armour": "extraArmorStarboard",
+  "starboard armor": "extraArmorStarboard",
+  "extra starboard armour": "extraArmorStarboard",
+  "extra starboard armor": "extraArmorStarboard",
+  "aft armour": "extraArmorAft",
+  "aft armor": "extraArmorAft",
+  "rear armour": "extraArmorAft",
+  "rear armor": "extraArmorAft",
+  "extra aft armour": "extraArmorAft",
+  "extra aft armor": "extraArmorAft",
+  hi: "extraHullIntegrity",
+  hullintegrity: "extraHullIntegrity",
+  "hull integrity": "extraHullIntegrity",
+  "extra hi": "extraHullIntegrity",
+  "extra hull integrity": "extraHullIntegrity",
+  crew: "extraCrewPercent",
+  "crew%": "extraCrewPercent",
+  "crew percent": "extraCrewPercent",
+  "extra crew": "extraCrewPercent",
+  "extra crew%": "extraCrewPercent",
+  "extra crew percent": "extraCrewPercent",
+  morale: "extraMoralePercent",
+  "morale%": "extraMoralePercent",
+  "morale percent": "extraMoralePercent",
+  "extra morale": "extraMoralePercent",
+  "extra morale%": "extraMoralePercent",
+  "extra morale percent": "extraMoralePercent",
+  power: "extraPower",
+  "extra power": "extraPower",
+  space: "extraSpace",
+  "extra space": "extraSpace",
+  repair: "repairBonus",
+  repairs: "repairBonus",
+  "repair bonus": "repairBonus",
+  "extra repair": "repairBonus",
+  "extra repair bonus": "repairBonus",
+  command: "commandBonus",
+  "command bonus": "commandBonus",
+  "extra command": "commandBonus",
+  "extra command bonus": "commandBonus",
+  pilot: "pilotingBonus",
+  piloting: "pilotingBonus",
+  "pilot bonus": "pilotingBonus",
+  "piloting bonus": "pilotingBonus",
+  "extra pilot": "pilotingBonus",
+  "extra piloting": "pilotingBonus",
+  navigate: "navigationBonus",
+  navigation: "navigationBonus",
+  navigator: "navigationBonus",
+  "navigation bonus": "navigationBonus",
+  "navigator bonus": "navigationBonus",
+  "extra navigation": "navigationBonus",
+  "crew rating": "crewRatingBonus",
+  crewrating: "crewRatingBonus",
+  "crew rating bonus": "crewRatingBonus",
+  "extra crew rating": "crewRatingBonus",
+  ramming: "rammingDamageBonus",
+  "ramming damage": "rammingDamageBonus",
+  "ram damage": "rammingDamageBonus",
+  "extra ramming damage": "rammingDamageBonus",
+  evasion: "extraEvasion",
+  evade: "extraEvasion",
+  "extra evasion": "extraEvasion",
+  accuracy: "extraAccuracy",
+  "extra accuracy": "extraAccuracy",
+  "travel time": "travelTimeModifier",
+  traveltimemodifier: "travelTimeModifier",
+  "travel time modifier": "travelTimeModifier",
+  warp: "warpEncounterModifier",
+  warpencountermod: "warpEncounterModifier",
+  "warp encounter mod": "warpEncounterModifier",
+  "warp encounter modifier": "warpEncounterModifier",
+  "morale loss": "addedMoraleLoss",
+  addedmoraleloss: "addedMoraleLoss",
+  "added morale loss": "addedMoraleLoss",
+  "crew loss": "addedCrewLoss",
+  "crew& loss": "addedCrewLoss",
+  "added crew loss": "addedCrewLoss"
+};
 
 const UNNATURAL_CHARACTERISTIC_TRAIT_NAMES = {
   weaponSkill: "unnatural weapon skill",
@@ -163,22 +277,22 @@ const MORALE_20_STATUS_ID = "morale-20";
 const MORALE_10_STATUS_ID = "morale-10";
 const MORALE_0_STATUS_ID = "morale-0";
 const SHIP_CREW_POPULATION_THRESHOLDS = Object.freeze([
-  { threshold: 80, statusId: CREW_POPULATION_80_STATUS_ID, name: "Crew Reduced (80%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
-  { threshold: 60, statusId: CREW_POPULATION_60_STATUS_ID, name: "Crew Reduced (60%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
-  { threshold: 50, statusId: CREW_POPULATION_50_STATUS_ID, name: "Crew Reduced (50%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
-  { threshold: 40, statusId: CREW_POPULATION_40_STATUS_ID, name: "Crew Reduced (40%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
-  { threshold: 20, statusId: CREW_POPULATION_20_STATUS_ID, name: "Crew Reduced (20%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
-  { threshold: 10, statusId: CREW_POPULATION_10_STATUS_ID, name: "Crew Reduced (10%)", img: "modules/game-icons-net/whitetransparent/team-downgrade.svg" },
-  { threshold: 0, statusId: CREW_POPULATION_0_STATUS_ID, name: "Ship is a Tomb", img: "modules/game-icons-net/whitetransparent/black-flag.svg" }
+  { threshold: 80, statusId: CREW_POPULATION_80_STATUS_ID, name: "Crew Reduced (80%)", img: "systems/roguetrader/assets/svg/team-downgrade.svg" },
+  { threshold: 60, statusId: CREW_POPULATION_60_STATUS_ID, name: "Crew Reduced (60%)", img: "systems/roguetrader/assets/svg/team-downgrade.svg" },
+  { threshold: 50, statusId: CREW_POPULATION_50_STATUS_ID, name: "Crew Reduced (50%)", img: "systems/roguetrader/assets/svg/team-downgrade.svg" },
+  { threshold: 40, statusId: CREW_POPULATION_40_STATUS_ID, name: "Crew Reduced (40%)", img: "systems/roguetrader/assets/svg/team-downgrade.svg" },
+  { threshold: 20, statusId: CREW_POPULATION_20_STATUS_ID, name: "Crew Reduced (20%)", img: "systems/roguetrader/assets/svg/team-downgrade.svg" },
+  { threshold: 10, statusId: CREW_POPULATION_10_STATUS_ID, name: "Crew Reduced (10%)", img: "systems/roguetrader/assets/svg/team-downgrade.svg" },
+  { threshold: 0, statusId: CREW_POPULATION_0_STATUS_ID, name: "Ship is a Tomb", img: "systems/roguetrader/assets/svg/black-flag.svg" }
 ]);
 const SHIP_MORALE_THRESHOLDS = Object.freeze([
-  { threshold: 80, statusId: MORALE_80_STATUS_ID, name: "Low Morale (80)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
-  { threshold: 60, statusId: MORALE_60_STATUS_ID, name: "Low Morale (60)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
-  { threshold: 50, statusId: MORALE_50_STATUS_ID, name: "Low Morale (50)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
-  { threshold: 40, statusId: MORALE_40_STATUS_ID, name: "Low Morale (40)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
-  { threshold: 20, statusId: MORALE_20_STATUS_ID, name: "Low Morale (20)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
-  { threshold: 10, statusId: MORALE_10_STATUS_ID, name: "Low Morale (10)", img: "modules/game-icons-net/whitetransparent/despair.svg" },
-  { threshold: 0, statusId: MORALE_0_STATUS_ID, name: "Mutinous Crew", img: "modules/game-icons-net/whitetransparent/black-flag.svg" }
+  { threshold: 80, statusId: MORALE_80_STATUS_ID, name: "Low Morale (80)", img: "systems/roguetrader/assets/svg/despair.svg" },
+  { threshold: 60, statusId: MORALE_60_STATUS_ID, name: "Low Morale (60)", img: "systems/roguetrader/assets/svg/despair.svg" },
+  { threshold: 50, statusId: MORALE_50_STATUS_ID, name: "Low Morale (50)", img: "systems/roguetrader/assets/svg/despair.svg" },
+  { threshold: 40, statusId: MORALE_40_STATUS_ID, name: "Low Morale (40)", img: "systems/roguetrader/assets/svg/despair.svg" },
+  { threshold: 20, statusId: MORALE_20_STATUS_ID, name: "Low Morale (20)", img: "systems/roguetrader/assets/svg/despair.svg" },
+  { threshold: 10, statusId: MORALE_10_STATUS_ID, name: "Low Morale (10)", img: "systems/roguetrader/assets/svg/despair.svg" },
+  { threshold: 0, statusId: MORALE_0_STATUS_ID, name: "Mutinous Crew", img: "systems/roguetrader/assets/svg/black-flag.svg" }
 ]);
 const FATIGUE_UNCONSCIOUS_FLAG = "fatigueUnconscious";
 const SIZE_MOVEMENT_MODIFIERS = Object.freeze({
@@ -1308,6 +1422,75 @@ function parseResourceModifierExpression(expression) {
     if (!Number.isFinite(numericValue) || numericValue === 0) continue;
 
     modifiers[resourceKey] = Number(modifiers[resourceKey] ?? 0) + numericValue;
+  }
+
+  return modifiers;
+}
+
+function normalizeShipModifierLabel(label) {
+  return String(label ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[%/&]/g, (char) => {
+      if (char === "%") return "%";
+      return " ";
+    })
+    .replace(/\s+/g, " ");
+}
+
+function resolveShipModifierKey(label) {
+  const normalized = normalizeShipModifierLabel(label);
+  return SHIP_MODIFIER_ALIASES[normalized] ?? SHIP_MODIFIER_ALIASES[normalized.replace(/\s+/g, "")] ?? null;
+}
+
+function parseShipModifierExpression(expression) {
+  const modifiers = {};
+  const source = String(expression ?? "").trim();
+  if (!source) return modifiers;
+
+  const entries = source
+    .split(/[\r\n,;]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  for (const entry of entries) {
+    const match = entry.match(/^(.+?)\s*([+-]\s*\d+)$/);
+    if (!match) continue;
+
+    const modifierKey = resolveShipModifierKey(match[1]);
+    if (!modifierKey) continue;
+
+    const numericValue = Number(match[2].replace(/\s+/g, ""));
+    if (!Number.isFinite(numericValue) || numericValue === 0) continue;
+
+    modifiers[modifierKey] = Number(modifiers[modifierKey] ?? 0) + numericValue;
+  }
+
+  return modifiers;
+}
+
+function parseShipModifierFormulaExpression(expression) {
+  const modifiers = {};
+  const source = String(expression ?? "").trim();
+  if (!source) return modifiers;
+
+  const entries = source
+    .split(/[\r\n,;]+/)
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  for (const entry of entries) {
+    const match = entry.match(/^(.+?)\s*([+-]\s*(?:\d+d\d+|\d+))$/i);
+    if (!match) continue;
+
+    const modifierKey = resolveShipModifierKey(match[1]);
+    if (modifierKey !== "rammingDamageBonus") continue;
+
+    const formula = match[2].replace(/\s+/g, "");
+    if (!formula) continue;
+
+    modifiers[modifierKey] ??= [];
+    modifiers[modifierKey].push(formula);
   }
 
   return modifiers;
@@ -2570,6 +2753,35 @@ export class RogueTraderActor extends Actor {
     return Boolean(this.statuses?.has?.(SENSORS_DAMAGED_STATUS_ID) || this._getStatusEffectByStatusId(SENSORS_DAMAGED_STATUS_ID));
   }
 
+  getShipAugurArrayComponents() {
+    if (this.type !== "ship") return [];
+
+    return Array.from(this.items ?? []).filter((item) => {
+      if (!["shipComponent", "essentialComponent", "supplementalComponent"].includes(item?.type)) return false;
+      const componentType = String(item.system?.componentType ?? item.system?.categoryType ?? "").trim().toLowerCase();
+      return componentType === "augurarrays";
+    });
+  }
+
+  hasDamagedShipAugurArrays() {
+    return this.getShipAugurArrayComponents().some((item) => {
+      const status = String(item.system?.status ?? "intact").trim().toLowerCase();
+      return ["unpowered", "damaged", "destroyed"].includes(status);
+    });
+  }
+
+  async syncSensorsDamagedFromComponents({ sourceName = "Augur Arrays", announced = false } = {}) {
+    if (this.type !== "ship") return false;
+
+    if (this.hasDamagedShipAugurArrays()) {
+      await this.applySensorsDamaged({ sourceName, announced });
+      return true;
+    }
+
+    await this.clearSensorsDamaged({ announced });
+    return false;
+  }
+
   isThrustersDamaged() {
     return Boolean(this.statuses?.has?.(THRUSTERS_DAMAGED_STATUS_ID) || this._getStatusEffectByStatusId(THRUSTERS_DAMAGED_STATUS_ID));
   }
@@ -2578,32 +2790,584 @@ export class RogueTraderActor extends Actor {
     return Boolean(this.statuses?.has?.(SHIP_FIRE_STATUS_ID) || this._getStatusEffectByStatusId(SHIP_FIRE_STATUS_ID));
   }
 
+  getBurningShipComponents() {
+    if (this.type !== "ship") return [];
+
+    return Array.from(this.items ?? []).filter((item) =>
+      ["shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon"].includes(item?.type)
+      && Boolean(item.system?.onFire)
+    );
+  }
+
+  hasBurningShipComponents() {
+    return this.getBurningShipComponents().length > 0;
+  }
+
+  _getShipFireEligibleComponents({ includeDestroyed = false } = {}) {
+    if (this.type !== "ship") return [];
+
+    return Array.from(this.items ?? []).filter((item) => {
+      if (!["shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon"].includes(item?.type)) return false;
+      if (includeDestroyed) return true;
+      const status = String(item.system?.status ?? "intact").trim().toLowerCase();
+      return status !== "destroyed";
+    });
+  }
+
+  async syncShipFireCondition({ sourceName = "", announced = false } = {}) {
+    if (this.type !== "ship") return false;
+
+    const burningComponents = this.getBurningShipComponents();
+    const hasFire = burningComponents.length > 0;
+    const existingEffect = this._getStatusEffectByStatusId(SHIP_FIRE_STATUS_ID);
+    const currentlyActive = Boolean(existingEffect || this.system?.conditions?.shipFire?.active);
+
+    if (hasFire) {
+      if (!existingEffect) {
+        await this.createEmbeddedDocuments("ActiveEffect", [({
+          name: "Fire!",
+          img: "icons/svg/fire.svg",
+          statuses: [SHIP_FIRE_STATUS_ID]
+        })]);
+      }
+
+      const resolvedSource = String(sourceName ?? "").trim()
+        || String(this.system?.conditions?.shipFire?.source ?? "").trim()
+        || burningComponents.map((component) => component.name).join(", ");
+
+      await this.update({
+        "system.conditions.shipFire.active": true,
+        "system.conditions.shipFire.source": resolvedSource
+      });
+
+      return true;
+    }
+
+    if (existingEffect) {
+      await existingEffect.delete();
+    }
+
+    await this.update({
+      "system.conditions.shipFire.active": false,
+      "system.conditions.shipFire.source": ""
+    });
+
+    if (announced && currentlyActive) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Fire Contained</h3>
+            <p><strong>Status Removed:</strong> Shipboard Fire</p>
+          </div>
+        `
+      });
+    }
+
+    return false;
+  }
+
+  async applyShipComponentFireConsequences(component, {
+    sourceName = "Shipboard Fire",
+    announced = true,
+    chatTitle = "Fire!"
+  } = {}) {
+    if (this.type !== "ship" || !component) return null;
+
+    const crewRoll = await (new Roll("1d5")).evaluate({ async: true });
+    const moraleRoll = await (new Roll("1d10")).evaluate({ async: true });
+    const crewDamage = Math.max(0, Number(crewRoll.total ?? 0) || 0);
+    const moraleDamage = Math.max(0, Number(moraleRoll.total ?? 0) || 0);
+    const crewModifier = Number(this.getShipModifierTotal("extraCrewPercent") ?? 0) || 0;
+    const moraleModifier = Number(this.getShipModifierTotal("extraMoralePercent") ?? 0) || 0;
+    const currentCrew = this.getEffectiveShipCrewPopulationValue();
+    const currentMorale = this.getEffectiveShipMoraleValue();
+    const newCrew = Math.max(0, currentCrew - crewDamage);
+    const newMorale = Math.max(0, currentMorale - moraleDamage);
+
+    await this.update({
+      "system.crew.value": Math.max(0, newCrew - crewModifier),
+      "system.resources.morale.value": Math.max(0, newMorale - moraleModifier)
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: ${chatTitle}</h3>
+            <p><strong>Component Ignited:</strong> ${component.name}</p>
+            <p><strong>Immediate Crew Damage:</strong> ${crewRoll.formula} = ${crewDamage} (${currentCrew} -> ${newCrew})</p>
+            <p><strong>Immediate Morale Damage:</strong> ${moraleRoll.formula} = ${moraleDamage} (${currentMorale} -> ${newMorale})</p>
+            <p><strong>Source:</strong> ${sourceName}</p>
+          </div>
+        `
+      });
+    }
+
+    return {
+      crewRoll,
+      moraleRoll,
+      crewDamage,
+      moraleDamage,
+      currentCrew,
+      newCrew,
+      currentMorale,
+      newMorale,
+      componentId: component.id,
+      componentName: component.name
+    };
+  }
+
   isEnginesCrippled() {
     return Boolean(this.statuses?.has?.(ENGINES_CRIPPLED_STATUS_ID) || this._getStatusEffectByStatusId(ENGINES_CRIPPLED_STATUS_ID));
   }
 
+  isSilentRunning() {
+    return Boolean(this.statuses?.has?.("silent-running") || this._getStatusEffectByStatusId("silent-running"));
+  }
+
+  isJammedCommunications() {
+    return Boolean(this.statuses?.has?.("jammed-communications") || this._getStatusEffectByStatusId("jammed-communications"));
+  }
+
+  isWarpInterferenceActive() {
+    return Boolean(this.statuses?.has?.("warp-interference") || this._getStatusEffectByStatusId("warp-interference"));
+  }
+
+  async clearSilentRunning() {
+    if (this.type !== "ship") return;
+
+    const existingEffect = this._getStatusEffectByStatusId("silent-running");
+    if (existingEffect) {
+      await this.deleteEmbeddedDocuments("ActiveEffect", [existingEffect.id]);
+      return;
+    }
+
+    await this.update({
+      "system.conditions.silentRunning.active": false,
+      "system.conditions.silentRunning.source": "",
+      "system.conditions.silentRunning.appliedAt": {
+        combatId: "",
+        round: 0,
+        turn: 0
+      }
+    });
+  }
+
+  async handleSilentRunningTurnStart(combat = null) {
+    if (this.type !== "ship") return null;
+    if (!Boolean(this.system?.conditions?.silentRunning?.active)) return null;
+
+    const activeCombat = combat ?? game.combat ?? null;
+    if (!activeCombat?.id) {
+      await this.clearSilentRunning();
+      return { cleared: true };
+    }
+
+    const appliedAt = this.system?.conditions?.silentRunning?.appliedAt ?? {};
+    const sameTurn = String(appliedAt.combatId ?? "") === String(activeCombat.id ?? "")
+      && Number(appliedAt.round ?? -1) === Number(activeCombat.round ?? 0)
+      && Number(appliedAt.turn ?? -1) === Number(activeCombat.turn ?? 0);
+    if (sameTurn) return { cleared: false };
+
+    await this.clearSilentRunning();
+    return { cleared: true };
+  }
+
+  async clearJammedCommunications() {
+    if (this.type !== "ship") return;
+
+    const existingEffect = this._getStatusEffectByStatusId("jammed-communications");
+    if (existingEffect) {
+      await this.deleteEmbeddedDocuments("ActiveEffect", [existingEffect.id]);
+      return;
+    }
+
+    await this.update({
+      "system.conditions.jammedCommunications.active": false,
+      "system.conditions.jammedCommunications.source": ""
+    });
+  }
+
+  async handleJammedCommunicationsTurnEnd() {
+    if (this.type !== "ship") return null;
+    if (!Boolean(this.system?.conditions?.jammedCommunications?.active)) return null;
+    await this.clearJammedCommunications();
+    return { cleared: true };
+  }
+
+  async applyWarpInterference({
+    sourceName = "Warp Interference",
+    sourceShipName = "",
+    rounds = 1,
+    penalty = 10,
+    announced = true
+  } = {}) {
+    if (this.type !== "ship") return null;
+
+    const numericPenalty = Math.max(0, Math.abs(Number(penalty ?? 10) || 10));
+    const remainingRounds = Math.max(1, Number(rounds ?? 1) || 1);
+
+    if (!this.isWarpInterferenceActive()) {
+      await this.createEmbeddedDocuments("ActiveEffect", [{
+        name: "Warp Interference",
+        img: "systems/roguetrader/assets/svg/evil-tower.svg",
+        statuses: ["warp-interference"]
+      }]);
+    }
+
+    await this.update({
+      "system.conditions.warpInterference.active": true,
+      "system.conditions.warpInterference.penalty": numericPenalty,
+      "system.conditions.warpInterference.source": String(sourceName ?? "Warp Interference"),
+      "system.conditions.warpInterference.sourceShipName": String(sourceShipName ?? ""),
+      "system.conditions.warpInterference.remainingRounds": remainingRounds
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Warp Interference</h3>
+            <p><strong>Status Applied:</strong> Warp Interference</p>
+            <p><strong>Effect:</strong> Detection suffers -${numericPenalty}.</p>
+            <p><strong>Duration:</strong> ${remainingRounds} Strategic Round${remainingRounds === 1 ? "" : "s"} remaining.</p>
+            <p><strong>Source:</strong> ${sourceShipName || sourceName}</p>
+          </div>
+        `
+      });
+    }
+
+    return this.system?.conditions?.warpInterference ?? null;
+  }
+
+  async clearWarpInterference({ announced = false } = {}) {
+    if (this.type !== "ship") return false;
+    if (!this.isWarpInterferenceActive() && !Boolean(this.system?.conditions?.warpInterference?.active)) return false;
+
+    const effect = this._getStatusEffectByStatusId("warp-interference");
+    if (effect) {
+      await effect.delete();
+    }
+
+    await this.update({
+      "system.conditions.warpInterference.active": false,
+      "system.conditions.warpInterference.penalty": 10,
+      "system.conditions.warpInterference.source": "",
+      "system.conditions.warpInterference.sourceShipName": "",
+      "system.conditions.warpInterference.remainingRounds": 0
+    });
+
+    if (announced) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        flavor: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Warp Interference Cleared</h3>
+            <p><strong>Status Removed:</strong> Warp Interference</p>
+          </div>
+        `
+      });
+    }
+
+    return true;
+  }
+
+  async handleWarpInterferenceTurnEnd() {
+    if (this.type !== "ship") return null;
+    if (!Boolean(this.system?.conditions?.warpInterference?.active)) return null;
+
+    const remainingRounds = Math.max(0, Number(this.system?.conditions?.warpInterference?.remainingRounds ?? 0) || 0);
+    if (remainingRounds <= 1) {
+      await this.clearWarpInterference();
+      return { cleared: true, remainingRounds: 0 };
+    }
+
+    await this.update({
+      "system.conditions.warpInterference.remainingRounds": remainingRounds - 1
+    });
+    return { cleared: false, remainingRounds: remainingRounds - 1 };
+  }
+
+  getPendingLockOnTargetState() {
+    if (this.type !== "ship") return null;
+    return this.system?.pendingLockOnTarget ?? null;
+  }
+
+  async applyPendingLockOnTarget({
+    weaponId = "",
+    weaponName = "",
+    targetActorUuid = "",
+    targetName = "",
+    bonus = 0,
+    sourceName = "Lock on Target",
+    operatorName = "",
+    combat = null
+  } = {}) {
+    if (this.type !== "ship") return null;
+
+    const numericBonus = Math.max(0, Number(bonus ?? 0) || 0);
+    if (!weaponId || !targetActorUuid || numericBonus <= 0) return null;
+
+    const activeCombat = combat ?? game.combat ?? null;
+    await this.update({
+      "system.pendingLockOnTarget.active": true,
+      "system.pendingLockOnTarget.weaponId": String(weaponId),
+      "system.pendingLockOnTarget.weaponName": String(weaponName ?? ""),
+      "system.pendingLockOnTarget.targetActorUuid": String(targetActorUuid),
+      "system.pendingLockOnTarget.targetName": String(targetName ?? ""),
+      "system.pendingLockOnTarget.bonus": numericBonus,
+      "system.pendingLockOnTarget.source": String(sourceName ?? "Lock on Target"),
+      "system.pendingLockOnTarget.operatorName": String(operatorName ?? ""),
+      "system.pendingLockOnTarget.appliedAt": {
+        combatId: String(activeCombat?.id ?? ""),
+        round: Number(activeCombat?.round ?? 0) || 0,
+        turn: Number(activeCombat?.turn ?? 0) || 0
+      }
+    });
+
+    return this.system?.pendingLockOnTarget ?? null;
+  }
+
+  async clearPendingLockOnTarget() {
+    if (this.type !== "ship") return false;
+    if (!Boolean(this.system?.pendingLockOnTarget?.active)) return false;
+
+    await this.update({
+      "system.pendingLockOnTarget.active": false,
+      "system.pendingLockOnTarget.weaponId": "",
+      "system.pendingLockOnTarget.weaponName": "",
+      "system.pendingLockOnTarget.targetActorUuid": "",
+      "system.pendingLockOnTarget.targetName": "",
+      "system.pendingLockOnTarget.bonus": 0,
+      "system.pendingLockOnTarget.source": "",
+      "system.pendingLockOnTarget.operatorName": "",
+      "system.pendingLockOnTarget.appliedAt": {
+        combatId: "",
+        round: 0,
+        turn: 0
+      }
+    });
+
+    return true;
+  }
+
+  getPendingLockOnTargetBonusForAttack(weapon = null, targetToken = null) {
+    if (this.type !== "ship") return 0;
+
+    const pendingState = this.system?.pendingLockOnTarget ?? {};
+    if (!Boolean(pendingState?.active)) return 0;
+
+    const expectedWeaponId = String(pendingState?.weaponId ?? "").trim();
+    const expectedTargetActorUuid = String(pendingState?.targetActorUuid ?? "").trim();
+    const attackWeaponId = String(weapon?.id ?? "").trim();
+    const attackTargetActorUuid = String(targetToken?.actor?.uuid ?? "").trim();
+    if (!expectedWeaponId || !expectedTargetActorUuid) return 0;
+    if (expectedWeaponId !== attackWeaponId) return 0;
+    if (expectedTargetActorUuid !== attackTargetActorUuid) return 0;
+
+    return Math.max(0, Number(pendingState?.bonus ?? 0) || 0);
+  }
+
+  async consumePendingLockOnTargetForAttack(weapon = null, targetToken = null) {
+    const bonus = this.getPendingLockOnTargetBonusForAttack(weapon, targetToken);
+    if (bonus <= 0) return 0;
+    await this.clearPendingLockOnTarget();
+    return bonus;
+  }
+
+  async handlePendingLockOnTargetTurnStart(combat = null) {
+    if (this.type !== "ship") return null;
+    if (!Boolean(this.system?.pendingLockOnTarget?.active)) return null;
+
+    const activeCombat = combat ?? game.combat ?? null;
+    if (!activeCombat?.id) {
+      await this.clearPendingLockOnTarget();
+      return { cleared: true };
+    }
+
+    const appliedAt = this.system?.pendingLockOnTarget?.appliedAt ?? {};
+    const sameTurn = String(appliedAt.combatId ?? "") === String(activeCombat.id ?? "")
+      && Number(appliedAt.round ?? -1) === Number(activeCombat.round ?? 0)
+      && Number(appliedAt.turn ?? -1) === Number(activeCombat.turn ?? 0);
+    if (sameTurn) return { cleared: false };
+
+    await this.clearPendingLockOnTarget();
+    return { cleared: true };
+  }
+
+  getPendingTacticalPositioningState() {
+    if (this.type !== "ship") return null;
+    return this.system?.pendingTacticalPositioning ?? null;
+  }
+
+  async applyPendingTacticalPositioning({
+    mode = "",
+    bonusDegrees = 1,
+    sourceName = "Tactical Positioning",
+    operatorName = "",
+    combat = null
+  } = {}) {
+    if (this.type !== "ship") return null;
+
+    const normalizedMode = String(mode ?? "").trim();
+    const numericBonusDegrees = Math.max(0, Number(bonusDegrees ?? 1) || 0);
+    if (!["shooting", "evasiveManeuvers"].includes(normalizedMode) || numericBonusDegrees <= 0) return null;
+
+    const activeCombat = combat ?? game.combat ?? null;
+    await this.update({
+      "system.pendingTacticalPositioning.active": true,
+      "system.pendingTacticalPositioning.mode": normalizedMode,
+      "system.pendingTacticalPositioning.bonusDegrees": numericBonusDegrees,
+      "system.pendingTacticalPositioning.source": String(sourceName ?? "Tactical Positioning"),
+      "system.pendingTacticalPositioning.operatorName": String(operatorName ?? ""),
+      "system.pendingTacticalPositioning.appliedAt": {
+        combatId: String(activeCombat?.id ?? ""),
+        round: Number(activeCombat?.round ?? 0) || 0,
+        turn: Number(activeCombat?.turn ?? 0) || 0
+      }
+    });
+
+    return this.system?.pendingTacticalPositioning ?? null;
+  }
+
+  async clearPendingTacticalPositioning() {
+    if (this.type !== "ship") return false;
+    if (!Boolean(this.system?.pendingTacticalPositioning?.active)) return false;
+
+    await this.update({
+      "system.pendingTacticalPositioning.active": false,
+      "system.pendingTacticalPositioning.mode": "",
+      "system.pendingTacticalPositioning.bonusDegrees": 0,
+      "system.pendingTacticalPositioning.source": "",
+      "system.pendingTacticalPositioning.operatorName": "",
+      "system.pendingTacticalPositioning.appliedAt": {
+        combatId: "",
+        round: 0,
+        turn: 0
+      }
+    });
+
+    return true;
+  }
+
+  getPendingTacticalPositioningBonusDegrees(mode = "") {
+    if (this.type !== "ship") return 0;
+
+    const pendingState = this.system?.pendingTacticalPositioning ?? {};
+    if (!Boolean(pendingState?.active)) return 0;
+
+    const normalizedMode = String(mode ?? "").trim();
+    if (String(pendingState?.mode ?? "").trim() !== normalizedMode) return 0;
+    return Math.max(0, Number(pendingState?.bonusDegrees ?? 0) || 0);
+  }
+
+  async consumePendingTacticalPositioning(mode = "") {
+    const bonusDegrees = this.getPendingTacticalPositioningBonusDegrees(mode);
+    if (bonusDegrees <= 0) return 0;
+    await this.clearPendingTacticalPositioning();
+    return bonusDegrees;
+  }
+
+  async handlePendingTacticalPositioningTurnStart(combat = null) {
+    if (this.type !== "ship") return null;
+    if (!Boolean(this.system?.pendingTacticalPositioning?.active)) return null;
+
+    const activeCombat = combat ?? game.combat ?? null;
+    if (!activeCombat?.id) {
+      await this.clearPendingTacticalPositioning();
+      return { cleared: true };
+    }
+
+    const appliedAt = this.system?.pendingTacticalPositioning?.appliedAt ?? {};
+    const sameTurn = String(appliedAt.combatId ?? "") === String(activeCombat.id ?? "")
+      && Number(appliedAt.round ?? -1) === Number(activeCombat.round ?? 0)
+      && Number(appliedAt.turn ?? -1) === Number(activeCombat.turn ?? 0);
+    if (sameTurn) return { cleared: false };
+
+    await this.clearPendingTacticalPositioning();
+    return { cleared: true };
+  }
+
+  async handleEmergencyRepairsTurnStart(combat = null) {
+    if (this.type !== "ship") return null;
+
+    const repairableItems = Array.from(this.items ?? []).filter((item) =>
+      ["shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon"].includes(item?.type)
+      && Boolean(item?.system?.emergencyRepair?.active)
+    );
+    if (!repairableItems.length) return null;
+
+    const completedItems = [];
+    const tickingItems = [];
+
+    for (const item of repairableItems) {
+      const remainingTurns = Math.max(0, Number(item.system?.emergencyRepair?.remainingTurns ?? 0) || 0);
+      if (remainingTurns <= 1) {
+        const currentStatus = String(item.system?.status ?? "intact").trim().toLowerCase();
+        const nextStatus = ["unpowered", "damaged"].includes(currentStatus) ? "intact" : currentStatus || "intact";
+        await item.update({
+          "system.status": nextStatus,
+          "system.depressurized": false,
+          "system.emergencyRepair.active": false,
+          "system.emergencyRepair.remainingTurns": 0,
+          "system.emergencyRepair.source": "",
+          "system.emergencyRepair.operatorName": ""
+        });
+        completedItems.push(item.name);
+      } else {
+        await item.update({
+          "system.emergencyRepair.remainingTurns": remainingTurns - 1
+        });
+        tickingItems.push({
+          name: item.name,
+          remainingTurns: remainingTurns - 1
+        });
+      }
+    }
+
+    if (completedItems.length) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.name}: Emergency Repairs Complete</h3>
+            <p><strong>Restored Components:</strong> ${completedItems.join(", ")}</p>
+          </div>
+        `
+      });
+    }
+
+    return {
+      completedItems,
+      tickingItems
+    };
+  }
+
   getShipCrewPopulation() {
     if (this.type !== "ship") return 0;
-    return Math.max(0, Number(this.system?.crew?.value ?? 0) || 0);
+    return this.getEffectiveShipCrewPopulationValue();
   }
 
   getShipCrewPopulationPercent() {
     if (this.type !== "ship") return 0;
     const current = this.getShipCrewPopulation();
-    const maximum = Math.max(0, Number(this.system?.crew?.max ?? 0) || 0);
+    const maximum = this.getEffectiveShipCrewPopulationMax();
     if (maximum <= 0) return current;
     return Math.max(0, (current / maximum) * 100);
   }
 
   getShipMorale() {
     if (this.type !== "ship") return 0;
-    return Math.max(0, Number(this.system?.resources?.morale?.value ?? 0) || 0);
+    return this.getEffectiveShipMoraleValue();
   }
 
   getShipMoralePercent() {
     if (this.type !== "ship") return 0;
     const current = this.getShipMorale();
-    const maximum = Math.max(0, Number(this.system?.resources?.morale?.max ?? 0) || 0);
+    const maximum = this.getEffectiveShipMoraleMax();
     if (maximum <= 0) return current;
     return Math.max(0, (current / maximum) * 100);
   }
@@ -2738,6 +3502,95 @@ export class RogueTraderActor extends Actor {
     return Math.max(0, Number(speedData ?? 0) || 0);
   }
 
+  getShipModifierTotal(modifierKey) {
+    if (this.type !== "ship") return 0;
+    const modifierState = this.system?.modifiers?.[modifierKey] ?? {};
+    const manual = Number(modifierState?.manual ?? 0) || 0;
+    const automatic = this.getShipAutomaticModifierTotal(modifierKey);
+    const temporary = Number(modifierState?.temporary ?? 0) || 0;
+    return manual + automatic + temporary;
+  }
+
+  getShipModifierPermanentTotal(modifierKey) {
+    if (this.type !== "ship") return 0;
+    const modifierState = this.system?.modifiers?.[modifierKey] ?? {};
+    const manual = Number(modifierState?.manual ?? 0) || 0;
+    const automatic = this.getShipAutomaticModifierTotal(modifierKey);
+    return manual + automatic;
+  }
+
+  getShipModifierTemporaryTotal(modifierKey) {
+    if (this.type !== "ship") return 0;
+    const modifierState = this.system?.modifiers?.[modifierKey] ?? {};
+    return Number(modifierState?.temporary ?? 0) || 0;
+  }
+
+  getShipStoredAutomaticModifierTotal(modifierKey) {
+    if (this.type !== "ship") return 0;
+    const modifierState = this.system?.modifiers?.[modifierKey] ?? {};
+    return Number(modifierState?.automatic ?? 0) || 0;
+  }
+
+  async clearShipTemporaryModifiers() {
+    if (this.type !== "ship") return false;
+
+    const modifierEntries = Object.entries(this.system?.modifiers ?? {});
+    if (!modifierEntries.length) return false;
+
+    const updateData = {};
+    let hasChanges = false;
+    for (const [modifierKey, modifierState] of modifierEntries) {
+      const temporary = Number(modifierState?.temporary ?? 0) || 0;
+      if (!temporary) continue;
+      updateData[`system.modifiers.${modifierKey}.temporary`] = 0;
+      hasChanges = true;
+    }
+
+    if (!hasChanges) return false;
+    await this.update(updateData);
+    return true;
+  }
+
+  getShipComponentModifierTotals() {
+    if (this.type !== "ship") return {};
+
+    return Array.from(this.items ?? []).reduce((totals, item) => {
+      if (!["shipComponent", "essentialComponent", "supplementalComponent"].includes(item?.type)) return totals;
+      const itemModifiers = parseShipModifierExpression(item?.system?.shipModifiers);
+      for (const [modifierKey, amount] of Object.entries(itemModifiers)) {
+        totals[modifierKey] = Number(totals[modifierKey] ?? 0) + amount;
+      }
+      return totals;
+    }, {});
+  }
+
+  getShipComponentModifierFormulaTotals() {
+    if (this.type !== "ship") return {};
+
+    return Array.from(this.items ?? []).reduce((totals, item) => {
+      if (!["shipComponent", "essentialComponent", "supplementalComponent"].includes(item?.type)) return totals;
+      const itemModifiers = parseShipModifierFormulaExpression(item?.system?.shipModifiers);
+      for (const [modifierKey, formulas] of Object.entries(itemModifiers)) {
+        totals[modifierKey] ??= [];
+        totals[modifierKey].push(...(Array.isArray(formulas) ? formulas : []));
+      }
+      return totals;
+    }, {});
+  }
+
+  getShipAutomaticModifierTotal(modifierKey) {
+    if (this.type !== "ship") return 0;
+    const storedAutomatic = this.getShipStoredAutomaticModifierTotal(modifierKey);
+    const componentAutomatic = Number(this.getShipComponentModifierTotals()?.[modifierKey] ?? 0) || 0;
+    return storedAutomatic + componentAutomatic;
+  }
+
+  getShipModifierFormulaTotal(modifierKey) {
+    if (this.type !== "ship") return "";
+    const formulas = this.getShipComponentModifierFormulaTotals()?.[modifierKey] ?? [];
+    return Array.isArray(formulas) ? formulas.filter(Boolean).join(" + ") : "";
+  }
+
   getShipBaseManeuverability() {
     const maneuverabilityData = this.system?.maneuverability;
     if (maneuverabilityData && typeof maneuverabilityData === "object") {
@@ -2759,6 +3612,270 @@ export class RogueTraderActor extends Actor {
     return Math.max(0, Number(this.system?.shields ?? 0) || 0);
   }
 
+  getShipBaseTurretRating() {
+    if (this.type !== "ship") return Math.max(0, Number(this.system?.turretRating ?? 0) || 0);
+    return Math.max(0, Number(this.system?.turretRating ?? 0) || 0);
+  }
+
+  getEffectiveShipTurretRating() {
+    return Math.max(0, this.getShipBaseTurretRating() + this.getShipModifierTotal("extraTurrets"));
+  }
+
+  getShipArmorFacingKey(facing = "prow") {
+    const normalized = String(facing ?? "prow").trim().toLowerCase();
+    if (normalized === "fore") return "prow";
+    if (["prow", "port", "starboard", "aft"].includes(normalized)) return normalized;
+    return "prow";
+  }
+
+  getShipBaseArmorProfile() {
+    const rawArmor = this.system?.armor;
+    const sharedArmor = Math.max(0, Number(rawArmor?.value ?? rawArmor ?? 0) || 0);
+    return {
+      prow: Math.max(0, Number(rawArmor?.prow ?? sharedArmor) || 0),
+      port: Math.max(0, Number(rawArmor?.port ?? sharedArmor) || 0),
+      starboard: Math.max(0, Number(rawArmor?.starboard ?? sharedArmor) || 0),
+      aft: Math.max(0, Number(rawArmor?.aft ?? sharedArmor) || 0)
+    };
+  }
+
+  getShipBaseArmor(facing = "prow") {
+    if (this.type !== "ship") return Math.max(0, Number(this.system?.armor ?? 0) || 0);
+    const armorProfile = this.getShipBaseArmorProfile();
+    return Math.max(0, Number(armorProfile[this.getShipArmorFacingKey(facing)] ?? armorProfile.prow ?? 0) || 0);
+  }
+
+  getEffectiveShipArmor(facing = "prow") {
+    const armorFacingKey = this.getShipArmorFacingKey(facing);
+    const facingModifierKey = {
+      prow: "extraArmorProw",
+      port: "extraArmorPort",
+      starboard: "extraArmorStarboard",
+      aft: "extraArmorAft"
+    }[armorFacingKey] ?? "extraArmorProw";
+
+    return Math.max(
+      0,
+      this.getShipBaseArmor(armorFacingKey)
+      + this.getShipModifierTotal("extraArmor")
+      + this.getShipModifierTotal(facingModifierKey)
+    );
+  }
+
+  getEffectiveShipArmorProfile() {
+    return {
+      prow: this.getEffectiveShipArmor("prow"),
+      port: this.getEffectiveShipArmor("port"),
+      starboard: this.getEffectiveShipArmor("starboard"),
+      aft: this.getEffectiveShipArmor("aft")
+    };
+  }
+
+  getShipBaseHullIntegrityMax() {
+    if (this.type !== "ship") return Math.max(0, Number(this.system?.resources?.hullIntegrity?.max ?? 0) || 0);
+    return Math.max(0, Number(this.system?.resources?.hullIntegrity?.max ?? 0) || 0);
+  }
+
+  getEffectiveShipHullIntegrityMax() {
+    return Math.max(0, this.getShipBaseHullIntegrityMax() + this.getShipModifierTotal("extraHullIntegrity"));
+  }
+
+  getShipBaseHullIntegrityValue() {
+    if (this.type !== "ship") return Math.max(0, Number(this.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+    return Math.max(0, Number(this.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+  }
+
+  getEffectiveShipHullIntegrityValue() {
+    return Math.max(0, Math.min(this.getEffectiveShipHullIntegrityMax(), this.getShipBaseHullIntegrityValue() + this.getShipModifierTotal("extraHullIntegrity")));
+  }
+
+  getEffectiveShipCrewPopulationMax() {
+    return Math.max(0, (Number(this.system?.crew?.max ?? 0) || 0) + this.getShipModifierTotal("extraCrewPercent"));
+  }
+
+  getEffectiveShipCrewPopulationValue() {
+    return Math.max(0, Math.min(this.getEffectiveShipCrewPopulationMax(), (Number(this.system?.crew?.value ?? 0) || 0) + this.getShipModifierTotal("extraCrewPercent")));
+  }
+
+  getEffectiveShipMoraleMax() {
+    return Math.max(0, (Number(this.system?.resources?.morale?.max ?? 0) || 0) + this.getShipModifierTotal("extraMoralePercent"));
+  }
+
+  getEffectiveShipMoraleValue() {
+    return Math.max(0, Math.min(this.getEffectiveShipMoraleMax(), (Number(this.system?.resources?.morale?.value ?? 0) || 0) + this.getShipModifierTotal("extraMoralePercent")));
+  }
+
+  getEffectiveShipPower() {
+    return Math.max(0, (Number(this.system?.power?.value ?? 0) || 0) + this.getShipModifierTotal("extraPower"));
+  }
+
+  getEffectiveShipSpace() {
+    return Math.max(0, (Number(this.system?.space?.value ?? 0) || 0) + this.getShipModifierTotal("extraSpace"));
+  }
+
+  getEffectiveShipCrewRating() {
+    return Math.max(0, (Number(this.system?.npcCrewRating ?? 0) || 0) + this.getShipModifierTotal("crewRatingBonus"));
+  }
+
+  getCurrentShipActionUsage(combat = game.combat) {
+    const state = this.system?.shipActionUsage ?? {};
+    const combatId = String(combat?.id ?? "");
+    const round = Number(combat?.round ?? 0) || 0;
+    const turn = Number(combat?.turn ?? 0) || 0;
+    const sameTurn = combat
+      && String(state.combatId ?? "") === combatId
+      && Number(state.round ?? -1) === round
+      && Number(state.turn ?? -1) === turn;
+
+    return sameTurn
+      ? {
+          combatId,
+          round,
+          turn,
+          moveUsed: Boolean(state.moveUsed),
+          shootingUsed: Boolean(state.shootingUsed)
+        }
+      : {
+          combatId,
+          round,
+          turn,
+          moveUsed: false,
+          shootingUsed: false
+        };
+  }
+
+  async resetShipActionUsage(combat = game.combat) {
+    if (this.type !== "ship") return false;
+
+    await this.update({
+      "system.shipActionUsage.combatId": String(combat?.id ?? ""),
+      "system.shipActionUsage.round": Number(combat?.round ?? 0) || 0,
+      "system.shipActionUsage.turn": Number(combat?.turn ?? 0) || 0,
+      "system.shipActionUsage.moveUsed": false,
+      "system.shipActionUsage.shootingUsed": false
+    });
+    return true;
+  }
+
+  canUseShipActionBand(band, combat = game.combat) {
+    if (this.type !== "ship" || !combat) return true;
+    const normalizedBand = String(band ?? "").trim().toLowerCase();
+    const usage = this.getCurrentShipActionUsage(combat);
+    if (normalizedBand === "move") return !usage.moveUsed;
+    if (normalizedBand === "shooting") return !usage.shootingUsed;
+    return true;
+  }
+
+  async markShipActionBandUsed(band, combat = game.combat) {
+    if (this.type !== "ship" || !combat) return false;
+
+    const normalizedBand = String(band ?? "").trim().toLowerCase();
+    const current = this.getCurrentShipActionUsage(combat);
+    const updateData = {
+      "system.shipActionUsage.combatId": current.combatId,
+      "system.shipActionUsage.round": current.round,
+      "system.shipActionUsage.turn": current.turn
+    };
+
+    if (normalizedBand === "move") {
+      if (current.moveUsed) return false;
+      updateData["system.shipActionUsage.moveUsed"] = true;
+      updateData["system.shipActionUsage.shootingUsed"] = current.shootingUsed;
+    } else if (normalizedBand === "shooting") {
+      if (current.shootingUsed) return false;
+      updateData["system.shipActionUsage.moveUsed"] = current.moveUsed;
+      updateData["system.shipActionUsage.shootingUsed"] = true;
+    } else {
+      return false;
+    }
+
+    await this.update(updateData);
+    return true;
+  }
+
+  getCurrentFireWeaponsState(combat = game.combat) {
+    const state = this.system?.fireWeaponsState ?? {};
+    const combatId = String(combat?.id ?? "");
+    const round = Number(combat?.round ?? 0) || 0;
+    const turn = Number(combat?.turn ?? 0) || 0;
+    const sameTurn = combat
+      && String(state.combatId ?? "") === combatId
+      && Number(state.round ?? -1) === round
+      && Number(state.turn ?? -1) === turn;
+
+    return sameTurn
+      ? {
+          combatId,
+          round,
+          turn,
+          active: Boolean(state.active),
+          firedWeaponIds: Array.isArray(state.firedWeaponIds) ? state.firedWeaponIds.filter(Boolean) : []
+        }
+      : {
+          combatId,
+          round,
+          turn,
+          active: false,
+          firedWeaponIds: []
+        };
+  }
+
+  async resetFireWeaponsState(combat = game.combat) {
+    if (this.type !== "ship") return false;
+
+    await this.update({
+      "system.fireWeaponsState.combatId": String(combat?.id ?? ""),
+      "system.fireWeaponsState.round": Number(combat?.round ?? 0) || 0,
+      "system.fireWeaponsState.turn": Number(combat?.turn ?? 0) || 0,
+      "system.fireWeaponsState.active": false,
+      "system.fireWeaponsState.firedWeaponIds": []
+    });
+    return true;
+  }
+
+  isFireWeaponsActive(combat = game.combat) {
+    return Boolean(this.getCurrentFireWeaponsState(combat).active);
+  }
+
+  hasShipWeaponFiredThisTurn(weaponId, combat = game.combat) {
+    const key = String(weaponId ?? "").trim();
+    if (!key) return false;
+    return this.getCurrentFireWeaponsState(combat).firedWeaponIds.includes(key);
+  }
+
+  async activateFireWeapons(combat = game.combat) {
+    if (this.type !== "ship" || !combat) return false;
+
+    const current = this.getCurrentFireWeaponsState(combat);
+    await this.update({
+      "system.fireWeaponsState.combatId": current.combatId,
+      "system.fireWeaponsState.round": current.round,
+      "system.fireWeaponsState.turn": current.turn,
+      "system.fireWeaponsState.active": true,
+      "system.fireWeaponsState.firedWeaponIds": current.firedWeaponIds
+    });
+    return true;
+  }
+
+  async markShipWeaponFiredThisTurn(weaponId, combat = game.combat) {
+    if (this.type !== "ship" || !combat) return false;
+
+    const key = String(weaponId ?? "").trim();
+    if (!key) return false;
+
+    const current = this.getCurrentFireWeaponsState(combat);
+    if (current.firedWeaponIds.includes(key)) return false;
+
+    await this.update({
+      "system.fireWeaponsState.combatId": current.combatId,
+      "system.fireWeaponsState.round": current.round,
+      "system.fireWeaponsState.turn": current.turn,
+      "system.fireWeaponsState.active": current.active,
+      "system.fireWeaponsState.firedWeaponIds": [...current.firedWeaponIds, key]
+    });
+    return true;
+  }
+
   getShipVoidShieldBonus() {
     if (this.type !== "ship") return 0;
 
@@ -2766,19 +3883,21 @@ export class RogueTraderActor extends Actor {
       if (item?.type !== "essentialComponent" && item?.type !== "shipComponent") return total;
       const componentType = String(item.system?.componentType ?? item.system?.categoryType ?? "").trim().toLowerCase();
       if (componentType !== "voidshields") return total;
+      const status = String(item.system?.status ?? "intact").trim().toLowerCase();
+      if (status === "damaged" || status === "destroyed") return total;
       return total + Math.max(0, Number(item.system?.shields ?? 0) || 0);
     }, 0);
   }
 
   getEffectiveShipShields() {
     if (this.type !== "ship") return this.getShipBaseShields();
-    return Math.max(0, this.getShipBaseShields() + this.getShipVoidShieldBonus());
+    return Math.max(0, this.getShipBaseShields() + this.getShipVoidShieldBonus() + this.getShipModifierTotal("extraShields"));
   }
 
   getEffectiveShipSpeed() {
     const baseSpeed = this.getShipBaseSpeed();
     if (this.type !== "ship") return baseSpeed;
-    let effectiveSpeed = baseSpeed + this.getShipCrewPopulationSpeedModifier() + this.getShipMoraleSpeedModifier();
+    let effectiveSpeed = baseSpeed + this.getShipModifierTotal("extraSpeed") + this.getShipCrewPopulationSpeedModifier() + this.getShipMoraleSpeedModifier();
     if (this.isCrippled() || this.isCrewPopulationCombatCrippled()) {
       effectiveSpeed = Math.max(0, Math.ceil(effectiveSpeed / 2));
     }
@@ -2789,13 +3908,16 @@ export class RogueTraderActor extends Actor {
         effectiveSpeed = Math.max(0, Math.ceil(effectiveSpeed / 2));
       }
     }
+    if (this.isSilentRunning()) {
+      effectiveSpeed = Math.max(0, Math.ceil(effectiveSpeed / 2));
+    }
     return Math.max(0, effectiveSpeed);
   }
 
   getEffectiveShipManeuverability() {
     const baseManeuverability = this.getShipBaseManeuverability();
     if (this.type !== "ship") return baseManeuverability;
-    let effectiveManeuverability = baseManeuverability + this.getShipCrewPopulationManeuverabilityModifier() + this.getShipMoraleManeuverabilityModifier();
+    let effectiveManeuverability = baseManeuverability + this.getShipModifierTotal("extraManeuverability") + this.getShipCrewPopulationManeuverabilityModifier() + this.getShipMoraleManeuverabilityModifier();
     if (this.isCrippled() || this.isCrewPopulationCombatCrippled()) effectiveManeuverability -= 10;
     if (this.isThrustersDamaged() && !this.isShipTurningDisabled()) effectiveManeuverability -= 20;
     return effectiveManeuverability;
@@ -2804,14 +3926,88 @@ export class RogueTraderActor extends Actor {
   getEffectiveShipDetection() {
     const baseDetection = this.getShipBaseDetection();
     if (this.type !== "ship") return baseDetection;
-    let effectiveDetection = baseDetection + this.getShipCrewPopulationDetectionModifier() + this.getShipMoraleDetectionModifier();
+    let effectiveDetection = baseDetection + this.getShipModifierTotal("extraDetection") + this.getShipCrewPopulationDetectionModifier() + this.getShipMoraleDetectionModifier();
+    if (this.isWarpInterferenceActive()) {
+      effectiveDetection -= Math.abs(Number(this.system?.conditions?.warpInterference?.penalty ?? 10) || 10);
+    }
     if (this.isCrippled() || this.isCrewPopulationCombatCrippled()) effectiveDetection -= 10;
     return effectiveDetection;
   }
 
   getShipShootingModifier() {
     if (this.type !== "ship") return 0;
-    return (this.isSensorsDamaged() ? -30 : 0) + this.getShipCrewPopulationShootingModifier() + this.getShipMoraleShootingModifier();
+    return this.getShipModifierTotal("extraAccuracy")
+      + (this.isSensorsDamaged() ? -30 : 0)
+      + this.getShipCrewPopulationShootingModifier()
+      + this.getShipMoraleShootingModifier();
+  }
+
+  getShipEvasiveManeuversPenalty() {
+    if (this.type !== "ship") return 0;
+    if (!Boolean(this.system?.conditions?.evasiveManeuvers?.active)) return 0;
+    return -Math.abs(Number(this.system?.conditions?.evasiveManeuvers?.penalty ?? 0) || 0);
+  }
+
+  getShipIncomingShootingModifier() {
+    if (this.type !== "ship") return 0;
+    return -Math.abs(Number(this.getShipModifierTotal("extraEvasion") ?? 0) || 0);
+  }
+
+  async applyEvasiveManeuvers(penalty = 10, { combat = null, sourceName = "Evasive Manoeuvres" } = {}) {
+    if (this.type !== "ship") return null;
+
+    const numericPenalty = Math.max(0, Math.abs(Number(penalty ?? 10) || 10));
+    const activeCombat = combat ?? game.combat ?? null;
+    await this.update({
+      "system.modifiers.extraAccuracy.temporary": -numericPenalty,
+      "system.modifiers.extraEvasion.temporary": numericPenalty,
+      "system.conditions.evasiveManeuvers.active": true,
+      "system.conditions.evasiveManeuvers.penalty": numericPenalty,
+      "system.conditions.evasiveManeuvers.source": String(sourceName ?? "Evasive Manoeuvres"),
+      "system.conditions.evasiveManeuvers.appliedAt": {
+        combatId: String(activeCombat?.id ?? ""),
+        round: Number(activeCombat?.round ?? 0) || 0,
+        turn: Number(activeCombat?.turn ?? 0) || 0
+      }
+    });
+
+    return this.system?.conditions?.evasiveManeuvers ?? null;
+  }
+
+  async clearEvasiveManeuvers() {
+    if (this.type !== "ship") return;
+    await this.update({
+      "system.modifiers.extraAccuracy.temporary": 0,
+      "system.modifiers.extraEvasion.temporary": 0,
+      "system.conditions.evasiveManeuvers.active": false,
+      "system.conditions.evasiveManeuvers.penalty": 0,
+      "system.conditions.evasiveManeuvers.source": "",
+      "system.conditions.evasiveManeuvers.appliedAt": {
+        combatId: "",
+        round: 0,
+        turn: 0
+      }
+    });
+  }
+
+  async handleEvasiveManeuversTurnStart(combat = null) {
+    if (this.type !== "ship") return null;
+    if (!Boolean(this.system?.conditions?.evasiveManeuvers?.active)) return null;
+
+    const activeCombat = combat ?? game.combat ?? null;
+    if (!activeCombat?.id) {
+      await this.clearEvasiveManeuvers();
+      return { cleared: true };
+    }
+
+    const appliedAt = this.system?.conditions?.evasiveManeuvers?.appliedAt ?? {};
+    const sameTurn = String(appliedAt.combatId ?? "") === String(activeCombat.id ?? "")
+      && Number(appliedAt.round ?? -1) === Number(activeCombat.round ?? 0)
+      && Number(appliedAt.turn ?? -1) === Number(activeCombat.turn ?? 0);
+    if (sameTurn) return { cleared: false };
+
+    await this.clearEvasiveManeuvers();
+    return { cleared: true };
   }
 
   isShipTurningDisabled() {
@@ -3224,7 +4420,7 @@ export class RogueTraderActor extends Actor {
     if (!this.isCrippled()) {
       await this.createEmbeddedDocuments("ActiveEffect", [{
         name: "Crippled",
-        img: "modules/game-icons-net/whitetransparent/ship-wreck.svg",
+        img: "systems/roguetrader/assets/svg/ship-wreck.svg",
         statuses: [CRIPPLED_STATUS_ID]
       }]);
     }
@@ -3282,7 +4478,7 @@ export class RogueTraderActor extends Actor {
 
   async syncCrippledState({ announced = true, sourceName = "Hull Integrity Reduced to 0" } = {}) {
     if (this.type !== "ship") return false;
-    const currentHullIntegrity = Math.max(0, Number(this.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+    const currentHullIntegrity = this.getEffectiveShipHullIntegrityValue();
     if (currentHullIntegrity <= 0) {
       await this.applyCrippled({ sourceName, announced });
       return true;
@@ -3367,7 +4563,7 @@ export class RogueTraderActor extends Actor {
     if (!this.isThrustersDamaged()) {
       await this.createEmbeddedDocuments("ActiveEffect", [{
         name: "Thrusters Damaged",
-        img: "modules/game-icons-net/whitetransparent/boat-propeller.svg",
+        img: "systems/roguetrader/assets/svg/boat-propeller.svg",
         statuses: [THRUSTERS_DAMAGED_STATUS_ID]
       }]);
     }
@@ -3438,84 +4634,149 @@ export class RogueTraderActor extends Actor {
   async applyShipFire({ sourceName = "Starship Critical Hit", announced = true } = {}) {
     if (this.type !== "ship") return false;
 
-    const crewRoll = await (new Roll("1d5")).evaluate({ async: true });
-    const moraleRoll = await (new Roll("1d10")).evaluate({ async: true });
-    const crewDamage = Math.max(0, Number(crewRoll.total ?? 0) || 0);
-    const moraleDamage = Math.max(0, Number(moraleRoll.total ?? 0) || 0);
-    const currentCrew = Math.max(0, Number(this.system?.crew?.value ?? 0) || 0);
-    const currentMorale = Math.max(0, Number(this.system?.resources?.morale?.value ?? 0) || 0);
-    const newCrew = Math.max(0, currentCrew - crewDamage);
-    const newMorale = Math.max(0, currentMorale - moraleDamage);
-
-    if (!this.isShipOnFire()) {
-      await this.createEmbeddedDocuments("ActiveEffect", [{
-        name: "Fire!",
-        img: "icons/svg/fire.svg",
-        statuses: [SHIP_FIRE_STATUS_ID]
-      }]);
+    const eligibleComponents = this._getShipFireEligibleComponents({ includeDestroyed: false });
+    if (!eligibleComponents.length) {
+      await this.syncShipFireCondition({ announced: false });
+      return null;
     }
 
-    await this.update({
-      "system.conditions.shipFire.active": true,
-      "system.conditions.shipFire.source": String(sourceName ?? "Starship Critical Hit"),
-      "system.crew.value": newCrew,
-      "system.resources.morale.value": newMorale
+    const unlitComponents = eligibleComponents.filter((item) => !Boolean(item.system?.onFire));
+    const targetPool = unlitComponents.length ? unlitComponents : eligibleComponents;
+    const targetComponent = targetPool[Math.floor(Math.random() * targetPool.length)] ?? null;
+    if (!targetComponent) {
+      await this.syncShipFireCondition({ announced: false });
+      return null;
+    }
+
+    await targetComponent.update({
+      "system.onFire": true
+    }, {
+      roguetraderSkipShipFireSync: true,
+      roguetraderSkipShipFireDamage: true
     });
 
-    if (announced) {
-      await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor: this }),
-        flavor: `
-          <div class="roguetrader-roll-card">
-            <h3>${this.name}: Fire!</h3>
-            <p><strong>Status Applied:</strong> Shipboard Fire</p>
-            <p><strong>Immediate Crew Damage:</strong> ${crewRoll.formula} = ${crewDamage} (${currentCrew} -> ${newCrew})</p>
-            <p><strong>Immediate Morale Damage:</strong> ${moraleRoll.formula} = ${moraleDamage} (${currentMorale} -> ${newMorale})</p>
-            <p><strong>Source:</strong> ${sourceName}</p>
-          </div>
-        `
-      });
-    }
+    const fireResult = await this.applyShipComponentFireConsequences(targetComponent, {
+      sourceName,
+      announced,
+      chatTitle: "Fire!"
+    });
 
-    return {
-      crewRoll,
-      moraleRoll,
-      crewDamage,
-      moraleDamage,
-      currentCrew,
-      newCrew,
-      currentMorale,
-      newMorale
-    };
+    await this.syncShipFireCondition({
+      sourceName: String(sourceName ?? "Starship Critical Hit"),
+      announced: false
+    });
+
+    return fireResult;
   }
 
   async clearShipFire({ announced = false } = {}) {
     if (this.type !== "ship") return false;
-    if (!this.isShipOnFire()) return false;
+    const burningComponents = this.getBurningShipComponents();
+    if (!burningComponents.length && !this.isShipOnFire()) return false;
 
-    const effect = this._getStatusEffectByStatusId(SHIP_FIRE_STATUS_ID);
-    if (effect) {
-      await effect.delete();
+    for (const component of burningComponents) {
+      await component.update({
+        "system.onFire": false
+      }, { roguetraderSkipShipFireSync: true });
     }
 
-    await this.update({
-      "system.conditions.shipFire.active": false,
-      "system.conditions.shipFire.source": ""
+    await this.syncShipFireCondition({ announced });
+    return true;
+  }
+
+  async handleShipFireTurnEnd(combat = null) {
+    if (this.type !== "ship") return false;
+
+    const burningComponents = this.getBurningShipComponents();
+    if (!burningComponents.length) {
+      await this.syncShipFireCondition({ announced: false });
+      return false;
+    }
+
+    const consumedComponent = burningComponents[Math.floor(Math.random() * burningComponents.length)] ?? null;
+    if (!consumedComponent) {
+      await this.syncShipFireCondition({ announced: false });
+      return false;
+    }
+
+    const currentStatus = String(consumedComponent.system?.status ?? "intact").trim().toLowerCase();
+    const consumeUpdate = {
+      "system.onFire": false
+    };
+    if (currentStatus !== "destroyed") {
+      consumeUpdate["system.status"] = "damaged";
+    }
+
+    await consumedComponent.update(consumeUpdate, { roguetraderSkipShipFireSync: true });
+
+    const spreadCandidates = this._getShipFireEligibleComponents({ includeDestroyed: false }).filter((item) =>
+      item.id !== consumedComponent.id && !Boolean(item.system?.onFire)
+    );
+
+    let spreadResult = null;
+    if (spreadCandidates.length) {
+      const nextComponent = spreadCandidates[Math.floor(Math.random() * spreadCandidates.length)] ?? null;
+      if (nextComponent) {
+        await nextComponent.update({
+          "system.onFire": true
+        }, {
+          roguetraderSkipShipFireSync: true,
+          roguetraderSkipShipFireDamage: true
+        });
+
+        spreadResult = await this.applyShipComponentFireConsequences(nextComponent, {
+          sourceName: `Spread from ${consumedComponent.name}`,
+          announced: false,
+          chatTitle: "Fire Spreads"
+        });
+      }
+    }
+
+    await this.syncShipFireCondition({
+      sourceName: spreadResult ? `Spread from ${consumedComponent.name}` : "",
+      announced: !spreadResult
     });
 
-    if (announced) {
-      await ChatMessage.create({
-        speaker: ChatMessage.getSpeaker({ actor: this }),
-        flavor: `
-          <div class="roguetrader-roll-card">
-            <h3>${this.name}: Fire Contained</h3>
-            <p><strong>Status Removed:</strong> Shipboard Fire</p>
-          </div>
-        `
-      });
-    }
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this }),
+      flavor: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.name}: Fire Spreads</h3>
+          <p><strong>Consumed Component:</strong> ${consumedComponent.name} now counts as Damaged.</p>
+          ${spreadResult
+            ? `
+              <p><strong>New Fire:</strong> ${spreadResult.componentName}</p>
+              <p><strong>Crew Damage:</strong> ${spreadResult.crewRoll.formula} = ${spreadResult.crewDamage} (${spreadResult.currentCrew} -> ${spreadResult.newCrew})</p>
+              <p><strong>Morale Damage:</strong> ${spreadResult.moraleRoll.formula} = ${spreadResult.moraleDamage} (${spreadResult.currentMorale} -> ${spreadResult.newMorale})</p>
+            `
+            : `<p><strong>Result:</strong> No further component caught fire.</p>`}
+        </div>
+      `
+    });
 
-    return true;
+    return {
+      consumedComponentId: consumedComponent.id,
+      consumedComponentName: consumedComponent.name,
+      spreadResult
+    };
+  }
+
+  isPlasmaDriveComponent(component) {
+    if (!component) return false;
+    const componentType = String(component.system?.componentType ?? component.system?.categoryType ?? "").trim();
+    return componentType === "plasmaDrives";
+  }
+
+  async applyPlasmaDriveDamageCritical(component, {
+    announced = true,
+    sourceName = ""
+  } = {}) {
+    if (this.type !== "ship" || !this.isPlasmaDriveComponent(component)) return false;
+
+    return this.applyEnginesCrippled({
+      sourceName: String(sourceName ?? "").trim() || `${component.name}: Plasma Drive Damaged`,
+      announced
+    });
   }
 
   async applyEnginesCrippled({ sourceName = "Starship Critical Hit", severityRoll = null, announced = true } = {}) {
@@ -3531,7 +4792,7 @@ export class RogueTraderActor extends Actor {
     if (!this.isEnginesCrippled()) {
       await this.createEmbeddedDocuments("ActiveEffect", [({
         name: "Engines Crippled",
-        img: "modules/game-icons-net/whitetransparent/boat-engine.svg",
+        img: "systems/roguetrader/assets/svg/boat-engine.svg",
         statuses: [ENGINES_CRIPPLED_STATUS_ID]
       })]);
     }

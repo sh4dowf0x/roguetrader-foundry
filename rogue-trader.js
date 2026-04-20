@@ -39,6 +39,31 @@ import {
   resolveTraitModifierFormula
 } from "./module/consequence.js";
 
+const SHIP_ONLY_STATUS_EFFECT_IDS = new Set([
+  "crippled",
+  "sensors-damaged",
+  "thrusters-damaged",
+  "ship-fire",
+  "engines-crippled",
+  "silent-running",
+  "jammed-communications",
+  "warp-interference",
+  "crew-population-80",
+  "crew-population-60",
+  "crew-population-50",
+  "crew-population-40",
+  "crew-population-20",
+  "crew-population-10",
+  "crew-population-0",
+  "morale-80",
+  "morale-60",
+  "morale-50",
+  "morale-40",
+  "morale-20",
+  "morale-10",
+  "morale-0"
+]);
+
 const ROGUETRADER_STATUS_EFFECTS = [
   {
     id: "on-fire",
@@ -97,7 +122,7 @@ const ROGUETRADER_STATUS_EFFECTS = [
   {
     id: "crippled",
     name: "Crippled",
-    img: "modules/game-icons-net/whitetransparent/ship-wreck.svg",
+    img: "systems/roguetrader/assets/svg/ship-wreck.svg",
     statuses: ["crippled"]
   },
   {
@@ -109,7 +134,7 @@ const ROGUETRADER_STATUS_EFFECTS = [
   {
     id: "thrusters-damaged",
     name: "Thrusters Damaged",
-    img: "modules/game-icons-net/whitetransparent/boat-propeller.svg",
+    img: "systems/roguetrader/assets/svg/boat-propeller.svg",
     statuses: ["thrusters-damaged"]
   },
   {
@@ -121,94 +146,119 @@ const ROGUETRADER_STATUS_EFFECTS = [
   {
     id: "engines-crippled",
     name: "Engines Crippled",
-    img: "modules/game-icons-net/whitetransparent/boat-engine.svg",
+    img: "systems/roguetrader/assets/svg/boat-engine.svg",
     statuses: ["engines-crippled"]
+  },
+  {
+    id: "silent-running",
+    name: "Silent Running",
+    img: "systems/roguetrader/assets/svg/hidden.svg",
+    statuses: ["silent-running"]
+  },
+  {
+    id: "jammed-communications",
+    name: "Jammed Communications",
+    img: "systems/roguetrader/assets/svg/walkie-talkie.svg",
+    statuses: ["jammed-communications"]
+  },
+  {
+    id: "warp-interference",
+    name: "Warp Interference",
+    img: "systems/roguetrader/assets/svg/evil-tower.svg",
+    statuses: ["warp-interference"]
   },
   {
     id: "crew-population-80",
     name: "Crew Reduced (80%)",
-    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    img: "systems/roguetrader/assets/svg/team-downgrade.svg",
     statuses: ["crew-population-80"]
   },
   {
     id: "crew-population-60",
     name: "Crew Reduced (60%)",
-    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    img: "systems/roguetrader/assets/svg/team-downgrade.svg",
     statuses: ["crew-population-60"]
   },
   {
     id: "crew-population-50",
     name: "Crew Reduced (50%)",
-    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    img: "systems/roguetrader/assets/svg/team-downgrade.svg",
     statuses: ["crew-population-50"]
   },
   {
     id: "crew-population-40",
     name: "Crew Reduced (40%)",
-    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    img: "systems/roguetrader/assets/svg/team-downgrade.svg",
     statuses: ["crew-population-40"]
   },
   {
     id: "crew-population-20",
     name: "Crew Reduced (20%)",
-    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    img: "systems/roguetrader/assets/svg/team-downgrade.svg",
     statuses: ["crew-population-20"]
   },
   {
     id: "crew-population-10",
     name: "Crew Reduced (10%)",
-    img: "modules/game-icons-net/whitetransparent/team-downgrade.svg",
+    img: "systems/roguetrader/assets/svg/team-downgrade.svg",
     statuses: ["crew-population-10"]
   },
   {
     id: "crew-population-0",
     name: "Ship is a Tomb",
-    img: "modules/game-icons-net/whitetransparent/black-flag.svg",
+    img: "systems/roguetrader/assets/svg/black-flag.svg",
     statuses: ["crew-population-0"]
   },
   {
     id: "morale-80",
     name: "Low Morale (80)",
-    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    img: "systems/roguetrader/assets/svg/despair.svg",
     statuses: ["morale-80"]
   },
   {
     id: "morale-60",
     name: "Low Morale (60)",
-    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    img: "systems/roguetrader/assets/svg/despair.svg",
     statuses: ["morale-60"]
   },
   {
     id: "morale-50",
     name: "Low Morale (50)",
-    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    img: "systems/roguetrader/assets/svg/despair.svg",
     statuses: ["morale-50"]
   },
   {
     id: "morale-40",
     name: "Low Morale (40)",
-    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    img: "systems/roguetrader/assets/svg/despair.svg",
     statuses: ["morale-40"]
   },
   {
     id: "morale-20",
     name: "Low Morale (20)",
-    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    img: "systems/roguetrader/assets/svg/despair.svg",
     statuses: ["morale-20"]
   },
   {
     id: "morale-10",
     name: "Low Morale (10)",
-    img: "modules/game-icons-net/whitetransparent/despair.svg",
+    img: "systems/roguetrader/assets/svg/despair.svg",
     statuses: ["morale-10"]
   },
   {
     id: "morale-0",
     name: "Mutinous Crew",
-    img: "modules/game-icons-net/whitetransparent/black-flag.svg",
+    img: "systems/roguetrader/assets/svg/black-flag.svg",
     statuses: ["morale-0"]
   }
-];
+].map((effect) => ({
+  ...effect,
+  hud: {
+    actorTypes: SHIP_ONLY_STATUS_EFFECT_IDS.has(String(effect.id ?? "").trim())
+      ? ["ship"]
+      : ["character", "npc"]
+  }
+}));
 const ON_FIRE_SEQUENCE_NAME_PREFIX = "roguetrader-on-fire";
 const ON_FIRE_SEQUENCE_FILE = "jb2a.flames.orange.03.1x1";
 const SNARED_SEQUENCE_NAME_PREFIX = "roguetrader-snared";
@@ -379,6 +429,33 @@ function mergeStatusEffects(existingEffects = [], overrideEffects = []) {
   }
 
   return normalized;
+}
+
+function getAllowedStatusEffectIdsForActor(actor) {
+  const actorType = String(actor?.type ?? "").trim().toLowerCase();
+  if (!actorType) return null;
+
+  if (actorType === "ship") {
+    return new Set(SHIP_ONLY_STATUS_EFFECT_IDS);
+  }
+
+  const allowedIds = new Set();
+  for (const effect of CONFIG.statusEffects ?? []) {
+    const actorTypes = Array.isArray(effect?.hud?.actorTypes)
+      ? effect.hud.actorTypes.map((entry) => String(entry ?? "").trim().toLowerCase()).filter(Boolean)
+      : [];
+    if (SHIP_ONLY_STATUS_EFFECT_IDS.has(String(effect?.id ?? "").trim())) continue;
+    if (actorTypes.length && !actorTypes.includes(actorType)) continue;
+
+    const effectId = String(effect?.id ?? "").trim();
+    if (effectId) allowedIds.add(effectId);
+    for (const statusId of Array.isArray(effect?.statuses) ? effect.statuses : []) {
+      const normalizedStatusId = String(statusId ?? "").trim();
+      if (normalizedStatusId) allowedIds.add(normalizedStatusId);
+    }
+  }
+
+  return allowedIds;
 }
 
 function getOnFireSequenceName(token) {
@@ -1000,6 +1077,34 @@ Hooks.once("init", () => {
   };
   CONFIG.statusEffects = mergeStatusEffects(CONFIG.statusEffects ?? [], ROGUETRADER_STATUS_EFFECTS);
 
+  const tokenHudPrototype = CONFIG.Token?.hudClass?.prototype;
+  if (tokenHudPrototype && typeof tokenHudPrototype._getStatusEffectChoices === "function" && !tokenHudPrototype._roguetraderStatusFilterWrapped) {
+    const originalGetStatusEffectChoices = tokenHudPrototype._getStatusEffectChoices;
+    tokenHudPrototype._getStatusEffectChoices = function (...args) {
+      const choices = originalGetStatusEffectChoices.apply(this, args);
+      const actor = this.object?.actor ?? this.object?.document?.actor ?? null;
+      const allowedIds = getAllowedStatusEffectIdsForActor(actor);
+      if (!allowedIds) return choices;
+
+      if (Array.isArray(choices)) {
+        return choices.filter((choice) => {
+          const statusId = String(choice?.id ?? choice?.statusId ?? choice?.status ?? "").trim();
+          return !statusId || allowedIds.has(statusId);
+        });
+      }
+
+      if (choices && typeof choices === "object") {
+        return Object.fromEntries(Object.entries(choices).filter(([key, choice]) => {
+          const statusId = String(choice?.id ?? choice?.statusId ?? choice?.status ?? key).trim();
+          return !statusId || allowedIds.has(statusId);
+        }));
+      }
+
+      return choices;
+    };
+    tokenHudPrototype._roguetraderStatusFilterWrapped = true;
+  }
+
   game.roguetrader = {
     config: {
       actorTypes: ["character", "npc", "ship", "torpedo"],
@@ -1201,6 +1306,19 @@ Hooks.on("updateCombat", async (combat, changed) => {
   if (!game.user?.isGM) return;
   if (!foundry.utils.hasProperty(changed, "turn") && !foundry.utils.hasProperty(changed, "round")) return;
 
+  const previousTurn = Number(combat?.previous?.turn ?? -1);
+  const previousCombatant = previousTurn >= 0 ? combat?.turns?.[previousTurn] : null;
+  const previousActor = previousCombatant?.actor ?? null;
+  if (previousActor?.handleJammedCommunicationsTurnEnd) {
+    await previousActor.handleJammedCommunicationsTurnEnd(combat);
+  }
+  if (previousActor?.handleWarpInterferenceTurnEnd) {
+    await previousActor.handleWarpInterferenceTurnEnd(combat);
+  }
+  if (previousActor?.handleShipFireTurnEnd) {
+    await previousActor.handleShipFireTurnEnd(combat);
+  }
+
   const combatant = combat?.combatant;
   const actor = combatant?.actor;
   if (!actor) return;
@@ -1222,6 +1340,14 @@ Hooks.on("updateCombat", async (combat, changed) => {
   if (actor.handleStunnedTurnStart) await actor.handleStunnedTurnStart(combat);
   if (actor.handleSnaredTurnStart) await actor.handleSnaredTurnStart(combat);
   if (actor.handlePinnedTurnStart) await actor.handlePinnedTurnStart(combat);
+  if (actor.resetShipActionUsage) await actor.resetShipActionUsage(combat);
+  if (actor.resetFireWeaponsState) await actor.resetFireWeaponsState(combat);
+  if (actor.handleSilentRunningTurnStart) await actor.handleSilentRunningTurnStart(combat);
+  if (actor.handlePendingLockOnTargetTurnStart) await actor.handlePendingLockOnTargetTurnStart(combat);
+  if (actor.handlePendingTacticalPositioningTurnStart) await actor.handlePendingTacticalPositioningTurnStart(combat);
+  if (actor.handleEmergencyRepairsTurnStart) await actor.handleEmergencyRepairsTurnStart(combat);
+  if (actor.clearShipTemporaryModifiers) await actor.clearShipTemporaryModifiers();
+  if (actor.handleEvasiveManeuversTurnStart) await actor.handleEvasiveManeuversTurnStart(combat);
   if (actor.handleTorpedoReloadTurnStart) await actor.handleTorpedoReloadTurnStart(combat);
   if (processShipLaunchedTorpedoesTurnStart) await processShipLaunchedTorpedoesTurnStart(actor, combat);
 });
@@ -1273,6 +1399,25 @@ Hooks.on("renderCombatTracker", (app, html) => {
     }
 
     element.prepend(button);
+  });
+});
+
+Hooks.on("renderTokenHUD", (app, html) => {
+  const root = html?.[0] ?? html;
+  const actor = app.object?.actor ?? app.object?.document?.actor ?? null;
+  const allowedIds = getAllowedStatusEffectIdsForActor(actor);
+  if (!root?.querySelectorAll || !allowedIds) return;
+
+  root.querySelectorAll(".status-effects [data-status-id], .status-effects [data-status], .status-effects .effect-control").forEach((element) => {
+    const statusId = String(
+      element.dataset.statusId
+      ?? element.dataset.status
+      ?? element.getAttribute?.("data-status-id")
+      ?? element.getAttribute?.("data-status")
+      ?? ""
+    ).trim();
+    if (!statusId || allowedIds.has(statusId)) return;
+    element.remove();
   });
 });
 
@@ -1665,6 +1810,30 @@ Hooks.on("createItem", async (item, options, userId) => {
     await item.actor.ensureHulkingArmorState();
   }
 
+  if (
+    item.actor.type === "ship"
+    && ["shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon"].includes(item.type)
+    && !options?.roguetraderSkipShipFireSync
+    && Boolean(item.system?.onFire)
+  ) {
+    if (!options?.roguetraderSkipShipFireDamage) {
+      await item.actor.applyShipComponentFireConsequences?.(item, {
+        sourceName: String(options?.roguetraderFireSourceName ?? "Manual Ignition"),
+        announced: true,
+        chatTitle: "Fire!"
+      });
+    }
+    await item.actor.syncShipFireCondition?.({ announced: false });
+  }
+
+  if (
+    item.actor.type === "ship"
+    && ["shipComponent", "essentialComponent", "supplementalComponent"].includes(item.type)
+    && String(item.system?.componentType ?? item.system?.categoryType ?? "").trim().toLowerCase() === "augurarrays"
+  ) {
+    await item.actor.syncSensorsDamagedFromComponents?.({ announced: false });
+  }
+
   if (!isConsequenceType(item.type)) return;
 
   await resolveItemModifierFormulas(item);
@@ -1764,14 +1933,29 @@ Hooks.on("createActiveEffect", async (effect, options, userId) => {
     });
   }
   if (statuses.includes("ship-fire")) {
-    await effect.parent.update({
-      "system.conditions.shipFire.active": true
-    });
-    await playShipFireSequencerEffect(effect.parent);
+    await effect.parent.syncShipFireCondition?.({ announced: false });
+    if (effect.parent.isShipOnFire?.()) {
+      await playShipFireSequencerEffect(effect.parent);
+    }
   }
   if (statuses.includes("engines-crippled")) {
     await effect.parent.update({
       "system.conditions.enginesCrippled.active": true
+    });
+  }
+  if (statuses.includes("silent-running")) {
+    await effect.parent.update({
+      "system.conditions.silentRunning.active": true
+    });
+  }
+  if (statuses.includes("jammed-communications")) {
+    await effect.parent.update({
+      "system.conditions.jammedCommunications.active": true
+    });
+  }
+  if (statuses.includes("warp-interference")) {
+    await effect.parent.update({
+      "system.conditions.warpInterference.active": true
     });
   }
   if (statuses.some((status) => deadStatusIds.has(status))) {
@@ -1888,11 +2072,16 @@ Hooks.on("deleteActiveEffect", async (effect, options, userId) => {
     });
   }
   if (statuses.includes("ship-fire")) {
-    await effect.parent.update({
-      "system.conditions.shipFire.active": false,
-      "system.conditions.shipFire.source": ""
-    });
-    await stopShipFireSequencerEffect(effect.parent);
+    const actor = effect.parent;
+    if (actor?.hasBurningShipComponents?.()) {
+      await actor.syncShipFireCondition?.({ announced: false });
+    } else {
+      await actor?.update({
+        "system.conditions.shipFire.active": false,
+        "system.conditions.shipFire.source": ""
+      });
+      await stopShipFireSequencerEffect(actor);
+    }
   }
   if (statuses.includes("engines-crippled")) {
     await effect.parent.update({
@@ -1901,6 +2090,32 @@ Hooks.on("deleteActiveEffect", async (effect, options, userId) => {
       "system.conditions.enginesCrippled.rollTotal": 0,
       "system.conditions.enginesCrippled.speedHalved": false,
       "system.conditions.enginesCrippled.speedReducedToOne": false
+    });
+  }
+  if (statuses.includes("silent-running")) {
+    await effect.parent.update({
+      "system.conditions.silentRunning.active": false,
+      "system.conditions.silentRunning.source": "",
+      "system.conditions.silentRunning.appliedAt": {
+        combatId: "",
+        round: 0,
+        turn: 0
+      }
+    });
+  }
+  if (statuses.includes("jammed-communications")) {
+    await effect.parent.update({
+      "system.conditions.jammedCommunications.active": false,
+      "system.conditions.jammedCommunications.source": ""
+    });
+  }
+  if (statuses.includes("warp-interference")) {
+    await effect.parent.update({
+      "system.conditions.warpInterference.active": false,
+      "system.conditions.warpInterference.penalty": 10,
+      "system.conditions.warpInterference.source": "",
+      "system.conditions.warpInterference.sourceShipName": "",
+      "system.conditions.warpInterference.remainingRounds": 0
     });
   }
   if (statuses.some((status) => deadStatusIds.has(status)) && !actorHasDeadStatus(effect.parent)) {
@@ -1943,6 +2158,44 @@ Hooks.on("updateItem", async (item, changed, options, userId) => {
     await item.actor.ensureHulkingArmorState();
   }
 
+  if (
+    item.actor.type === "ship"
+    && ["shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon"].includes(item.type)
+    && !options?.roguetraderSkipShipFireSync
+    && foundry.utils.hasProperty(changed, "system.onFire")
+  ) {
+    if (Boolean(item.system?.onFire) && !options?.roguetraderSkipShipFireDamage) {
+      await item.actor.applyShipComponentFireConsequences?.(item, {
+        sourceName: String(options?.roguetraderFireSourceName ?? "Manual Ignition"),
+        announced: true,
+        chatTitle: "Fire!"
+      });
+    }
+    await item.actor.syncShipFireCondition?.({ announced: false });
+  }
+
+  if (
+    item.actor.type === "ship"
+    && ["shipComponent", "essentialComponent", "supplementalComponent"].includes(item.type)
+    && String(item.system?.componentType ?? item.system?.categoryType ?? "").trim().toLowerCase() === "augurarrays"
+    && foundry.utils.hasProperty(changed, "system.status")
+  ) {
+    await item.actor.syncSensorsDamagedFromComponents?.({ announced: false });
+  }
+
+  if (
+    item.actor.type === "ship"
+    && ["shipComponent", "essentialComponent", "supplementalComponent"].includes(item.type)
+    && !options?.roguetraderSkipPlasmaDriveDamageResolution
+    && foundry.utils.hasProperty(changed, "system.status")
+    && String(item.system?.status ?? "").trim().toLowerCase() === "damaged"
+  ) {
+    await item.actor.applyPlasmaDriveDamageCritical?.(item, {
+      announced: true,
+      sourceName: String(options?.roguetraderStatusSourceName ?? `${item.name}: Plasma Drive Damaged`)
+    });
+  }
+
   if (!isConsequenceType(item.type)) return;
   if (options?.roguetraderSkipModifierResolution) return;
   const changedModifierFormula = foundry.utils.hasProperty(changed, "system.modifierFormula");
@@ -1959,6 +2212,20 @@ Hooks.on("deleteItem", async (item, options, userId) => {
   }
   if (item.actor.ensureHulkingArmorState && (item.type === "armor" || item.flags?.roguetrader?.generatedHulkingSizeTrait)) {
     await item.actor.ensureHulkingArmorState();
+  }
+  if (
+    item.actor.type === "ship"
+    && ["shipComponent", "essentialComponent", "supplementalComponent", "shipWeapon"].includes(item.type)
+    && !options?.roguetraderSkipShipFireSync
+  ) {
+    await item.actor.syncShipFireCondition?.({ announced: false });
+  }
+  if (
+    item.actor.type === "ship"
+    && ["shipComponent", "essentialComponent", "supplementalComponent"].includes(item.type)
+    && String(item.system?.componentType ?? item.system?.categoryType ?? "").trim().toLowerCase() === "augurarrays"
+  ) {
+    await item.actor.syncSensorsDamagedFromComponents?.({ announced: false });
   }
 });
 

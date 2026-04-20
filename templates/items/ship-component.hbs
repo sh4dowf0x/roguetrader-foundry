@@ -10,13 +10,22 @@
     </div>
   </header>
 
-  <section class="item-sheet-body item-body-grid">
-    <div class="form-group">
-      <label for="{{rootId}}-component-type">Category</label>
-      <select id="{{rootId}}-component-type" name="system.componentType">
-        <option value=""></option>
-        {{selectOptions componentCategoryOptions selected=system.componentType}}
-      </select>
+  <section class="item-sheet-body item-body-grid ship-component-sheet-body">
+    <div class="ship-component-inline-fields item-body-grid-span">
+      <div class="form-group">
+        <label for="{{rootId}}-component-type">Category</label>
+        <select id="{{rootId}}-component-type" name="system.componentType">
+          <option value=""></option>
+          {{selectOptions componentCategoryOptions selected=system.componentType}}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="{{rootId}}-status">Status</label>
+        <select id="{{rootId}}-status" name="system.status">
+          {{selectOptions componentStatusOptions selected=system.status}}
+        </select>
+      </div>
     </div>
 
     <div class="form-group item-body-grid-span">
@@ -44,16 +53,26 @@
             <input id="{{rootId}}-shields" name="system.shields" type="number" value="{{system.shields}}" min="0" step="1" />
           </div>
         {{/if}}
-        <div class="form-group ship-component-origin-field">
-          <label for="{{rootId}}-origin">Origin</label>
-          <input id="{{rootId}}-origin" name="system.origin" type="text" value="{{system.origin}}" />
-        </div>
       </div>
     </div>
 
     <div class="form-group item-body-grid-span">
-      <label>Allowed Hull Classes</label>
+      <label>Hazards</label>
       <div class="ship-component-hull-flags">
+        <label class="ship-component-hull-flag" for="{{rootId}}-depressurized">
+          <input id="{{rootId}}-depressurized" type="checkbox" name="system.depressurized" {{#if system.depressurized}}checked{{/if}} />
+          <span>Depressurized</span>
+        </label>
+        <label class="ship-component-hull-flag" for="{{rootId}}-on-fire">
+          <input id="{{rootId}}-on-fire" type="checkbox" name="system.onFire" {{#if system.onFire}}checked{{/if}} />
+          <span>On Fire</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-group item-body-grid-span ship-component-hull-class-row">
+      <label>Allowed Hull Classes</label>
+      <div class="ship-component-hull-flags ship-component-hull-flags-inline">
         {{#each hullAvailabilityOptions as |option|}}
           <label class="ship-component-hull-flag" for="{{../rootId}}-hull-{{option.key}}">
             <input id="{{../rootId}}-hull-{{option.key}}" type="checkbox" name="system.allowedHulls.{{option.key}}" {{#if (lookup ../system.allowedHulls option.key)}}checked{{/if}} />
@@ -68,9 +87,9 @@
       <input id="{{rootId}}-short-description" name="system.shortDescription" type="text" value="{{system.shortDescription}}" />
     </div>
 
-    <div class="form-group item-body-grid-span">
+    <div class="form-group item-body-grid-span ship-component-description-field">
       <label for="{{rootId}}-description">Description</label>
-      <textarea id="{{rootId}}-description" name="system.description">{{system.description}}</textarea>
+      <textarea id="{{rootId}}-description" name="system.description" class="ship-component-description-input">{{system.description}}</textarea>
     </div>
   </section>
 </div>
