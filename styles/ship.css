@@ -72,6 +72,37 @@
   padding: 8px 10px;
 }
 
+.roguetrader .ship-sheet-faction {
+  font-size: 1rem;
+  font-weight: 500;
+  border: 1px solid rgba(233, 223, 199, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 248, 235, 0.04);
+  color: rgba(244, 236, 219, 0.92);
+  padding: 6px 10px;
+}
+
+.roguetrader .ship-sheet-subtitle-row {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 10px;
+}
+
+.roguetrader .ship-sheet-faction,
+.roguetrader .ship-sheet-captain {
+  width: 100%;
+}
+
+.roguetrader .ship-sheet-captain {
+  font-size: 1rem;
+  font-weight: 500;
+  border: 1px solid rgba(233, 223, 199, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 248, 235, 0.04);
+  color: rgba(244, 236, 219, 0.92);
+  padding: 6px 10px;
+}
+
 .roguetrader .ship-sheet-meta {
   display: flex;
   flex-direction: column;

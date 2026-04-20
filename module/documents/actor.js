@@ -197,6 +197,24 @@ const SHIP_MODIFIER_ALIASES = {
   "command bonus": "commandBonus",
   "extra command": "commandBonus",
   "extra command bonus": "commandBonus",
+  "hit and run attack": "hitAndRunAttackBonus",
+  "hit & run attack": "hitAndRunAttackBonus",
+  "hitandrun attack": "hitAndRunAttackBonus",
+  "hit and run attack bonus": "hitAndRunAttackBonus",
+  "hit & run attack bonus": "hitAndRunAttackBonus",
+  "h&r attack": "hitAndRunAttackBonus",
+  "h&r attack bonus": "hitAndRunAttackBonus",
+  "hit and run defense": "hitAndRunDefenseBonus",
+  "hit & run defense": "hitAndRunDefenseBonus",
+  "hitandrun defense": "hitAndRunDefenseBonus",
+  "hit and run defence": "hitAndRunDefenseBonus",
+  "hit & run defence": "hitAndRunDefenseBonus",
+  "hit and run defense bonus": "hitAndRunDefenseBonus",
+  "hit & run defense bonus": "hitAndRunDefenseBonus",
+  "hit and run defence bonus": "hitAndRunDefenseBonus",
+  "h&r defense": "hitAndRunDefenseBonus",
+  "h&r defence": "hitAndRunDefenseBonus",
+  "h&r defense bonus": "hitAndRunDefenseBonus",
   pilot: "pilotingBonus",
   piloting: "pilotingBonus",
   "pilot bonus": "pilotingBonus",
@@ -3791,6 +3809,82 @@ export class RogueTraderActor extends Actor {
 
     await this.update(updateData);
     return true;
+  }
+
+  getShipRecentLossState() {
+    const state = this.system?.recentLosses ?? {};
+    return {
+      combatId: String(state.combatId ?? ""),
+      round: Number(state.round ?? 0) || 0,
+      turn: Number(state.turn ?? 0) || 0,
+      current: {
+        crew: Math.max(0, Number(state.current?.crew ?? 0) || 0),
+        morale: Math.max(0, Number(state.current?.morale ?? 0) || 0)
+      },
+      previous: {
+        crew: Math.max(0, Number(state.previous?.crew ?? 0) || 0),
+        morale: Math.max(0, Number(state.previous?.morale ?? 0) || 0)
+      }
+    };
+  }
+
+  async recordShipRecentLosses({ crew = 0, morale = 0 } = {}) {
+    if (this.type !== "ship") return false;
+
+    const crewLoss = Math.max(0, Number(crew ?? 0) || 0);
+    const moraleLoss = Math.max(0, Number(morale ?? 0) || 0);
+    if (!crewLoss && !moraleLoss) return false;
+
+    const current = this.getShipRecentLossState();
+    await this.update({
+      "system.recentLosses.combatId": current.combatId,
+      "system.recentLosses.round": current.round,
+      "system.recentLosses.turn": current.turn,
+      "system.recentLosses.current.crew": current.current.crew + crewLoss,
+      "system.recentLosses.current.morale": current.current.morale + moraleLoss,
+      "system.recentLosses.previous.crew": current.previous.crew,
+      "system.recentLosses.previous.morale": current.previous.morale
+    }, {
+      roguetraderSkipShipLossTracking: true
+    });
+    return true;
+  }
+
+  async rotateShipRecentLosses(combat = game.combat) {
+    if (this.type !== "ship") return false;
+
+    const current = this.getShipRecentLossState();
+    const combatId = String(combat?.id ?? "");
+    const round = Number(combat?.round ?? 0) || 0;
+    const turn = Number(combat?.turn ?? 0) || 0;
+    const sameTurn = combat
+      && current.combatId === combatId
+      && current.round === round
+      && current.turn === turn;
+    if (sameTurn) return false;
+
+    await this.update({
+      "system.recentLosses.combatId": combatId,
+      "system.recentLosses.round": round,
+      "system.recentLosses.turn": turn,
+      "system.recentLosses.previous.crew": current.current.crew,
+      "system.recentLosses.previous.morale": current.current.morale,
+      "system.recentLosses.current.crew": 0,
+      "system.recentLosses.current.morale": 0
+    }, {
+      roguetraderSkipShipLossTracking: true
+    });
+    return true;
+  }
+
+  getPreviousTurnShipMoraleLoss() {
+    if (this.type !== "ship") return 0;
+    return this.getShipRecentLossState().previous.morale;
+  }
+
+  getPreviousTurnShipCrewLoss() {
+    if (this.type !== "ship") return 0;
+    return this.getShipRecentLossState().previous.crew;
   }
 
   getCurrentFireWeaponsState(combat = game.combat) {

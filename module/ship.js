@@ -1,9 +1,11 @@
 import { RogueTraderShipConstructionApplication } from "./ship-construction.js";
-import { getShipFacingDegrees, rollStarshipWeaponAttack } from "./starship-combat.js";
+import { getShipFacingDegrees, getRelativeBearing, getIncomingArmorFacingData, rollStarshipWeaponAttack, resolveStarshipCriticalHit } from "./starship-combat.js";
 import { rollD100Test } from "./rolls.js";
+import { resolveReferenceTableResult } from "./reference-tables.js";
 
 const { ActorSheetV2 } = foundry.applications.sheets;
 const { HandlebarsApplicationMixin } = foundry.applications.api;
+const SHIP_MOVEMENT_SOUND = "systems/roguetrader/assets/sounds/ship-movement-1.mp3";
 
 const SHIP_WEAPON_LOCATION_LABELS = {
   dorsal: "Dorsal",
@@ -26,6 +28,24 @@ const SHIP_CONTROL_MODE_OPTIONS = [
   { value: "player", label: "Player Ship" },
   { value: "npc", label: "NPC Ship" }
 ];
+
+function normalizeShipSimpleName(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function shipActorHasTalentNamed(actor, name) {
+  const normalizedTarget = normalizeShipSimpleName(name);
+  if (!normalizedTarget) return false;
+
+  return (actor?.items ?? []).some((item) =>
+    item?.type === "talent"
+    && normalizeShipSimpleName(item.name) === normalizedTarget
+  );
+}
+
 const SHIP_ACTION_GROUP_DEFINITIONS = [
   {
     key: "move-manoeuvre",
@@ -118,6 +138,8 @@ const SHIP_MODIFIER_DEFINITIONS = [
   { key: "extraSpace", label: "Extra Space", shortLabel: "Space" },
   { key: "repairBonus", label: "Repair Bonus", shortLabel: "Repair" },
   { key: "commandBonus", label: "Command Bonus", shortLabel: "Command" },
+  { key: "hitAndRunAttackBonus", label: "Hit & Run Attack", shortLabel: "H&R Atk" },
+  { key: "hitAndRunDefenseBonus", label: "Hit & Run Defense", shortLabel: "H&R Def" },
   { key: "pilotingBonus", label: "Piloting Bonus", shortLabel: "Pilot" },
   { key: "navigationBonus", label: "Navigation Bonus", shortLabel: "Navigate" },
   { key: "crewRatingBonus", label: "Crew Rating Bonus", shortLabel: "Crew Rating" },
@@ -172,8 +194,8 @@ const STARSHIP_ACTION_DEFINITIONS = [
   { key: "flankSpeed", label: "Flank Speed", mode: "Extended", subtype: "Manoeuvre", summary: "Tech-Use; +1 VU Speed plus +1 VU per DoS; 2 DoF causes Engine Crippled." },
   { key: "focusedAugury", label: "Focused Augury", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; identify enemy components within 20 VUs, with more revealed at higher DoS." },
   { key: "hailEnemy", label: "Hail the Enemy", mode: "Extended", subtype: "Social", summary: "Open communications with ships within range; can be performed by characters who have participated in Manoeuvre or Shooting." },
-  { key: "hitAndRun", label: "Hit & Run", mode: "Shooting", subtype: "Attack", summary: "Pilot (Spacecraft), -10 per Turret Rating, 5 VU range; if successful, make a Command test to inflict critical effects and Hull Integrity damage." },
-  { key: "holdFast", label: "Hold Fast!", mode: "Extended", subtype: "Social", summary: "Air of Authority required; Willpower; on success reduce Morale damage by 1, plus DoS, minimum 1, during the current turn." },
+  { key: "hitAndRun", label: "Hit & Run", mode: "Extended", subtype: null, summary: "Pilot (Spacecraft), -10 per Turret Rating, 5 VU range; if successful, make a Command test to inflict critical effects and Hull Integrity damage." },
+  { key: "holdFast", label: "Hold Fast!", mode: "Extended", subtype: "Social", summary: "Air of Authority required; Willpower; on success restore Morale lost during the previous turn by 1, plus 1 per DoS, up to the amount actually lost." },
   { key: "jamCommunications", label: "Jam Communications", mode: "Extended", subtype: "Technological", summary: "-10 Tech-Use; if successful, target ship cannot use Social actions; range 10 VU + DoS." },
   { key: "lockOnTarget", label: "Lock on Target", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; +5 Ballistic Skill for one weapon component, plus +5 per 2 DoS." },
   { key: "prepareRepelBoarders", label: "Prepare to Repel Boarders!", mode: "Extended", subtype: "Social", summary: "Command; if successful +10 Command, plus +5 per DoS, against Boarding Actions as long as maintained." },
@@ -215,6 +237,16 @@ function normalizeSkillName(value) {
 
 function normalizeShipHullClass(value) {
   return String(value ?? "").trim().toLowerCase().replace(/[\s-]+/g, "");
+}
+
+function getRammingDamageFormulaForHullClass(hullClass) {
+  const normalized = normalizeShipHullClass(hullClass);
+  if (["transport", "raider"].includes(normalized)) return "1d5";
+  if (normalized === "frigate") return "1d10";
+  if (normalized === "lightcruiser") return "2d5";
+  if (["cruiser", "battlecruiser"].includes(normalized)) return "2d10";
+  if (["grandcruiser", "battleship"].includes(normalized)) return "3d10";
+  return "1d10";
 }
 
 function getShipTokenCenter(tokenLike) {
@@ -973,6 +1005,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         assignedName: isNpcControlled ? (order > 0 ? `Action ${order}` : "") : (assignedActor?.name ?? ""),
         initials,
         isAssigned: isNpcControlled ? order > 0 : Boolean(assignedActor),
+        isAttackAction: (String(action.mode ?? "") === "Shooting" && String(action.subtype ?? "") === "Attack") || String(action.key ?? "") === "hitAndRun",
         tooltip
       };
     });
@@ -1657,9 +1690,13 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       : null;
 
     const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const assignmentState = this.actor.system?.actionAssignments?.[actionKey] ?? {};
+    const isDesignated = isNpcControlled
+      ? Math.max(0, Number(assignmentState?.order ?? 0) || 0) > 0
+      : Boolean(String(assignmentState?.actorUuid ?? "").trim());
     const assignedActor = this._getAssignedShipActionActor(actionKey);
-    if (!assignedActor && !isNpcControlled && actionKey !== "activeAugury") {
-      ui.notifications?.warn("Rogue Trader | Assign a crew member to that action before executing it.");
+    if (!isDesignated) {
+      ui.notifications?.warn("Rogue Trader | Designate a crew member to that action before executing it.");
       return;
     }
 
@@ -1681,10 +1718,6 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     let result = null;
     switch (actionKey) {
       case "activeAugury":
-        if (!assignedActor && !isNpcControlled) {
-          ui.notifications?.warn("Rogue Trader | Assign a crew member to Active Augury before executing it.");
-          return;
-        }
         result = await this._rollActiveAugury(assignedActor ?? null);
         break;
       case "standardMove":
@@ -1717,8 +1750,17 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       case "jamCommunications":
         result = await this._performJamCommunicationsAction(assignedActor ?? null);
         break;
+      case "hitAndRun":
+        result = await this._performHitAndRunAction(assignedActor ?? null);
+        break;
+      case "ramming":
+        result = await this._performRammingAction(assignedActor ?? null);
+        break;
       case "disinformation":
         result = await this._performDisinformationAction(assignedActor ?? null);
+        break;
+      case "holdFast":
+        result = await this._performHoldFastAction(assignedActor ?? null);
         break;
       case "firefighting":
         result = await this._performFirefightingAction(assignedActor ?? null);
@@ -2649,6 +2691,529 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     };
   }
 
+  async _performHoldFastAction(actionActor = null) {
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    if (!isNpcControlled && !shipActorHasTalentNamed(actionActor, "Air of Authority")) {
+      ui.notifications?.warn("Rogue Trader | Hold Fast! requires Air of Authority.");
+      return null;
+    }
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Hold Fast!`,
+      skillName: "",
+      characteristicKey: "willpower",
+      modifier: 0,
+      actionActor,
+      modifierLabel: "Challenging Test"
+    });
+    if (!result) return null;
+
+    const operatorLabel = isNpcControlled
+      ? `NPC Crew (${Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0})`
+      : (actionActor?.name ?? "Assigned Officer");
+    const previousMoraleLoss = Math.max(0, Number(this.actor.getPreviousTurnShipMoraleLoss?.() ?? 0) || 0);
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Hold Fast!</h3>
+            <p><strong>Officer:</strong> ${operatorLabel}</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>No morale was recovered.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const attemptedRecovery = Math.max(1, 1 + Math.max(0, Number(result.degrees ?? 0) || 0));
+    const moraleRecovered = Math.min(previousMoraleLoss, attemptedRecovery);
+    const currentMorale = Math.max(0, Number(this.actor.getEffectiveShipMoraleValue?.() ?? this.actor.system?.resources?.morale?.value ?? 0) || 0);
+    const moraleModifier = Number(this.actor.getShipModifierTotal?.("extraMoralePercent") ?? 0) || 0;
+    const maxMorale = Math.max(0, Number(this.actor.getEffectiveShipMoraleMax?.() ?? this.actor.system?.resources?.morale?.max ?? 0) || 0);
+    const newMorale = Math.min(maxMorale, currentMorale + moraleRecovered);
+
+    if (moraleRecovered > 0) {
+      await this.actor.update({
+        "system.resources.morale.value": Math.max(0, newMorale - moraleModifier)
+      }, {
+        roguetraderSkipShipLossTracking: true
+      });
+    }
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Hold Fast!</h3>
+          <p><strong>Officer:</strong> ${operatorLabel}</p>
+          <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+          <p><strong>Previous Turn Morale Loss:</strong> ${previousMoraleLoss}</p>
+          <p><strong>Recovery Attempt:</strong> ${attemptedRecovery}</p>
+          <p><strong>Morale Restored:</strong> ${moraleRecovered}</p>
+          <p><strong>Morale:</strong> ${currentMorale} -> ${newMorale}</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      previousMoraleLoss,
+      attemptedRecovery,
+      moraleRecovered,
+      moraleAfter: newMorale
+    };
+  }
+
+  _getShipRosterActor(shipActor, roleKey) {
+    const actorUuid = String(shipActor?.system?.roster?.[roleKey]?.actorUuid ?? "").trim();
+    return actorUuid ? fromUuidSync(actorUuid) : null;
+  }
+
+  _getShipRolePrimaryValueForActor(shipActor, roleKey) {
+    const role = SHIP_ROSTER_ROLES.find((entry) => entry.key === roleKey) ?? null;
+    if (!role) return { value: null, label: "-" };
+    const assignedActor = this._getShipRosterActor(shipActor, roleKey);
+    return this._getRosterRolePrimaryValue(assignedActor, role);
+  }
+
+  async _rollShipDefenderCommandTest(targetShipActor, { title = "", modifier = 10, extraBreakdown = [] } = {}) {
+    if (!targetShipActor || targetShipActor.type !== "ship") return null;
+
+    const isNpcControlled = String(targetShipActor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const assignedCaptain = this._getShipRosterActor(targetShipActor, "captain");
+    const commandBonus = Number(targetShipActor.getShipModifierTotal?.("commandBonus") ?? 0) || 0;
+    const hitAndRunDefenseBonus = Number(targetShipActor.getShipModifierTotal?.("hitAndRunDefenseBonus") ?? 0) || 0;
+    const totalModifier = modifier + commandBonus + hitAndRunDefenseBonus;
+    const breakdown = [
+      ...(commandBonus ? [`Command Bonus: ${commandBonus >= 0 ? `+${commandBonus}` : commandBonus}`] : []),
+      ...(hitAndRunDefenseBonus ? [`Hit & Run Defense: ${hitAndRunDefenseBonus >= 0 ? `+${hitAndRunDefenseBonus}` : hitAndRunDefenseBonus}`] : []),
+      ...(Array.isArray(extraBreakdown) ? extraBreakdown : []),
+      `Ordinary Test: ${totalModifier >= 0 ? `+${totalModifier}` : totalModifier}`
+    ];
+
+    if (isNpcControlled) {
+      const npcCrewRating = Number(targetShipActor.getEffectiveShipCrewRating?.() ?? targetShipActor.system?.npcCrewRating ?? 0) || 0;
+      return rollD100Test({
+        actor: null,
+        title,
+        target: npcCrewRating,
+        modifier: totalModifier,
+        breakdown: [
+          `NPC Crew Rating: ${npcCrewRating}`,
+          ...breakdown
+        ]
+      });
+    }
+
+    const primaryValue = this._getRosterRolePrimaryValue(assignedCaptain, SHIP_ROSTER_ROLES.find((entry) => entry.key === "captain") ?? null);
+    if (primaryValue?.value == null) {
+      const fallbackTarget = Number(targetShipActor.getEffectiveShipCrewRating?.() ?? targetShipActor.system?.npcCrewRating ?? 0) || 0;
+      return rollD100Test({
+        actor: null,
+        title,
+        target: fallbackTarget,
+        modifier: totalModifier,
+        breakdown: [
+          `Fallback Crew Rating: ${fallbackTarget}`,
+          ...breakdown
+        ]
+      });
+    }
+
+    return rollD100Test({
+      actor: assignedCaptain,
+      title,
+      target: Number(primaryValue.value ?? 0) || 0,
+      modifier: totalModifier,
+      breakdown: [
+        `Command: ${primaryValue.label}`,
+        ...breakdown
+      ]
+    });
+  }
+
+  async _promptHitAndRunCriticalChoice(targetShipActor, options = []) {
+    if (!Array.isArray(options) || !options.length) return null;
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      const optionMarkup = options.map((option, index) => `
+        <div class="ship-critical-subresult">
+          <h4>Option ${index + 1}: ${option.roll.formula} = ${option.rollTotal}</h4>
+          <p><strong>${option.entry?.name ?? "Critical Result"}</strong></p>
+          <p>${option.entry?.description ?? ""}</p>
+        </div>
+      `).join("");
+
+      new Dialog({
+        title: `${this.actor.name}: Select Hit & Run Critical`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Select which critical effect to apply to ${targetShipActor?.name ?? "the target ship"}.</p>
+            ${optionMarkup}
+          </div>
+        `,
+        buttons: Object.fromEntries(options.map((option, index) => [
+          `option${index + 1}`,
+          {
+            label: `Choose Option ${index + 1}`,
+            callback: () => finish(option)
+          }
+        ]).concat([
+          ["cancel", { label: "Cancel", callback: () => finish(null) }]
+        ])),
+        default: "option1",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _performHitAndRunAction(actionActor = null) {
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0] ?? this.actor.getActiveTokens?.()[0] ?? null;
+    const targetedTokens = Array.from(game.user?.targets ?? []).filter((token) => token?.actor?.type === "ship" && token.actor.id !== this.actor.id);
+    const targetToken = targetedTokens[0] ?? null;
+    const targetShipActor = targetToken?.actor ?? null;
+
+    if (!sourceToken || !targetToken || !targetShipActor) {
+      ui.notifications?.warn("Rogue Trader | Target one enemy ship token before performing Hit & Run.");
+      return null;
+    }
+
+    const distanceVu = getDistanceVuBetweenTokens(sourceToken, targetToken);
+    if (distanceVu > 5) {
+      ui.notifications?.warn(`Rogue Trader | ${targetToken.name} is out of Hit & Run range (${distanceVu.toFixed(1)} / 5.0 VU).`);
+      return null;
+    }
+
+    await this.actor._playAutomatedAttackAnimation?.({
+      id: "ship-action-hit-and-run",
+      name: "Hit & Run",
+      type: "shipAction",
+      img: "systems/roguetrader/assets/svg/black-flag.svg"
+    }, [targetToken]);
+
+    const turretRating = Math.max(0, Number(targetShipActor.getEffectiveShipTurretRating?.() ?? targetShipActor.system?.turretRating ?? 0) || 0);
+    const pilotPenalty = turretRating * -10;
+    const pilotResult = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Hit & Run Approach`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: pilotPenalty,
+      actionActor,
+      modifierLabel: "Target Turret Penalty",
+      extraBreakdown: [
+        `Target: ${targetShipActor.name}`,
+        `Range: ${distanceVu.toFixed(1)} / 5.0 VU`,
+        `Target Turret Rating: ${turretRating}`
+      ]
+    });
+    if (!pilotResult) return null;
+
+    if (!pilotResult.success) {
+      const catastrophicFailure = Math.max(0, Number(pilotResult.degrees ?? 0) || 0) >= 4;
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Hit & Run</h3>
+            <p><strong>Target:</strong> ${targetShipActor.name}</p>
+            <p><strong>Approach:</strong> Failed (${pilotResult.degrees} DoF)</p>
+            <p>${catastrophicFailure ? "The boarding craft is shot down." : "The raiders are forced to break off and return to their ship."}</p>
+          </div>
+        `
+      });
+      return {
+        ...pilotResult,
+        stage: "approach",
+        targetShipId: targetShipActor.id,
+        targetShipName: targetShipActor.name
+      };
+    }
+
+    const hitAndRunAttackBonus = Number(this.actor.getShipModifierTotal?.("hitAndRunAttackBonus") ?? 0) || 0;
+    const attackerCommandResult = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Hit & Run Command`,
+      skillName: "Command",
+      characteristicKey: "fellowship",
+      modifier: 10 + hitAndRunAttackBonus,
+      actionActor,
+      modifierLabel: "Ordinary Test",
+      extraBreakdown: [
+        `Target: ${targetShipActor.name}`,
+        ...(hitAndRunAttackBonus ? [`Hit & Run Attack: ${hitAndRunAttackBonus >= 0 ? `+${hitAndRunAttackBonus}` : hitAndRunAttackBonus}`] : [])
+      ]
+    });
+    if (!attackerCommandResult) return null;
+
+    const defenderCommandResult = await this._rollShipDefenderCommandTest(targetShipActor, {
+      title: `${targetShipActor.name}: Repel Hit & Run`,
+      modifier: 10,
+      extraBreakdown: [`Attacker: ${this.actor.name}`]
+    });
+    if (!defenderCommandResult) return null;
+
+    const attackerWon = Boolean(attackerCommandResult.success)
+      && (!defenderCommandResult.success || Number(attackerCommandResult.degrees ?? 0) > Number(defenderCommandResult.degrees ?? 0));
+
+    if (!attackerWon) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Hit & Run</h3>
+            <p><strong>Target:</strong> ${targetShipActor.name}</p>
+            <p><strong>Approach:</strong> Success (${pilotResult.degrees} DoS)</p>
+            <p><strong>Attacker Command:</strong> ${attackerCommandResult.success ? `Success (${attackerCommandResult.degrees} DoS)` : `Failed (${attackerCommandResult.degrees} DoF)`}</p>
+            <p><strong>Defender Command:</strong> ${defenderCommandResult.success ? `Success (${defenderCommandResult.degrees} DoS)` : `Failed (${defenderCommandResult.degrees} DoF)`}</p>
+            <p>The raiding party is forced to retreat without causing damage.</p>
+          </div>
+        `
+      });
+      return {
+        success: false,
+        stage: "command",
+        pilotResult,
+        attackerCommandResult,
+        defenderCommandResult
+      };
+    }
+
+    const criticalOptions = [];
+    for (let index = 0; index < 2; index += 1) {
+      const roll = await (new Roll("1d5")).evaluate({ async: true });
+      const rollTotal = Math.max(1, Number(roll.total ?? 0) || 1);
+      criticalOptions.push({
+        roll,
+        rollTotal,
+        entry: resolveReferenceTableResult("starshipCriticalHits", rollTotal)
+      });
+    }
+
+    const selectedCritical = await this._promptHitAndRunCriticalChoice(targetShipActor, criticalOptions);
+    if (!selectedCritical) return null;
+
+    const hullDamage = 1 + Math.max(0, Number(attackerCommandResult.degrees ?? 0) || 0);
+    const currentHullIntegrity = Math.max(0, Number(targetShipActor.getEffectiveShipHullIntegrityValue?.() ?? targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+    const hullModifier = Number(targetShipActor.getShipModifierTotal?.("extraHullIntegrity") ?? 0) || 0;
+    const newHullIntegrity = Math.max(0, currentHullIntegrity - hullDamage);
+
+    await targetShipActor.update({
+      "system.resources.hullIntegrity.value": Math.max(0, newHullIntegrity - hullModifier)
+    });
+    await targetShipActor.syncCrippledState?.({ announced: true, sourceName: `Hit & Run (${this.actor.name})` });
+
+    const criticalResult = await resolveStarshipCriticalHit(targetShipActor, this.actor, { name: "Hit & Run" }, selectedCritical.rollTotal, {
+      sourceLabel: `Hit & Run (${this.actor.name})`
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Hit & Run</h3>
+          <p><strong>Target:</strong> ${targetShipActor.name}</p>
+          <p><strong>Approach:</strong> Success (${pilotResult.degrees} DoS)</p>
+          <p><strong>Attacker Command:</strong> Success (${attackerCommandResult.degrees} DoS)</p>
+          <p><strong>Defender Command:</strong> ${defenderCommandResult.success ? `Success (${defenderCommandResult.degrees} DoS)` : `Failed (${defenderCommandResult.degrees} DoF)`}</p>
+          <p><strong>Hull Integrity Damage:</strong> ${currentHullIntegrity} -> ${newHullIntegrity} (${hullDamage})</p>
+          <p><strong>Critical Chosen:</strong> ${selectedCritical.roll.formula} = ${selectedCritical.rollTotal} (${selectedCritical.entry?.name ?? "Critical Result"})</p>
+        </div>
+      `
+    });
+
+    return {
+      success: true,
+      pilotResult,
+      attackerCommandResult,
+      defenderCommandResult,
+      selectedCritical,
+      criticalResult,
+      hullDamage,
+      currentHullIntegrity,
+      newHullIntegrity
+    };
+  }
+
+  async _performRammingAction(actionActor = null) {
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0] ?? this.actor.getActiveTokens?.()[0] ?? null;
+    const targetedTokens = Array.from(game.user?.targets ?? []).filter((token) => token?.actor?.type === "ship" && token.actor.id !== this.actor.id);
+    const targetToken = targetedTokens[0] ?? null;
+    const targetShipActor = targetToken?.actor ?? null;
+
+    if (!sourceToken || !targetToken || !targetShipActor) {
+      ui.notifications?.warn("Rogue Trader | Target one enemy ship token before performing Ramming.");
+      return null;
+    }
+
+    const distanceVu = getDistanceVuBetweenTokens(sourceToken, targetToken);
+    if (distanceVu > 1) {
+      ui.notifications?.warn(`Rogue Trader | ${targetToken.name} is out of ramming range (${distanceVu.toFixed(1)} / 1.0 VU).`);
+      return null;
+    }
+
+    const targetBearing = getRelativeBearing(sourceToken, targetToken);
+    if (String(targetBearing?.bearing ?? "") !== "fore") {
+      ui.notifications?.warn("Rogue Trader | The target must be in the ship's fore arc to ram it.");
+      return null;
+    }
+
+    await this.actor._playAutomatedAttackAnimation?.({
+      id: "ship-action-ramming",
+      name: "Ramming",
+      type: "shipAction",
+      img: "systems/roguetrader/assets/svg/boat-engine.svg"
+    }, [targetToken]);
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Ramming`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: -20,
+      actionActor,
+      modifierLabel: "Hard Test",
+      extraBreakdown: [
+        `Target: ${targetShipActor.name}`,
+        `Range: ${distanceVu.toFixed(1)} / 1.0 VU`,
+        `Bearing: ${targetBearing?.bearingLabel ?? "Fore"}`
+      ]
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Ramming</h3>
+            <p><strong>Target:</strong> ${targetShipActor.name}</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>The helmsman fails to line up the collision and the ram does not connect.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const attackerHullClass = String(this.actor.system?.class ?? "").trim();
+    const attackerRammingFormula = getRammingDamageFormulaForHullClass(attackerHullClass);
+    const attackerRammingRoll = await (new Roll(attackerRammingFormula)).evaluate({ async: true });
+    const attackerProwArmor = Math.max(0, Number(this.actor.getEffectiveShipArmor?.("prow") ?? 0) || 0);
+    const extraRammingDamageFormula = String(this.actor.getShipModifierFormulaTotal?.("rammingDamageBonus") ?? "").trim();
+    const extraRammingDamageRoll = extraRammingDamageFormula
+      ? await (new Roll(extraRammingDamageFormula)).evaluate({ async: true })
+      : null;
+    const outgoingRawDamage = Math.max(
+      0,
+      (Number(attackerRammingRoll.total ?? 0) || 0)
+      + attackerProwArmor
+      + (Number(extraRammingDamageRoll?.total ?? 0) || 0)
+    );
+
+    const incomingArmorData = getIncomingArmorFacingData(targetToken, sourceToken);
+    const defenderArmor = Math.max(0, Number(targetShipActor.getEffectiveShipArmor?.(incomingArmorData.armorFacing) ?? 0) || 0);
+    const outgoingDamage = Math.max(0, outgoingRawDamage - defenderArmor);
+    const selfDamageRoll = await (new Roll("1d5")).evaluate({ async: true });
+    const selfRawDamage = Math.max(0, defenderArmor + (Number(selfDamageRoll.total ?? 0) || 0));
+    const selfDamage = Math.max(0, selfRawDamage - attackerProwArmor);
+
+    const targetCurrentHullIntegrity = Math.max(0, Number(targetShipActor.getEffectiveShipHullIntegrityValue?.() ?? targetShipActor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+    const targetHullModifier = Number(targetShipActor.getShipModifierTotal?.("extraHullIntegrity") ?? 0) || 0;
+    const targetNewHullIntegrity = Math.max(0, targetCurrentHullIntegrity - outgoingDamage);
+    const targetCurrentCrew = Math.max(0, Number(targetShipActor.getEffectiveShipCrewPopulationValue?.() ?? targetShipActor.system?.crew?.value ?? 0) || 0);
+    const targetCrewModifier = Number(targetShipActor.getShipModifierTotal?.("extraCrewPercent") ?? 0) || 0;
+    const targetCurrentMorale = Math.max(0, Number(targetShipActor.getEffectiveShipMoraleValue?.() ?? targetShipActor.system?.resources?.morale?.value ?? 0) || 0);
+    const targetMoraleModifier = Number(targetShipActor.getShipModifierTotal?.("extraMoralePercent") ?? 0) || 0;
+    const targetNewCrew = Math.max(0, targetCurrentCrew - outgoingDamage);
+    const targetNewMorale = Math.max(0, targetCurrentMorale - outgoingDamage);
+
+    const sourceCurrentHullIntegrity = Math.max(0, Number(this.actor.getEffectiveShipHullIntegrityValue?.() ?? this.actor.system?.resources?.hullIntegrity?.value ?? 0) || 0);
+    const sourceHullModifier = Number(this.actor.getShipModifierTotal?.("extraHullIntegrity") ?? 0) || 0;
+    const sourceNewHullIntegrity = Math.max(0, sourceCurrentHullIntegrity - selfDamage);
+    const sourceCurrentCrew = Math.max(0, Number(this.actor.getEffectiveShipCrewPopulationValue?.() ?? this.actor.system?.crew?.value ?? 0) || 0);
+    const sourceCrewModifier = Number(this.actor.getShipModifierTotal?.("extraCrewPercent") ?? 0) || 0;
+    const sourceCurrentMorale = Math.max(0, Number(this.actor.getEffectiveShipMoraleValue?.() ?? this.actor.system?.resources?.morale?.value ?? 0) || 0);
+    const sourceMoraleModifier = Number(this.actor.getShipModifierTotal?.("extraMoralePercent") ?? 0) || 0;
+    const sourceNewCrew = Math.max(0, sourceCurrentCrew - selfDamage);
+    const sourceNewMorale = Math.max(0, sourceCurrentMorale - selfDamage);
+
+    await targetShipActor.update({
+      "system.resources.hullIntegrity.value": Math.max(0, targetNewHullIntegrity - targetHullModifier),
+      "system.crew.value": Math.max(0, targetNewCrew - targetCrewModifier),
+      "system.resources.morale.value": Math.max(0, targetNewMorale - targetMoraleModifier)
+    });
+    await targetShipActor.syncCrippledState?.({ announced: true, sourceName: `Ramming (${this.actor.name})` });
+
+    await this.actor.update({
+      "system.resources.hullIntegrity.value": Math.max(0, sourceNewHullIntegrity - sourceHullModifier),
+      "system.crew.value": Math.max(0, sourceNewCrew - sourceCrewModifier),
+      "system.resources.morale.value": Math.max(0, sourceNewMorale - sourceMoraleModifier)
+    });
+    await this.actor.syncCrippledState?.({ announced: true, sourceName: `Ramming (${targetShipActor.name})` });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Ramming</h3>
+          <p><strong>Target:</strong> ${targetShipActor.name}</p>
+          <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+          <p><strong>Attacker Hull Class:</strong> ${attackerHullClass || "Unknown"}</p>
+          <p><strong>Base Ramming Damage:</strong> ${attackerRammingRoll.formula} = ${Number(attackerRammingRoll.total ?? 0) || 0}</p>
+          <p><strong>Prow Armour Added:</strong> ${attackerProwArmor}</p>
+          ${extraRammingDamageRoll ? `<p><strong>Extra Ramming Damage:</strong> ${extraRammingDamageRoll.formula} = ${Number(extraRammingDamageRoll.total ?? 0) || 0}</p>` : ""}
+          <p><strong>Impact Facing:</strong> ${incomingArmorData?.bearingLabel ?? "Fore"} / ${incomingArmorData?.armorFacing ?? "prow"}</p>
+          <p><strong>Raw Damage to ${targetShipActor.name}:</strong> ${outgoingRawDamage}</p>
+          <p><strong>${targetShipActor.name} Armour:</strong> ${defenderArmor}</p>
+          <p><strong>Applied Damage to ${targetShipActor.name}:</strong> ${targetCurrentHullIntegrity} -> ${targetNewHullIntegrity} (${outgoingDamage})</p>
+          <p><strong>${targetShipActor.name} Crew:</strong> ${targetCurrentCrew} -> ${targetNewCrew}</p>
+          <p><strong>${targetShipActor.name} Morale:</strong> ${targetCurrentMorale} -> ${targetNewMorale}</p>
+          <p><strong>Self-Damage Roll:</strong> ${defenderArmor} + ${selfDamageRoll.formula} = ${selfRawDamage}</p>
+          <p><strong>${this.actor.name} Prow Armour:</strong> ${attackerProwArmor}</p>
+          <p><strong>Applied Self-Damage:</strong> ${sourceCurrentHullIntegrity} -> ${sourceNewHullIntegrity} (${selfDamage})</p>
+          <p><strong>${this.actor.name} Crew:</strong> ${sourceCurrentCrew} -> ${sourceNewCrew}</p>
+          <p><strong>${this.actor.name} Morale:</strong> ${sourceCurrentMorale} -> ${sourceNewMorale}</p>
+          <p><strong>Void Shields:</strong> Ignored on both ships.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      attackerHullClass,
+      attackerRammingRoll,
+      attackerProwArmor,
+      extraRammingDamageRoll,
+      outgoingRawDamage,
+      outgoingDamage,
+      incomingArmorData,
+      defenderArmor,
+      selfDamageRoll,
+      selfRawDamage,
+      selfDamage,
+      targetCurrentHullIntegrity,
+      targetNewHullIntegrity,
+      targetCurrentCrew,
+      targetNewCrew,
+      targetCurrentMorale,
+      targetNewMorale,
+      sourceCurrentHullIntegrity,
+      sourceNewHullIntegrity,
+      sourceCurrentCrew,
+      sourceNewCrew,
+      sourceCurrentMorale,
+      sourceNewMorale
+    };
+  }
+
   async _promptFirefightingComponent(components = []) {
     if (!Array.isArray(components) || !components.length) return null;
 
@@ -3316,6 +3881,23 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         );
 
         if (matchedEndpoint) {
+          reverting = true;
+          const startX = Number(this.#standardMoveAssist?.start?.x ?? tokenDocument.x ?? 0) || 0;
+          const startY = Number(this.#standardMoveAssist?.start?.y ?? tokenDocument.y ?? 0) || 0;
+          await updatedToken.update({
+            x: startX,
+            y: startY
+          }, {
+            animate: false,
+            animation: { duration: 0 }
+          });
+          await this._animateShipTokenMove(updatedToken, {
+            x: nextX,
+            y: nextY,
+            distanceVu: matchedEndpoint.distance
+          });
+          reverting = false;
+
           await ChatMessage.create({
             speaker: ChatMessage.getSpeaker({ actor: this.actor }),
             content: `
@@ -3355,6 +3937,55 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         }
       };
     });
+  }
+
+  async _animateShipTokenMove(tokenDocument, { x, y, distanceVu = 0 } = {}) {
+    if (!tokenDocument) return false;
+
+    const targetX = Number(x ?? tokenDocument.x ?? 0) || 0;
+    const targetY = Number(y ?? tokenDocument.y ?? 0) || 0;
+    const duration = Math.max(900, Math.min(6400, Math.round((Number(distanceVu ?? 0) || 0) * 360)));
+    let sound = null;
+
+    try {
+      try {
+        sound = await AudioHelper.play({
+          src: SHIP_MOVEMENT_SOUND,
+          volume: 0.55,
+          loop: true
+        }, false);
+      } catch (error) {
+        console.warn("Rogue Trader | Failed to play ship movement sound.", error);
+      }
+
+      await tokenDocument.update({
+        x: targetX,
+        y: targetY
+      }, {
+        animate: true,
+        animation: {
+          duration
+        }
+      });
+
+      if (sound) {
+        await new Promise((resolve) => setTimeout(resolve, duration));
+      }
+      return true;
+    } catch (error) {
+      console.warn("Rogue Trader | Ship movement animation failed; falling back to direct token update.", error);
+      await tokenDocument.update({
+        x: targetX,
+        y: targetY
+      });
+      return false;
+    } finally {
+      try {
+        sound?.stop?.();
+      } catch (error) {
+        console.warn("Rogue Trader | Failed to stop ship movement sound.", error);
+      }
+    }
   }
 
   async _createStandardMoveGuideTemplates({ sourceCenter, expectedEndpoints = [], facing, distance, tokenDocument }) {

@@ -10,6 +10,10 @@
         <header class="ship-sheet-header">
           <div class="ship-sheet-title-block">
             <input class="ship-sheet-name" name="name" type="text" value="{{actor.name}}" placeholder="Voidship Name" />
+            <div class="ship-sheet-subtitle-row">
+              <input class="ship-sheet-faction" name="system.faction" type="text" value="{{system.faction}}" placeholder="Faction" />
+              <input class="ship-sheet-captain" name="system.captainName" type="text" value="{{system.captainName}}" placeholder="Captain" />
+            </div>
             <div class="ship-sheet-meta">
               <div class="ship-sheet-meta-row ship-sheet-meta-row-primary">
                 <div class="ship-stat-line">
@@ -105,6 +109,8 @@
                         type="button"
                         class="ship-action-button {{../accentClass}} {{#if action.isAssigned}}is-assigned{{/if}}"
                         data-action-key="{{action.key}}"
+                        data-attack-action="{{#if action.isAttackAction}}true{{else}}false{{/if}}"
+                        data-attack-name="{{#if action.isAttackAction}}{{action.label}}{{/if}}"
                         data-tooltip="{{action.tooltip}}">
                         <span class="ship-action-label">{{action.label}}</span>
                         <span class="ship-action-meta">{{action.mode}} / {{action.subtype}}</span>

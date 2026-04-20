@@ -1322,6 +1322,7 @@ Hooks.on("updateCombat", async (combat, changed) => {
   const combatant = combat?.combatant;
   const actor = combatant?.actor;
   if (!actor) return;
+  if (actor.rotateShipRecentLosses) await actor.rotateShipRecentLosses(combat);
   if (actor.type === "ship" && actor.shouldSkipCrewPopulationTurn?.(combat)) {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
@@ -1350,6 +1351,30 @@ Hooks.on("updateCombat", async (combat, changed) => {
   if (actor.handleEvasiveManeuversTurnStart) await actor.handleEvasiveManeuversTurnStart(combat);
   if (actor.handleTorpedoReloadTurnStart) await actor.handleTorpedoReloadTurnStart(combat);
   if (processShipLaunchedTorpedoesTurnStart) await processShipLaunchedTorpedoesTurnStart(actor, combat);
+});
+
+Hooks.on("preUpdateActor", (actor, changed, options) => {
+  if (actor?.type !== "ship" || options?.roguetraderSkipShipLossTracking) return;
+  if (!game.combat?.started) return;
+
+  const crewPath = "system.crew.value";
+  const moralePath = "system.resources.morale.value";
+  const currentCrew = Math.max(0, Number(actor.system?.crew?.value ?? 0) || 0);
+  const currentMorale = Math.max(0, Number(actor.system?.resources?.morale?.value ?? 0) || 0);
+  const nextCrew = foundry.utils.hasProperty(changed, crewPath)
+    ? Math.max(0, Number(foundry.utils.getProperty(changed, crewPath) ?? currentCrew) || 0)
+    : currentCrew;
+  const nextMorale = foundry.utils.hasProperty(changed, moralePath)
+    ? Math.max(0, Number(foundry.utils.getProperty(changed, moralePath) ?? currentMorale) || 0)
+    : currentMorale;
+  const crewLoss = Math.max(0, currentCrew - nextCrew);
+  const moraleLoss = Math.max(0, currentMorale - nextMorale);
+
+  if (!crewLoss && !moraleLoss) return;
+  options.roguetraderShipRecentLosses = {
+    crew: crewLoss,
+    morale: moraleLoss
+  };
 });
 
 Hooks.on("renderCombatTracker", (app, html) => {
@@ -2125,6 +2150,9 @@ Hooks.on("deleteActiveEffect", async (effect, options, userId) => {
 
 Hooks.on("updateActor", async (actor, changed, options, userId) => {
   if (game.user?.id !== userId) return;
+  if (actor?.recordShipRecentLosses && options?.roguetraderShipRecentLosses && !options?.roguetraderSkipShipLossTracking) {
+    await actor.recordShipRecentLosses(options.roguetraderShipRecentLosses);
+  }
   if (foundry.utils.hasProperty(changed, "system.resources.fatigue")) {
     if (actor?.syncFatigueStates) {
       await actor.syncFatigueStates({ announced: true });

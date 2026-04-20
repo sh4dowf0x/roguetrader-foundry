@@ -628,6 +628,19 @@
           "active": false,
           "firedWeaponIds": []
         },
+        "recentLosses": {
+          "combatId": "",
+          "round": 0,
+          "turn": 0,
+          "current": {
+            "crew": 0,
+            "morale": 0
+          },
+          "previous": {
+            "crew": 0,
+            "morale": 0
+          }
+        },
         "modifiers": {
           "extraSpeed": { "manual": 0, "automatic": 0, "temporary": 0 },
           "extraManeuverability": { "manual": 0, "automatic": 0, "temporary": 0 },
@@ -646,6 +659,8 @@
           "extraSpace": { "manual": 0, "automatic": 0, "temporary": 0 },
           "repairBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
           "commandBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "hitAndRunAttackBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "hitAndRunDefenseBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
           "pilotingBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
           "navigationBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
           "crewRatingBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
@@ -666,6 +681,8 @@
           "mindLink": false
         },
         "pastHistory": "",
+        "faction": "",
+        "captainName": "",
         "traits": ""
       },
       "torpedo": {
