@@ -512,7 +512,13 @@
             "source": "",
             "rollTotal": 0,
             "turningDisabled": false,
-            "maneuverPenalty": 0
+            "maneuverPenalty": 0,
+            "emergencyRepair": {
+              "active": false,
+              "remainingTurns": 0,
+              "source": "",
+              "operatorName": ""
+            }
           },
           "shipFire": {
             "active": false,
@@ -523,7 +529,40 @@
             "source": "",
             "rollTotal": 0,
             "speedHalved": false,
-            "speedReducedToOne": false
+            "speedReducedToOne": false,
+            "emergencyRepair": {
+              "active": false,
+              "remainingTurns": 0,
+              "source": "",
+              "operatorName": ""
+            }
+          },
+          "boarding": {
+            "active": false,
+            "source": "",
+            "opposingShipUuid": "",
+            "opposingShipName": "",
+            "failedBreakFreePenalty": 0,
+            "lastResolved": {
+              "combatId": "",
+              "round": 0
+            }
+          },
+          "crewSurrendered": {
+            "active": false,
+            "source": ""
+          },
+          "prepareRepelBoarders": {
+            "active": false,
+            "source": "",
+            "bonus": 0,
+            "operatorName": "",
+            "operatorActorUuid": "",
+            "appliedAt": {
+              "combatId": "",
+              "round": 0,
+              "turn": 0
+            }
           },
           "silentRunning": {
             "active": false,
@@ -614,6 +653,18 @@
             "turn": 0
           }
         },
+        "pendingPutBacksIntoIt": {
+          "active": false,
+          "bonus": 0,
+          "remainingUses": 0,
+          "source": "",
+          "operatorName": "",
+          "appliedAt": {
+            "combatId": "",
+            "round": 0,
+            "turn": 0
+          }
+        },
         "shipActionUsage": {
           "combatId": "",
           "round": 0,
@@ -659,6 +710,7 @@
           "extraSpace": { "manual": 0, "automatic": 0, "temporary": 0 },
           "repairBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
           "commandBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
+          "boardingBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
           "hitAndRunAttackBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
           "hitAndRunDefenseBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
           "pilotingBonus": { "manual": 0, "automatic": 0, "temporary": 0 },
@@ -913,6 +965,7 @@
         "frigate": false,
         "lightCruiser": false,
         "cruiser": false,
+        "battlecruiser": false,
         "grandCruiser": false,
         "battleship": false,
         "allShips": false
@@ -947,6 +1000,7 @@
         "frigate": false,
         "lightCruiser": false,
         "cruiser": false,
+        "battlecruiser": false,
         "grandCruiser": false,
         "battleship": false,
         "allShips": false
@@ -981,6 +1035,7 @@
         "frigate": false,
         "lightCruiser": false,
         "cruiser": false,
+        "battlecruiser": false,
         "grandCruiser": false,
         "battleship": false,
         "allShips": false
@@ -1032,6 +1087,7 @@
         "frigate": false,
         "lightCruiser": false,
         "cruiser": false,
+        "battlecruiser": false,
         "grandCruiser": false,
         "battleship": false,
         "allShips": false

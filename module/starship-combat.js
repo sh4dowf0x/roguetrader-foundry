@@ -1468,6 +1468,11 @@ async function rollStarshipWeaponAttack(shipActor, weaponRef, options = {}) {
     return null;
   }
 
+  if (shipActor.isBoardingLocked?.()) {
+    ui.notifications?.warn("Rogue Trader | Ships locked in a boarding action cannot fire weapons until they break free.");
+    return null;
+  }
+
   const offlineReasons = getShipWeaponOfflineReasons(weapon);
   if (offlineReasons.length) {
     ui.notifications?.warn(`Rogue Trader | ${weapon.name} cannot fire while ${offlineReasons.join(", ")}.`);
@@ -1553,29 +1558,33 @@ async function rollStarshipWeaponAttack(shipActor, weaponRef, options = {}) {
     ? (Number(targetToken.actor.getShipIncomingShootingModifier?.() ?? 0) || 0)
     : 0;
   const lockOnTargetModifier = Number(shipActor.getPendingLockOnTargetBonusForAttack?.(weapon, targetToken) ?? 0) || 0;
+  const attackModifier = Number(options.attackModifier ?? 0) || 0;
+  const attackModifierLabel = String(options.attackModifierLabel ?? "").trim();
   const result = useNpcCrew
     ? await rollD100Test({
       actor: null,
       title: `${shipActor.name}: Fire ${weapon.name}`,
       target: npcCrewRating,
-      modifier: Number(rangeData?.modifier ?? 0) + shipShootingModifier + targetShootingModifier + lockOnTargetModifier,
+      modifier: Number(rangeData?.modifier ?? 0) + shipShootingModifier + targetShootingModifier + lockOnTargetModifier + attackModifier,
       breakdown: [
         `NPC Crew Rating: ${npcCrewRating}`,
         ...(rangeData ? [`Range Modifier: ${rangeData.modifier >= 0 ? `+${rangeData.modifier}` : rangeData.modifier}`] : []),
         ...(shipShootingModifier ? [`Ship Shooting Modifier: ${shipShootingModifier >= 0 ? `+${shipShootingModifier}` : shipShootingModifier}`] : []),
         ...(targetShootingModifier ? [`Target Evasion Modifier: ${targetShootingModifier}`] : []),
-        ...(lockOnTargetModifier ? [`Lock on Target: +${lockOnTargetModifier}`] : [])
+        ...(lockOnTargetModifier ? [`Lock on Target: +${lockOnTargetModifier}`] : []),
+        ...(attackModifier ? [`${attackModifierLabel || "Attack Modifier"}: +${attackModifier}`] : [])
       ],
       extra
     })
     : await gunnerActor.rollCharacteristic("ballisticSkill", {
-      modifier: Number(rangeData?.modifier ?? 0) + shipShootingModifier + targetShootingModifier + lockOnTargetModifier,
+      modifier: Number(rangeData?.modifier ?? 0) + shipShootingModifier + targetShootingModifier + lockOnTargetModifier + attackModifier,
       label: `${gunnerActor.name}: Fire ${weapon.name} (${shipActor.name})`,
       extra: [
         ...extra,
         ...(shipShootingModifier ? [`Ship Shooting Modifier: ${shipShootingModifier >= 0 ? `+${shipShootingModifier}` : shipShootingModifier}`] : []),
         ...(targetShootingModifier ? [`Target Evasion Modifier: ${targetShootingModifier}`] : []),
-        ...(lockOnTargetModifier ? [`Lock on Target: +${lockOnTargetModifier}`] : [])
+        ...(lockOnTargetModifier ? [`Lock on Target: +${lockOnTargetModifier}`] : []),
+        ...(attackModifier ? [`${attackModifierLabel || "Attack Modifier"}: +${attackModifier}`] : [])
       ]
     });
 

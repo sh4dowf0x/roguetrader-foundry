@@ -195,14 +195,6 @@
   min-width: 200px;
 }
 
-.roguetrader .encumbrance-summary-label {
-  color: var(--rt-text);
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  white-space: nowrap;
-}
-
 .roguetrader .encumbrance-bar {
   flex: 1 1 auto;
   height: 8px;
@@ -210,13 +202,6 @@
   overflow: hidden;
   background: rgba(255, 248, 235, 0.12);
   border: 1px solid rgba(233, 223, 199, 0.18);
-}
-
-.roguetrader .encumbrance-bar-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(143, 107, 46, 0.85), rgba(220, 183, 90, 0.92));
 }
 
 .roguetrader .characteristics-table {
@@ -595,7 +580,6 @@
 .roguetrader .page-two-gear-section,
 .roguetrader .page-two-cybernetics-section,
 .roguetrader .page-two-bottom-row,
-.roguetrader .page-two-final-row,
 .roguetrader .page-two-acquisitions-row {
   padding: 16px 24px 0;
 }
@@ -607,12 +591,6 @@
 }
 
 .roguetrader .page-two-bottom-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.roguetrader .page-two-final-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -706,7 +684,6 @@
   line-height: 1.05;
 }
 
-.roguetrader .derived-value-note,
 .roguetrader .carry-panel-subtitle {
   color: rgba(233, 223, 199, 0.72);
   font-size: 0.62rem;
@@ -760,31 +737,6 @@
   padding: 7px 8px;
 }
 
-.roguetrader .armor-location-topline {
-  align-items: baseline;
-  display: flex;
-  gap: 8px;
-  justify-content: space-between;
-}
-
-.roguetrader .armor-location-name {
-  color: var(--rt-text);
-  font-size: 0.77rem;
-  font-weight: 700;
-}
-
-.roguetrader .armor-location-roll {
-  color: rgba(233, 223, 199, 0.72);
-  font-size: 0.66rem;
-}
-
-.roguetrader .armor-location-ap {
-  color: var(--rt-accent);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1rem;
-  margin-top: 3px;
-}
-
 .roguetrader .equipped-list-block {
   margin-top: 12px;
 }
@@ -800,16 +752,6 @@
   display: flex;
   gap: 8px;
   justify-content: space-between;
-}
-
-.roguetrader .equipped-item-button {
-  text-decoration: none;
-}
-
-.roguetrader .equipped-item-meta {
-  color: rgba(233, 223, 199, 0.72);
-  font-size: 0.7rem;
-  text-align: right;
 }
 
 .roguetrader .page-two-table-wrap {
@@ -941,7 +883,6 @@
   text-align: center;
 }
 
-.roguetrader .gear-list-icon-header,
 .roguetrader .gear-list-icon-cell {
   text-align: center;
 }
@@ -1139,27 +1080,6 @@
   color: #fff1f1;
 }
 
-.roguetrader .item-toggle-equipped.is-equipped {
-  background: rgba(143, 107, 46, 0.22);
-  border-color: rgba(143, 107, 46, 0.5);
-  color: #f4e8c9;
-}
-
-.roguetrader .mental-track-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px 12px;
-}
-
-.roguetrader .mental-list-block {
-  margin-top: 12px;
-}
-
-.roguetrader .mental-list-textarea {
-  min-height: 132px;
-  resize: vertical;
-}
-
 .roguetrader .consequence-drop-zone {
   border: 1px dashed rgba(233, 223, 199, 0.12);
   border-radius: 8px;
@@ -1299,21 +1219,6 @@
   justify-content: space-between;
 }
 
-.roguetrader .profit-factor-box {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 120px;
-}
-
-.roguetrader .profit-factor-box label {
-  color: var(--rt-accent);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
 .roguetrader .acquisitions-table input {
   color: var(--rt-text);
   background: rgba(18, 13, 10, 0.78);
@@ -1428,7 +1333,8 @@
   padding: 18px;
 }
 
-.roguetrader .ship-component-sheet {
+.roguetrader .ship-component-sheet,
+.roguetrader .ship-weapon-sheet {
   display: flex;
   flex-direction: column;
   height: auto;
@@ -1476,11 +1382,13 @@
   text-transform: uppercase;
 }
 
-.roguetrader .ship-component-sheet .item-sheet-header {
+.roguetrader .ship-component-sheet .item-sheet-header,
+.roguetrader .ship-weapon-sheet .item-sheet-header {
   flex: 0 0 auto;
 }
 
-.roguetrader .ship-component-sheet .ship-component-sheet-body {
+.roguetrader .ship-component-sheet .ship-component-sheet-body,
+.roguetrader .ship-weapon-sheet .ship-weapon-sheet-body {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -1500,6 +1408,35 @@
   grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   gap: 10px 12px;
   align-items: end;
+}
+
+.roguetrader .ship-weapon-stat-row {
+  grid-template-columns: repeat(6, minmax(48px, max-content)) minmax(78px, max-content) minmax(96px, max-content);
+  justify-content: start;
+}
+
+.roguetrader .ship-weapon-stat-row .ship-weapon-mini-field {
+  min-width: 0;
+}
+
+.roguetrader .ship-weapon-stat-row .ship-weapon-tiny-field {
+  width: 46px;
+}
+
+.roguetrader .ship-weapon-stat-row .ship-weapon-tiny-field input {
+  text-align: center;
+}
+
+.roguetrader .ship-weapon-stat-row .ship-weapon-damage-field {
+  width: 78px;
+}
+
+.roguetrader .ship-weapon-stat-row .ship-weapon-range-field {
+  width: 184px;
+}
+
+.roguetrader .ship-weapon-stat-row .ship-weapon-wide-field {
+  min-width: 0;
 }
 
 .roguetrader .ship-component-hull-flags {
@@ -1548,11 +1485,6 @@
   margin: 0;
 }
 
-.roguetrader .ship-component-modifiers-input {
-  min-height: 56px;
-  resize: vertical;
-}
-
 .roguetrader .ship-component-description-field {
   display: flex;
   flex-direction: column;
@@ -1561,6 +1493,19 @@
 }
 
 .roguetrader .ship-component-description-input {
+  flex: 1 1 auto;
+  min-height: 240px;
+  resize: none;
+}
+
+.roguetrader .ship-weapon-description-field {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 240px;
+  min-height: 240px;
+}
+
+.roguetrader .ship-weapon-description-input {
   flex: 1 1 auto;
   min-height: 240px;
   resize: none;
@@ -2023,17 +1968,6 @@
   line-height: 1.15;
 }
 
-.roguetrader .advancement-summary-input {
-  background: rgba(12, 10, 8, 0.55);
-  border: 1px solid rgba(233, 223, 199, 0.18);
-  border-radius: 6px;
-  color: var(--rt-text);
-  font-size: 0.8rem;
-  height: 28px;
-  min-height: 28px;
-  padding: 2px 6px;
-}
-
 .roguetrader .advancement-data-grid {
   display: grid;
   gap: 12px;
@@ -2374,11 +2308,6 @@
   padding: 6px 7px;
 }
 
-.roguetrader .advancement-log-entry.is-spend {
-  background: rgba(129, 67, 49, 0.18);
-  border-color: rgba(191, 97, 72, 0.25);
-}
-
 .roguetrader .advancement-log-entry-header {
   align-items: baseline;
   display: flex;
@@ -2390,10 +2319,6 @@
   color: #d8f0cb;
   font-size: 0.74rem;
   font-weight: 700;
-}
-
-.roguetrader .advancement-log-entry.is-spend .advancement-log-amount {
-  color: #f0c0b5;
 }
 
 .roguetrader .advancement-log-date {
@@ -2635,26 +2560,6 @@
 
 .roguetrader .character-creation-tab.active {
   display: block;
-}
-
-.roguetrader .origin-path-placeholder-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin-top: 16px;
-}
-
-.roguetrader .origin-path-placeholder-card {
-  background: rgba(255, 248, 235, 0.04);
-  border: 1px solid rgba(233, 223, 199, 0.14);
-  border-radius: 8px;
-  padding: 12px;
-}
-
-.roguetrader .origin-path-placeholder-card p {
-  color: rgba(233, 223, 199, 0.78);
-  font-size: 0.8rem;
-  margin: 0;
 }
 
 .roguetrader .origin-path-world-buttons {

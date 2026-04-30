@@ -46,8 +46,9 @@ const STARSHIP_HULL_CLASSES = [
   { key: "frigate", label: "Frigate" },
   { key: "lightCruiser", label: "Light Cruiser" },
   { key: "cruiser", label: "Cruiser" },
+  { key: "battlecruiser", label: "Battlecruiser" },
   { key: "grandCruiser", label: "Grand Cruiser" },
-  { key: "battleship", label: "Battlecruiser" }
+  { key: "battleship", label: "Battleship" }
 ];
 
 const INDEX_ITEM_TYPES = new Set(["starshipHull", "essentialComponent", "supplementalComponent", "shipWeapon"]);

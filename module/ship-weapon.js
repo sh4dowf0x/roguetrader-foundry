@@ -104,8 +104,9 @@ export class RogueTraderShipWeaponSheet extends HandlebarsApplicationMixin(ItemS
       { key: "frigate", label: "Frigates" },
       { key: "lightCruiser", label: "Light Cruisers" },
       { key: "cruiser", label: "Cruisers" },
+      { key: "battlecruiser", label: "Battlecruisers" },
       { key: "grandCruiser", label: "Grand Cruisers" },
-      { key: "battleship", label: "Battlecruisers" },
+      { key: "battleship", label: "Battleships" },
       { key: "allShips", label: "All Ships" }
     ];
     context.mountLocationOptions = [
@@ -144,6 +145,15 @@ export class RogueTraderShipWeaponSheet extends HandlebarsApplicationMixin(ItemS
     return context;
   }
 
+  async _onRender(context, options) {
+    await super._onRender(context, options);
+
+    const root = this.#getRootElement();
+    if (!root) return;
+
+    this.#configureScrollLayout(root);
+  }
+
   async _updateObject(event, formData) {
     const expanded = foundry.utils.expandObject(formData);
     const weaponClass = String(expanded.system?.weaponClass ?? this.item.system?.weaponClass ?? "").trim().toLowerCase();
@@ -162,5 +172,55 @@ export class RogueTraderShipWeaponSheet extends HandlebarsApplicationMixin(ItemS
     }
 
     return super._updateObject(event, foundry.utils.flattenObject(expanded));
+  }
+
+  #getRootElement() {
+    if (this.element instanceof HTMLElement) return this.element;
+    return this.element?.[0] ?? null;
+  }
+
+  #configureScrollLayout(root) {
+    const windowContent = root.matches(".window-content")
+      ? root
+      : (root.closest?.(".window-content") ?? root.querySelector(".window-content"));
+    const form = root.matches("form")
+      ? root
+      : (root.closest?.("form") ?? root.querySelector("form"));
+    const weaponSheet = root.matches(".ship-weapon-sheet")
+      ? root
+      : (root.closest?.(".ship-weapon-sheet") ?? root.querySelector(".ship-weapon-sheet"));
+    const sheetBody = weaponSheet?.querySelector(".ship-weapon-sheet-body");
+
+    if (windowContent) {
+      windowContent.style.display = "flex";
+      windowContent.style.flexDirection = "column";
+      windowContent.style.minHeight = "0";
+      windowContent.style.height = "100%";
+      windowContent.style.overflowY = "auto";
+      windowContent.style.overflowX = "hidden";
+      windowContent.style.padding = "0";
+    }
+
+    if (form) {
+      form.style.display = "flex";
+      form.style.flexDirection = "column";
+      form.style.flex = "1 1 auto";
+      form.style.minHeight = "0";
+      form.style.height = "auto";
+      form.style.overflow = "visible";
+    }
+
+    if (weaponSheet) {
+      weaponSheet.style.flex = "1 1 auto";
+      weaponSheet.style.minHeight = "0";
+      weaponSheet.style.height = "100%";
+      weaponSheet.style.overflow = "visible";
+    }
+
+    if (sheetBody) {
+      sheetBody.style.flex = "1 1 auto";
+      sheetBody.style.minHeight = "0";
+      sheetBody.style.overflow = "visible";
+    }
   }
 }

@@ -138,6 +138,7 @@ const SHIP_MODIFIER_DEFINITIONS = [
   { key: "extraSpace", label: "Extra Space", shortLabel: "Space" },
   { key: "repairBonus", label: "Repair Bonus", shortLabel: "Repair" },
   { key: "commandBonus", label: "Command Bonus", shortLabel: "Command" },
+  { key: "boardingBonus", label: "Boarding Bonus", shortLabel: "Boarding" },
   { key: "hitAndRunAttackBonus", label: "Hit & Run Attack", shortLabel: "H&R Atk" },
   { key: "hitAndRunDefenseBonus", label: "Hit & Run Defense", shortLabel: "H&R Def" },
   { key: "pilotingBonus", label: "Piloting Bonus", shortLabel: "Pilot" },
@@ -187,6 +188,7 @@ const STARSHIP_ACTION_DEFINITIONS = [
   { key: "comeAbout", label: "Come About to New Heading", mode: "Move", subtype: "Manoeuvre", summary: "-10 Pilot (Spacecraft) + Manoeuvrability; turn when moved Half Speed and again at end; -20 Ballistic Skill." },
   { key: "disengage", label: "Disengage", mode: "Move", subtype: "Manoeuvre", summary: "Cannot be performed if craft are within 8 VUs; opposed Pilot (Spacecraft) + Manoeuvrability vs Detection + Scrutiny within 20 VUs." },
   { key: "evasiveManeuvers", label: "Evasive Manoeuvres", mode: "Move", subtype: "Manoeuvre", summary: "-10 Pilot (Spacecraft) + Manoeuvrability; attacks against the craft suffer penalties; the ship also takes a Ballistic Skill penalty." },
+  { key: "breakFree", label: "Break Free", mode: "Move", subtype: "Manoeuvre", summary: "While boarded, make a Hard (-20) Pilot (Spacecraft) + Manoeuvrability Test to disengage from the enemy ship." },
   { key: "activeAugury", label: "Active Augury", mode: "Extended", subtype: "Technological", summary: "Scrutiny + Detection; learn information about celestial bodies, phenomena, and ships within 20 VUs; detects Silent Running." },
   { key: "aidMachineSpirit", label: "Aid the Machine Spirit", mode: "Extended", subtype: "Technological", summary: "Grant +5 Manoeuvrability or Detection, plus +5 per 2 DoS." },
   { key: "disinformation", label: "Disinformation", mode: "Extended", subtype: "Social", summary: "-10 Deceive or Blather; restore 1d5 Morale, plus an additional 1d5 per DoS, to your own ship." },
@@ -205,7 +207,7 @@ const STARSHIP_ACTION_DEFINITIONS = [
   { key: "firefighting", label: "Firefighting", mode: "Extended", subtype: "Technological", summary: "-10 Command; if successful, remove Fire; may choose to vent into the void." },
   { key: "fireWeapons", label: "Fire Weapons", mode: "Shooting", subtype: "Attack", summary: "Ballistic Skill; resolve weapon component attacks in the chosen firing order." },
   { key: "ramming", label: "Ramming", mode: "Shooting", subtype: "Attack", summary: "End move within 1 VU; -20 Pilot (Spacecraft) + Manoeuvrability; both ships take damage." },
-  { key: "boarding", label: "Boarding", mode: "Shooting", subtype: "Attack", summary: "End move within 1 VU; Pilot (Spacecraft) + Manoeuvrability to entangle and board; opposed Command resolves damage." },
+  { key: "boarding", label: "Boarding", mode: "Shooting", subtype: "Attack", summary: "End move within 1 VU; Hard (-20) Pilot (Spacecraft) + Manoeuvrability to lock ships together and begin boarding." },
   { key: "controlWeakMind", label: "Control the Weak Mind", mode: "Extended", subtype: "Astropathic", summary: "Compel power; choose one weapon on another vessel within range and force it to fire at a target of the Astropath's choice." },
   { key: "darkLabyrinth", label: "Dark Labyrinth", mode: "Extended", subtype: "Astropathic", summary: "Delude power; ship counts as within a Tenebro-Maze for 1+DoS Turns." },
   { key: "diviningTheWay", label: "Divining the Way", mode: "Extended", subtype: "Astropathic", summary: "Divination discipline; add 1d5 DoS to a Manoeuvre Action; once per combat." },
@@ -1012,6 +1014,16 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
   }
 
   _isShipActionAvailable(action, { astropathicPowerState = {}, hasAssignedAstropath = false } = {}) {
+    const isBoardingLocked = Boolean(this.actor.isBoardingLocked?.());
+    if (isBoardingLocked) {
+      const actionKey = String(action?.key ?? "").trim();
+      const actionMode = String(action?.mode ?? "").trim();
+      if (actionKey === "breakFree") return true;
+      if (actionMode === "Move" || actionMode === "Shooting") return false;
+    } else if (String(action?.key ?? "").trim() === "breakFree") {
+      return false;
+    }
+
     if (this.actor.isJammedCommunications?.() && String(action?.mode ?? "") === "Extended" && String(action?.subtype ?? "") === "Social") return false;
     if (String(action?.mode ?? "") !== "Extended" || String(action?.subtype ?? "") !== "Astropathic") return true;
     if (!hasAssignedAstropath) return false;
@@ -1132,6 +1144,22 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
           : "SPD halved."
       );
     }
+    if (actor.isBoardingLocked?.()) {
+      const opposingShipName = String(actor.system?.conditions?.boarding?.opposingShipName ?? "").trim() || "Enemy Ship";
+      const failedBreakFreePenalty = Math.abs(Number(actor.system?.conditions?.boarding?.failedBreakFreePenalty ?? 0) || 0);
+      pushEffect(
+        "Boarding",
+        "Close Action",
+        `Locked with ${opposingShipName}; Move and Shooting actions are disabled except Break Free.${failedBreakFreePenalty ? ` Failed Break Free penalty: -${failedBreakFreePenalty} to the next boarding Command test.` : ""}`
+      );
+    }
+    if (actor.hasCrewSurrendered?.()) {
+      pushEffect("Crew Surrendered", "Morale Collapse", "The crew has surrendered. The ship is defeated for combat-tracker purposes.");
+    }
+    if (actor.isPrepareRepelBoardersActive?.()) {
+      const bonus = Math.max(0, Number(actor.system?.conditions?.prepareRepelBoarders?.bonus ?? 0) || 0);
+      pushEffect("Prepare to Repel Boarders!", "Social", `Opposed Command Tests against boarders gain +${bonus} until the start of the ship's next turn.`);
+    }
     if (actor.isSilentRunning?.()) {
       pushEffect("Silent Running", "Manoeuvre", "SPD halved. All Manoeuvre action tests suffer -10 while the ship remains in stealth mode.");
     }
@@ -1158,6 +1186,14 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         ? "next successful Evasive Manoeuvres test"
         : "next successful ship weapon Ballistic Skill test";
       pushEffect("Tactical Positioning", "Navigator", `${modeLabel} gains +${bonusDegrees} DoS this Strategic Turn.`);
+    }
+    if (Boolean(actor.system?.pendingPutBacksIntoIt?.active)) {
+      const pendingPutBacksIntoIt = actor.system?.pendingPutBacksIntoIt ?? {};
+      const bonus = Math.max(0, Number(pendingPutBacksIntoIt.bonus ?? 0) || 0);
+      const remainingUses = Math.max(0, Number(pendingPutBacksIntoIt.remainingUses ?? 0) || 0);
+      if (bonus > 0 && remainingUses > 0) {
+        pushEffect("Put your Backs into it!", "Social", `${remainingUses} remaining use${remainingUses === 1 ? "" : "s"} of +${bonus} to ship weapon fire, Emergency Repairs, or organised Firefighting this turn.`);
+      }
     }
     if (Boolean(actor.system?.conditions?.evasiveManeuvers?.active)) {
       const penalty = Math.abs(Number(actor.system?.conditions?.evasiveManeuvers?.penalty ?? 0) || 0);
@@ -1484,6 +1520,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
           frigate: false,
           lightCruiser: false,
           cruiser: false,
+          battlecruiser: false,
           grandCruiser: false,
           battleship: false,
           allShips: false
@@ -1590,6 +1627,10 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     const actionKey = String(event.currentTarget?.dataset?.actionKey ?? "").trim();
     if (!actionKey) return;
     const actionBand = this._getShipActionBand(actionKey);
+    if (this.actor.isBoardingLocked?.() && actionKey !== "breakFree" && ["move", "shooting"].includes(String(actionBand ?? ""))) {
+      ui.notifications?.warn("Rogue Trader | While boarding is underway, only Break Free may be designated from the Move / Shooting action bands.");
+      return;
+    }
 
     const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
     if (isNpcControlled) {
@@ -1700,6 +1741,11 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       return;
     }
 
+    if (this.actor.isBoardingLocked?.() && actionKey !== "breakFree" && ["move", "shooting"].includes(String(consumesBand ?? ""))) {
+      ui.notifications?.warn("Rogue Trader | The ship is locked in a boarding action. Only Break Free may be executed from the Move / Shooting action bands.");
+      return;
+    }
+
     const silentRunningAssignment = this.actor.system?.actionAssignments?.silentRunning ?? {};
     const silentRunningQueued = this.actor.isSilentRunning?.() !== true && (
       Math.max(0, Number(silentRunningAssignment?.order ?? 0) || 0) > 0
@@ -1738,6 +1784,9 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       case "evasiveManeuvers":
         result = await this._performEvasiveManeuversAssist(assignedActor ?? null);
         break;
+      case "breakFree":
+        result = await this._performBreakFreeAction(assignedActor ?? null);
+        break;
       case "silentRunning":
         result = await this._performSilentRunningAction();
         break;
@@ -1755,6 +1804,9 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         break;
       case "ramming":
         result = await this._performRammingAction(assignedActor ?? null);
+        break;
+      case "boarding":
+        result = await this._performBoardingAction(assignedActor ?? null);
         break;
       case "disinformation":
         result = await this._performDisinformationAction(assignedActor ?? null);
@@ -1776,6 +1828,12 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         break;
       case "lockOnTarget":
         result = await this._performLockOnTargetAction(assignedActor ?? null);
+        break;
+      case "prepareRepelBoarders":
+        result = await this._performPrepareRepelBoardersAction(assignedActor ?? null);
+        break;
+      case "putBacksIntoIt":
+        result = await this._performPutBacksIntoItAction(assignedActor ?? null);
         break;
       case "scanningTheAether":
         result = await this._performScanningTheAetherAction(assignedActor ?? null);
@@ -2627,6 +2685,100 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     });
   }
 
+  async _promptPutBacksIntoItSkill() {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      new Dialog({
+        title: `${this.actor.name}: Put your Backs into it!`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Choose which social skill will be used to drive the crew harder.</p>
+          </div>
+        `,
+        buttons: {
+          intimidate: {
+            label: "Intimidate",
+            callback: () => finish("Intimidate")
+          },
+          charm: {
+            label: "Charm",
+            callback: () => finish("Charm")
+          },
+          cancel: {
+            label: "Cancel",
+            callback: () => finish(null)
+          }
+        },
+        default: "intimidate",
+        close: () => finish(null)
+      }).render(true);
+    });
+  }
+
+  async _promptUsePutBacksIntoIt({ actionLabel = "this action", bonus = 5, remainingUses = 1 } = {}) {
+    return new Promise((resolve) => {
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        resolve(value);
+      };
+
+      new Dialog({
+        title: `${this.actor.name}: Put your Backs into it!`,
+        content: `
+          <div class="roguetrader-attack-reaction-dialog">
+            <p>Use one remaining <strong>Put your Backs into it!</strong> bonus on ${actionLabel}?</p>
+            <p><strong>Bonus:</strong> +${bonus}</p>
+            <p><strong>Remaining Uses:</strong> ${remainingUses}</p>
+          </div>
+        `,
+        buttons: {
+          yes: {
+            label: "Use Bonus",
+            callback: () => finish(true)
+          },
+          no: {
+            label: "Skip",
+            callback: () => finish(false)
+          }
+        },
+        default: "yes",
+        close: () => finish(false)
+      }).render(true);
+    });
+  }
+
+  async _maybeConsumePutBacksIntoItBonus(actionLabel = "this action") {
+    const bonus = Number(this.actor.getPendingPutBacksIntoItBonus?.() ?? 0) || 0;
+    if (bonus <= 0) return 0;
+
+    const remainingUses = Math.max(0, Number(this.actor.system?.pendingPutBacksIntoIt?.remainingUses ?? 0) || 0);
+    const isNpcControlled = String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc";
+    const shouldUse = isNpcControlled
+      ? true
+      : await this._promptUsePutBacksIntoIt({ actionLabel, bonus, remainingUses });
+    if (!shouldUse) return 0;
+
+    await this.actor.consumePendingPutBacksIntoIt?.();
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Put your Backs into it!</h3>
+          <p><strong>Effect Applied:</strong> +${bonus} to ${actionLabel}.</p>
+        </div>
+      `
+    });
+    return bonus;
+  }
+
   async _performDisinformationAction(actionActor = null) {
     const selectedSkill = await this._promptDisinformationSkill();
     if (!selectedSkill) return null;
@@ -2688,6 +2840,69 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       moraleGain,
       moraleRoll,
       moraleAfter: newMorale
+    };
+  }
+
+  async _performPutBacksIntoItAction(actionActor = null) {
+    const selectedSkill = await this._promptPutBacksIntoItSkill();
+    if (!selectedSkill) return null;
+
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Put your Backs into it!`,
+      skillName: selectedSkill,
+      characteristicKey: "fellowship",
+      modifier: 0,
+      actionActor,
+      modifierLabel: "Challenging Test"
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Put your Backs into it!</h3>
+            <p><strong>Skill:</strong> ${selectedSkill}</p>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>The crew cannot be pushed to greater effort.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const degrees = Math.max(0, Number(result.degrees ?? 0) || 0);
+    const uses = 1 + Math.floor(degrees / 3);
+    const operatorName = actionActor?.name ?? (String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc"
+      ? `NPC Crew (${Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0})`
+      : "Assigned Leader");
+
+    await this.actor.applyPendingPutBacksIntoIt?.({
+      bonus: 5,
+      uses,
+      sourceName: "Put your Backs into it!",
+      operatorName,
+      combat: game.combat ?? null
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Put your Backs into it!</h3>
+          <p><strong>Skill:</strong> ${selectedSkill}</p>
+          <p><strong>Result:</strong> Success (${degrees} DoS)</p>
+          <p><strong>Bonus:</strong> ${uses} use${uses === 1 ? "" : "s"} of +5 for ship weapon fire, Emergency Repairs, or organised Firefighting this turn.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      selectedSkill,
+      uses,
+      bonus: 5
     };
   }
 
@@ -3043,6 +3258,228 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
     };
   }
 
+  async _performBoardingAction(actionActor = null) {
+    if (this.actor.isBoardingLocked?.()) {
+      ui.notifications?.warn("Rogue Trader | This ship is already locked in a boarding action.");
+      return null;
+    }
+
+    const sourceToken = this.actor.getActiveTokens?.(true)?.[0] ?? this.actor.getActiveTokens?.()[0] ?? null;
+    const targetedTokens = Array.from(game.user?.targets ?? []).filter((token) => token?.actor?.type === "ship" && token.actor.id !== this.actor.id);
+    const targetToken = targetedTokens[0] ?? null;
+    const targetShipActor = targetToken?.actor ?? null;
+
+    if (!sourceToken || !targetToken || !targetShipActor) {
+      ui.notifications?.warn("Rogue Trader | Target one enemy ship token before performing Boarding.");
+      return null;
+    }
+
+    if (targetShipActor.isBoardingLocked?.()) {
+      ui.notifications?.warn(`Rogue Trader | ${targetShipActor.name} is already engaged in a boarding action.`);
+      return null;
+    }
+
+    const distanceVu = getDistanceVuBetweenTokens(sourceToken, targetToken);
+    if (distanceVu > 1) {
+      ui.notifications?.warn(`Rogue Trader | ${targetToken.name} is out of Boarding range (${distanceVu.toFixed(1)} / 1.0 VU).`);
+      return null;
+    }
+
+    await this.actor._playAutomatedAttackAnimation?.({
+      id: "ship-action-boarding",
+      name: "Boarding",
+      type: "shipAction",
+      img: "icons/svg/sword.svg"
+    }, [targetToken]);
+
+    const maneuverabilityModifier = Number(this.actor.getEffectiveShipManeuverability?.() ?? this.actor.system?.maneuverability ?? 0) || 0;
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Boarding`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: -20 + maneuverabilityModifier,
+      actionActor,
+      modifierLabel: "Hard Test + Manoeuvrability",
+      extraBreakdown: [
+        `Target: ${targetShipActor.name}`,
+        `Range: ${distanceVu.toFixed(1)} / 1.0 VU`
+      ]
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Boarding</h3>
+            <p><strong>Target:</strong> ${targetShipActor.name}</p>
+            <p><strong>Approach:</strong> Failed (${result.degrees} DoF)</p>
+            <p>The ships fail to lock together and the boarding action does not begin.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    await this.actor.applyBoardingLock?.({
+      opposingShipActor: targetShipActor,
+      sourceName: `Boarding (${targetShipActor.name})`,
+      announced: false
+    });
+    await targetShipActor.applyBoardingLock?.({
+      opposingShipActor: this.actor,
+      sourceName: `Boarding (${this.actor.name})`,
+      announced: false
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Boarding</h3>
+          <p><strong>Target:</strong> ${targetShipActor.name}</p>
+          <p><strong>Approach:</strong> Success (${result.degrees} DoS)</p>
+          <p>The ships crash together and become locked in a boarding action.</p>
+          <p>While boarding continues, neither ship may take Move or Shooting actions except <strong>Break Free</strong>.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      targetShipId: targetShipActor.id,
+      targetShipName: targetShipActor.name,
+      boardingStarted: true
+    };
+  }
+
+  async _performBreakFreeAction(actionActor = null) {
+    if (!this.actor.isBoardingLocked?.()) {
+      ui.notifications?.warn("Rogue Trader | This ship is not currently engaged in a boarding action.");
+      return null;
+    }
+
+    const targetShipActor = this.actor.getBoardingTargetActor?.();
+    if (!targetShipActor) {
+      await this.actor.clearBoardingLock?.({ announced: false });
+      ui.notifications?.warn("Rogue Trader | The opposing boarding target could not be found. Boarding was cleared.");
+      return null;
+    }
+
+    const maneuverabilityModifier = Number(this.actor.getEffectiveShipManeuverability?.() ?? this.actor.system?.maneuverability ?? 0) || 0;
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Break Free`,
+      skillName: "Pilot (Spacecraft)",
+      characteristicKey: "agility",
+      modifier: -20 + maneuverabilityModifier,
+      actionActor,
+      modifierLabel: "Hard Test + Manoeuvrability",
+      extraBreakdown: [
+        `Opposing Ship: ${targetShipActor.name}`
+      ]
+    });
+    if (!result) return null;
+
+    if (result.success) {
+      await this.actor.clearBoardingPair?.({ announced: false });
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Break Free</h3>
+            <p><strong>Opposing Ship:</strong> ${targetShipActor.name}</p>
+            <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
+            <p>The ships wrench apart and the boarding action ends.</p>
+          </div>
+        `
+      });
+      return {
+        ...result,
+        clearedBoarding: true
+      };
+    }
+
+    await this.actor.update({
+      "system.conditions.boarding.failedBreakFreePenalty": 20
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Break Free</h3>
+          <p><strong>Opposing Ship:</strong> ${targetShipActor.name}</p>
+          <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+          <p>The ships remain locked together. This ship suffers -20 to its next boarding Command test.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      clearedBoarding: false
+    };
+  }
+
+  async _performPrepareRepelBoardersAction(actionActor = null) {
+    const result = await this._rollShipActionSkillTest({
+      title: `${this.actor.name}: Prepare to Repel Boarders!`,
+      skillName: "Command",
+      characteristicKey: "fellowship",
+      modifier: 0,
+      actionActor,
+      modifierLabel: "Challenging Test"
+    });
+    if (!result) return null;
+
+    if (!result.success) {
+      await ChatMessage.create({
+        speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+        content: `
+          <div class="roguetrader-roll-card">
+            <h3>${this.actor.name}: Prepare to Repel Boarders!</h3>
+            <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
+            <p>The crew cannot be properly rallied to repel boarders.</p>
+          </div>
+        `
+      });
+      return result;
+    }
+
+    const degrees = Math.max(0, Number(result.degrees ?? 0) || 0);
+    const bonus = 10 + (degrees * 5);
+    const operatorName = actionActor?.name ?? (String(this.actor.system?.controlMode ?? "npc").trim().toLowerCase() === "npc"
+      ? `NPC Crew (${Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0})`
+      : "Assigned Captain");
+
+    await this.actor.applyPrepareRepelBoarders?.({
+      bonus,
+      sourceName: "Prepare to Repel Boarders!",
+      operatorName,
+      operatorActorUuid: String(actionActor?.uuid ?? ""),
+      combat: game.combat ?? null,
+      announced: false
+    });
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: `
+        <div class="roguetrader-roll-card">
+          <h3>${this.actor.name}: Prepare to Repel Boarders!</h3>
+          <p><strong>Result:</strong> Success (${degrees} DoS)</p>
+          <p><strong>Boarding Defence Bonus:</strong> +${bonus}</p>
+          <p>The bonus lasts until the start of the ship's next turn. Repeat the action on later turns to maintain it.</p>
+        </div>
+      `
+    });
+
+    return {
+      ...result,
+      bonus
+    };
+  }
+
   async _performRammingAction(actionActor = null) {
     const sourceToken = this.actor.getActiveTokens?.(true)?.[0] ?? this.actor.getActiveTokens?.()[0] ?? null;
     const targetedTokens = Array.from(game.user?.targets ?? []).filter((token) => token?.actor?.type === "ship" && token.actor.id !== this.actor.id);
@@ -3377,13 +3814,14 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       };
     }
 
+    const putBacksIntoItBonus = await this._maybeConsumePutBacksIntoItBonus("Firefighting");
     const result = await this._rollShipActionSkillTest({
       title: `${this.actor.name}: Firefighting`,
       skillName: "Command",
       characteristicKey: "fellowship",
-      modifier: -10,
+      modifier: -10 + putBacksIntoItBonus,
       actionActor,
-      modifierLabel: "Difficult Test"
+      modifierLabel: "Difficult Test + Put your Backs into it!"
     });
     if (!result) return null;
 
@@ -3443,26 +3881,30 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       };
 
       const optionMarkup = components.map((item) => {
-        const itemTypeLabel = item.type === "shipWeapon"
-          ? "Weapon Component"
-          : item.type === "supplementalComponent"
-            ? "Supplemental Component"
-            : "Essential Component";
+        const itemTypeLabel = item.targetType === "condition"
+          ? "Critical Condition"
+          : item.type === "shipWeapon"
+            ? "Weapon Component"
+            : item.type === "supplementalComponent"
+              ? "Supplemental Component"
+              : "Essential Component";
         const statusLabel = String(item.system?.status ?? "intact").trim() || "intact";
-        const qualifiers = [
-          ...(statusLabel !== "intact" && statusLabel !== "destroyed" ? [statusLabel] : []),
-          ...(Boolean(item.system?.depressurized) ? ["depressurized"] : [])
-        ].join(", ");
-        return `<option value="${item.id}">${item.name} (${itemTypeLabel}${qualifiers ? ` | ${qualifiers}` : ""})</option>`;
+        const qualifiers = item.targetType === "condition"
+          ? []
+          : [
+            ...(statusLabel !== "intact" && statusLabel !== "destroyed" ? [statusLabel] : []),
+            ...(Boolean(item.system?.depressurized) ? ["depressurized"] : [])
+          ];
+        return `<option value="${item.id}">${item.name} (${itemTypeLabel}${qualifiers.length ? ` | ${qualifiers.join(", ")}` : ""})</option>`;
       }).join("");
 
       new Dialog({
         title: `${this.actor.name}: Emergency Repairs`,
         content: `
           <div class="roguetrader-attack-reaction-dialog">
-            <p>Select an unpowered, damaged, or depressurized component to repair.</p>
+            <p>Select a component or critical condition to repair.</p>
             <div class="form-group">
-              <label for="rt-emergency-repairs-component">Component</label>
+              <label for="rt-emergency-repairs-component">Target</label>
               <select id="rt-emergency-repairs-component" name="componentId">${optionMarkup}</select>
             </div>
           </div>
@@ -3495,29 +3937,61 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       const needsRepair = ["unpowered", "damaged"].includes(status) || Boolean(item.system?.depressurized);
       const isAlreadyRepairing = Boolean(item.system?.emergencyRepair?.active);
       return !isDestroyed && needsRepair && !isAlreadyRepairing;
-    }).sort((left, right) => left.name.localeCompare(right.name));
+    }).map((item) => ({
+      ...item,
+      targetType: "item"
+    }));
+
+    if (this.actor.isThrustersDamaged?.() && !Boolean(this.actor.system?.conditions?.thrustersDamaged?.emergencyRepair?.active)) {
+      repairCandidates.push({
+        id: "condition:thrustersDamaged",
+        name: "Thrusters Damaged",
+        targetType: "condition",
+        conditionKey: "thrustersDamaged"
+      });
+    }
+
+    if (this.actor.isEnginesCrippled?.() && !Boolean(this.actor.system?.conditions?.enginesCrippled?.emergencyRepair?.active)) {
+      repairCandidates.push({
+        id: "condition:enginesCrippled",
+        name: "Engines Crippled",
+        targetType: "condition",
+        conditionKey: "enginesCrippled"
+      });
+    }
+
+    repairCandidates.sort((left, right) => left.name.localeCompare(right.name));
 
     if (!repairCandidates.length) {
-      ui.notifications?.info("Rogue Trader | No unpowered, damaged, or depressurized ship components are currently available for Emergency Repairs.");
+      ui.notifications?.info("Rogue Trader | No repairable components or critical ship conditions are currently available for Emergency Repairs.");
       return null;
     }
 
-    const selectedComponentId = await this._promptEmergencyRepairComponent(repairCandidates);
-    if (!selectedComponentId) return null;
+    const selectedTargetId = await this._promptEmergencyRepairComponent(repairCandidates);
+    if (!selectedTargetId) return null;
 
-    const selectedComponent = this.actor.items.get(selectedComponentId);
-    if (!selectedComponent) {
+    const selectedTarget = repairCandidates.find((candidate) => candidate.id === selectedTargetId) ?? null;
+    if (!selectedTarget) {
+      ui.notifications?.warn("Rogue Trader | Could not find the selected repair target.");
+      return null;
+    }
+
+    const selectedComponent = selectedTarget.targetType === "item"
+      ? this.actor.items.get(selectedTarget.id)
+      : null;
+    if (selectedTarget.targetType === "item" && !selectedComponent) {
       ui.notifications?.warn("Rogue Trader | Could not find the selected component.");
       return null;
     }
 
+    const putBacksIntoItBonus = await this._maybeConsumePutBacksIntoItBonus("Emergency Repairs");
     const result = await this._rollShipActionSkillTest({
       title: `${this.actor.name}: Emergency Repairs`,
       skillName: "Tech-Use",
       characteristicKey: "intelligence",
-      modifier: -10 + (Number(this.actor.getShipModifierTotal?.("repairBonus") ?? 0) || 0),
+      modifier: -10 + (Number(this.actor.getShipModifierTotal?.("repairBonus") ?? 0) || 0) + putBacksIntoItBonus,
       actionActor,
-      modifierLabel: "Difficult Test + Repair Bonus"
+      modifierLabel: "Difficult Test + Repair Bonus + Put your Backs into it!"
     });
     if (!result) return null;
 
@@ -3527,7 +4001,7 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
         content: `
           <div class="roguetrader-roll-card">
             <h3>${this.actor.name}: Emergency Repairs</h3>
-            <p><strong>Component:</strong> ${selectedComponent.name}</p>
+            <p><strong>Target:</strong> ${selectedTarget.name}</p>
             <p><strong>Result:</strong> Failed (${result.degrees} DoF)</p>
             <p>No repair progress was made.</p>
           </div>
@@ -3544,30 +4018,41 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       ? `NPC Crew (${Number(this.actor.getEffectiveShipCrewRating?.() ?? this.actor.system?.npcCrewRating ?? 0) || 0})`
       : "Assigned Repair Crew");
 
-    await selectedComponent.update({
-      "system.emergencyRepair.active": true,
-      "system.emergencyRepair.remainingTurns": repairTurns,
-      "system.emergencyRepair.source": "Emergency Repairs",
-      "system.emergencyRepair.operatorName": operatorName
-    });
+    if (selectedTarget.targetType === "item") {
+      await selectedComponent.update({
+        "system.emergencyRepair.active": true,
+        "system.emergencyRepair.remainingTurns": repairTurns,
+        "system.emergencyRepair.source": "Emergency Repairs",
+        "system.emergencyRepair.operatorName": operatorName
+      });
+    } else {
+      await this.actor.update({
+        [`system.conditions.${selectedTarget.conditionKey}.emergencyRepair.active`]: true,
+        [`system.conditions.${selectedTarget.conditionKey}.emergencyRepair.remainingTurns`]: repairTurns,
+        [`system.conditions.${selectedTarget.conditionKey}.emergencyRepair.source`]: "Emergency Repairs",
+        [`system.conditions.${selectedTarget.conditionKey}.emergencyRepair.operatorName`]: operatorName
+      });
+    }
 
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content: `
         <div class="roguetrader-roll-card">
           <h3>${this.actor.name}: Emergency Repairs</h3>
-          <p><strong>Component:</strong> ${selectedComponent.name}</p>
+          <p><strong>Target:</strong> ${selectedTarget.name}</p>
           <p><strong>Result:</strong> Success (${result.degrees} DoS)</p>
           <p><strong>Repair Time:</strong> ${repairRoll.formula} = ${baseTurns}, reduced by ${degrees} to ${repairTurns} turn${repairTurns === 1 ? "" : "s"}.</p>
-          <p><strong>Completion:</strong> The component will be repaired at the start of the ship's turn when the countdown reaches 0.</p>
+          <p><strong>Completion:</strong> The repair will complete at the start of the ship's turn when the countdown reaches 0.</p>
         </div>
       `
     });
 
     return {
       ...result,
-      componentId: selectedComponent.id,
-      componentName: selectedComponent.name,
+      componentId: selectedComponent?.id ?? null,
+      componentName: selectedTarget.name,
+      targetType: selectedTarget.targetType,
+      conditionKey: selectedTarget.conditionKey ?? null,
       baseTurns,
       repairTurns,
       repairRoll
@@ -4069,6 +4554,11 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       return;
     }
 
+    if (this.actor.isBoardingLocked?.()) {
+      ui.notifications?.warn("Rogue Trader | The ship is locked in a boarding action and cannot fire weapons until it breaks free.");
+      return;
+    }
+
     if (game.combat && !this.actor.isFireWeaponsActive?.(game.combat)) {
       ui.notifications?.warn("Rogue Trader | Activate Fire Weapons before firing any ship weapons this Strategic Turn.");
       return;
@@ -4079,7 +4569,11 @@ export class RogueTraderShipSheet extends HandlebarsApplicationMixin(ActorSheetV
       return;
     }
 
-    const result = await rollStarshipWeaponAttack(this.actor, item);
+    const putBacksIntoItBonus = await this._maybeConsumePutBacksIntoItBonus(`${item.name} fire test`);
+    const result = await rollStarshipWeaponAttack(this.actor, item, {
+      attackModifier: putBacksIntoItBonus,
+      attackModifierLabel: putBacksIntoItBonus ? "Put your Backs into it!" : ""
+    });
     if (result && game.combat) {
       await this.actor.markShipWeaponFiredThisTurn?.(item.id, game.combat);
     }

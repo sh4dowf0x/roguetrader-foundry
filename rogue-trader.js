@@ -45,6 +45,8 @@ const SHIP_ONLY_STATUS_EFFECT_IDS = new Set([
   "thrusters-damaged",
   "ship-fire",
   "engines-crippled",
+  "ship-boarding",
+  "crew-surrendered",
   "silent-running",
   "jammed-communications",
   "warp-interference",
@@ -148,6 +150,18 @@ const ROGUETRADER_STATUS_EFFECTS = [
     name: "Engines Crippled",
     img: "systems/roguetrader/assets/svg/boat-engine.svg",
     statuses: ["engines-crippled"]
+  },
+  {
+    id: "ship-boarding",
+    name: "Boarding",
+    img: "icons/svg/sword.svg",
+    statuses: ["ship-boarding"]
+  },
+  {
+    id: "crew-surrendered",
+    name: "Crew Surrendered",
+    img: "systems/roguetrader/assets/svg/black-flag.svg",
+    statuses: ["crew-surrendered"]
   },
   {
     id: "silent-running",
@@ -1318,6 +1332,9 @@ Hooks.on("updateCombat", async (combat, changed) => {
   if (previousActor?.handleShipFireTurnEnd) {
     await previousActor.handleShipFireTurnEnd(combat);
   }
+  if (previousActor?.handleBoardingTurnEnd) {
+    await previousActor.handleBoardingTurnEnd(combat);
+  }
 
   const combatant = combat?.combatant;
   const actor = combatant?.actor;
@@ -1346,6 +1363,8 @@ Hooks.on("updateCombat", async (combat, changed) => {
   if (actor.handleSilentRunningTurnStart) await actor.handleSilentRunningTurnStart(combat);
   if (actor.handlePendingLockOnTargetTurnStart) await actor.handlePendingLockOnTargetTurnStart(combat);
   if (actor.handlePendingTacticalPositioningTurnStart) await actor.handlePendingTacticalPositioningTurnStart(combat);
+  if (actor.handlePendingPutBacksIntoItTurnStart) await actor.handlePendingPutBacksIntoItTurnStart(combat);
+  if (actor.handlePrepareRepelBoardersTurnStart) await actor.handlePrepareRepelBoardersTurnStart(combat);
   if (actor.handleEmergencyRepairsTurnStart) await actor.handleEmergencyRepairsTurnStart(combat);
   if (actor.clearShipTemporaryModifiers) await actor.clearShipTemporaryModifiers();
   if (actor.handleEvasiveManeuversTurnStart) await actor.handleEvasiveManeuversTurnStart(combat);
@@ -1968,6 +1987,25 @@ Hooks.on("createActiveEffect", async (effect, options, userId) => {
       "system.conditions.enginesCrippled.active": true
     });
   }
+  if (statuses.includes("ship-boarding")) {
+    await effect.parent.update({
+      "system.conditions.boarding.active": true
+    });
+  }
+  if (statuses.includes("crew-surrendered")) {
+    await effect.parent.update({
+      "system.conditions.crewSurrendered.active": true
+    });
+    const defeatedStatusId = CONFIG.specialStatusEffects?.DEFEATED ?? "defeated";
+    for (const combatant of game.combat?.combatants ?? []) {
+      if (combatant?.actor?.uuid !== effect.parent.uuid) continue;
+      if (combatant.defeated) continue;
+      await combatant.update({ defeated: true });
+    }
+    if (effect.parent.statuses?.has?.(defeatedStatusId) || effect.parent._getStatusEffectByStatusId?.(defeatedStatusId)) {
+      await applyDeadTokenVisual(effect.parent);
+    }
+  }
   if (statuses.includes("silent-running")) {
     await effect.parent.update({
       "system.conditions.silentRunning.active": true
@@ -2116,6 +2154,30 @@ Hooks.on("deleteActiveEffect", async (effect, options, userId) => {
       "system.conditions.enginesCrippled.speedHalved": false,
       "system.conditions.enginesCrippled.speedReducedToOne": false
     });
+  }
+  if (statuses.includes("ship-boarding")) {
+    await effect.parent.update({
+      "system.conditions.boarding.active": false,
+      "system.conditions.boarding.source": "",
+      "system.conditions.boarding.opposingShipUuid": "",
+      "system.conditions.boarding.opposingShipName": "",
+      "system.conditions.boarding.failedBreakFreePenalty": 0,
+      "system.conditions.boarding.lastResolved": {
+        combatId: "",
+        round: 0
+      }
+    });
+  }
+  if (statuses.includes("crew-surrendered")) {
+    await effect.parent.update({
+      "system.conditions.crewSurrendered.active": false,
+      "system.conditions.crewSurrendered.source": ""
+    });
+    for (const combatant of game.combat?.combatants ?? []) {
+      if (combatant?.actor?.uuid !== effect.parent.uuid) continue;
+      if (!combatant.defeated) continue;
+      await combatant.update({ defeated: false });
+    }
   }
   if (statuses.includes("silent-running")) {
     await effect.parent.update({

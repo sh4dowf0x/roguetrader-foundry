@@ -41,8 +41,9 @@ export class RogueTraderStarshipHullSheet extends HandlebarsApplicationMixin(Ite
       frigate: "Frigate",
       lightCruiser: "Light Cruiser",
       cruiser: "Cruiser",
+      battlecruiser: "Battlecruiser",
       grandCruiser: "Grand Cruiser",
-      battleship: "Battlecruiser"
+      battleship: "Battleship"
     };
     context.availabilityOptions = {
       ubiquitous: "Ubiquitous",

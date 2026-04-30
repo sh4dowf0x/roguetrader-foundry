@@ -61,8 +61,9 @@ export class RogueTraderShipComponentSheet extends HandlebarsApplicationMixin(It
       { key: "frigate", label: "Frigates" },
       { key: "lightCruiser", label: "Light Cruisers" },
       { key: "cruiser", label: "Cruisers" },
+      { key: "battlecruiser", label: "Battlecruisers" },
       { key: "grandCruiser", label: "Grand Cruisers" },
-      { key: "battleship", label: "Battlecruisers" },
+      { key: "battleship", label: "Battleships" },
       { key: "allShips", label: "All Ships" }
     ];
     context.availabilityOptions = {
